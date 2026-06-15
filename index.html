@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZODIAC SWEDEN: 12 CONSTELLATIONS</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/hud.css">
+  <link rel="stylesheet" href="css/screens.css">
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1080" height="620"></canvas>
+
+    <!-- IN-GAME HUD -->
+    <div id="ui-hud">
+      <div class="hud-top">
+        <!-- PLAYER 1 HUD -->
+        <div class="player-hud-card" id="p1-hud">
+          <div id="p1-avatar" class="hero-avatar">♒</div>
+          <div>
+            <div><span class="player-tag p1-tag">P1 [WASD]</span> <span id="p1-name" class="hero-name-text">AQUARIUS</span></div>
+            <div class="bars-container">
+              <div class="bar-wrapper">
+                <div id="p1-hp-bar" class="bar-fill-hp"></div>
+                <span class="bar-label">HP: <span id="p1-hp-text">100/100</span></span>
+              </div>
+              <div class="bar-wrapper">
+                <div id="p1-energy-bar" class="bar-fill-energy"></div>
+                <span class="bar-label"><span id="p1-energy-name">RAM</span>: <span id="p1-energy-text">100</span></span>
+              </div>
+              <div class="bar-wrapper">
+                <div id="p1-ult-bar" class="bar-fill-ult"></div>
+                <span class="bar-label">ULT: <span id="p1-ult-text">0%</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER CITY & SCORE -->
+        <div class="center-hud">
+          <div id="hud-city" class="location-city">🇸🇪 GÖTEBORG DOCKS</div>
+          <div class="score-badge">TEAM SHARDS: <span id="score-val">0</span> ⭐</div>
+        </div>
+
+        <!-- PLAYER 2 HUD -->
+        <div class="player-hud-card p2-card" id="p2-hud" style="display: none;">
+          <div>
+            <div style="text-align: right;"><span class="player-tag p2-tag">P2 [ARROWS]</span> <span id="p2-name" class="hero-name-text" style="color: #facc15;">ARIES</span></div>
+            <div class="bars-container">
+              <div class="bar-wrapper">
+                <div id="p2-hp-bar" class="bar-fill-hp"></div>
+                <span class="bar-label">HP: <span id="p2-hp-text">140/140</span></span>
+              </div>
+              <div class="bar-wrapper">
+                <div id="p2-energy-bar" class="bar-fill-energy"></div>
+                <span class="bar-label"><span id="p2-energy-name">RAGE</span>: <span id="p2-energy-text">100</span></span>
+              </div>
+              <div class="bar-wrapper">
+                <div id="p2-ult-bar" class="bar-fill-ult"></div>
+                <span class="bar-label">ULT: <span id="p2-ult-text">0%</span></span>
+              </div>
+            </div>
+          </div>
+          <div id="p2-avatar" class="hero-avatar" style="border-color: #facc15; box-shadow: 0 0 14px #facc15;">♈</div>
+        </div>
+      </div>
+
+      <!-- BOSS HEALTH BAR HUD -->
+      <div id="boss-hud-container" style="display: none;">
+        <div class="boss-hud-header">
+          <div class="boss-hud-left">
+            <span id="boss-hud-icon">🐙</span>
+            <span id="boss-hud-name">MEKANISK KRAN-KRAKEN</span>
+          </div>
+          <span id="boss-hud-phase" class="boss-phase-badge">PHASE 1</span>
+        </div>
+        <div class="boss-bar-outer">
+          <div id="boss-hp-bar" class="boss-bar-fill"></div>
+          <span class="boss-hp-label"><span id="boss-hp-current">1000</span> / <span id="boss-hp-max">1000</span> HP</span>
+        </div>
+      </div>
+
+      <!-- COMBO & SYNERGY POPUPS -->
+      <div id="combo-banner" class="combo-banner">TEAM COMBO x<span id="combo-count">0</span>!</div>
+      <div id="synergy-popup" class="synergy-popup">⚡ ELEMENTAL RESONANCE! ⚡</div>
+
+      <!-- CONTROLS GUIDE -->
+      <div class="hud-bottom">
+        <div class="coop-controls-guide">
+          <b>P1:</b> <kbd>WASD</kbd> | <kbd>F</kbd> Attack | <kbd>G</kbd> Skill 1 | <kbd>H</kbd> Skill 2 | <kbd>Space</kbd> Dash | <kbd>T</kbd> Ult
+        </div>
+        <div id="p2-controls-guide" class="coop-controls-guide" style="display: none;">
+          <b>P2:</b> <kbd>Arrows</kbd> | <kbd>1</kbd>/<kbd>K</kbd> Attack | <kbd>2</kbd>/<kbd>L</kbd> Skill 1 | <kbd>3</kbd>/<kbd>O</kbd> Skill 2 | <kbd>0</kbd>/<kbd>Shift</kbd> Dash | <kbd>4</kbd>/<kbd>P</kbd> Ult
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 1: TITLE SCREEN -->
+    <div id="screen-title" class="screen-overlay">
+      <div class="screen-title">🇸🇪 ZODIAC SWEDEN</div>
+      <div class="screen-subtitle">RETRO ARCADE BRAWLER: ALL 12 CONSTELLATIONS ACROSS SWEDEN</div>
+      
+      <div class="mode-buttons">
+        <button id="btn-mode-solo" class="btn-main">SOLO CAMPAIGN [1P SOLO]</button>
+        <button id="btn-mode-coop" class="btn-main btn-coop">CO-OP ARCADE [2P CO-OP] 👥</button>
+      </div>
+      <button id="btn-goto-map" class="btn-secondary">SWEDEN REALM MAP</button>
+    </div>
+
+    <!-- SCREEN 2: ALL 12 ZODIACS SELECTION -->
+    <div id="screen-char-select" class="screen-overlay" style="display: none;">
+      <div class="screen-title">CHOOSE YOUR GUARDIAN</div>
+      <div id="char-select-sub" class="screen-subtitle">All 12 signs with unique elemental masteries and Swedish home cities</div>
+
+      <div class="selector-status-bar">
+        <span style="color: #00f0ff;">Player 1 [P1]: <b id="lbl-p1-choice">AQUARIUS (Gothenburg)</b></span>
+        <span id="lbl-p2-container" style="color: #facc15; display: none;">Player 2 [P2]: <b id="lbl-p2-choice">ARIES (Kiruna)</b></span>
+      </div>
+
+      <!-- 12 ZODIACS GRID -->
+      <div class="zodiac-12-grid" id="zodiac-grid"></div>
+
+      <div>
+        <button id="btn-confirm-char" class="btn-main">DEPLOY TO REALM [START MISSION]</button>
+        <button id="btn-back-from-char" class="btn-secondary">BACK TO MENU</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: MAP SCREEN -->
+    <div id="screen-map" class="screen-overlay" style="display: none;">
+      <div class="screen-title">TACTICAL MAP OF SWEDEN</div>
+      <div class="screen-subtitle">Select a liberated province or challenge high-threat sectors</div>
+
+      <div class="map-container">
+        <!-- SVG Sweden Outline -->
+        <svg style="position: absolute; top: 10px; left: 230px; height: 350px; opacity: 0.25;" viewBox="0 0 200 400">
+          <path d="M 80,20 Q 120,40 100,100 Q 130,160 90,220 Q 80,290 60,360 Q 40,380 30,340 Q 50,280 40,200 Q 20,120 70,50 Z" fill="#00f0ff" stroke="#38bdf8" stroke-width="2"/>
+        </svg>
+
+        <!-- Kiruna (Aries) -->
+        <div class="map-node" style="top: 20px; left: 510px;" data-level="kiruna">
+          <div class="map-pin" style="border-color: #f97316; box-shadow: 0 0 14px #f97316;">♈</div>
+          <div class="map-label">KIRUNA (Lapland)</div>
+          <div class="map-sub">LKAB Mines & Aurora Borealis</div>
+        </div>
+
+        <!-- Stockholm (Leo) -->
+        <div class="map-node" style="top: 175px; left: 560px;" data-level="stockholm">
+          <div class="map-pin" style="border-color: #facc15; box-shadow: 0 0 14px #facc15;">♌</div>
+          <div class="map-label">STOCKHOLM (Capital)</div>
+          <div class="map-sub">Gamla Stan & Royal Bridges</div>
+        </div>
+
+        <!-- Göteborg (Aquarius) -->
+        <div class="map-node" style="top: 225px; left: 370px;" data-level="goteborg">
+          <div class="map-pin" style="border-color: #00f0ff; box-shadow: 0 0 14px #00f0ff;">♒</div>
+          <div class="map-label">GOTHENBURG (West Coast)</div>
+          <div class="map-sub">Eriksberg Shipyard & Port Docks</div>
+        </div>
+
+        <!-- Visby (Scorpio) -->
+        <div class="map-node" style="top: 240px; left: 660px;" data-level="visby">
+          <div class="map-pin" style="border-color: #a855f7; box-shadow: 0 0 14px #a855f7;">♏</div>
+          <div class="map-label">VISBY (Gotland Island)</div>
+          <div class="map-sub">Medieval Ramparts & Baltic Storm</div>
+        </div>
+      </div>
+
+      <button id="btn-start-level" class="btn-main">DEPLOY TO SECTOR [START LEVEL]</button>
+      <button id="btn-back-from-map" class="btn-secondary">BACK TO MENU</button>
+    </div>
+
+    <!-- SCREEN 4: RESULTS -->
+    <div id="screen-result" class="screen-overlay" style="display: none;">
+      <div id="res-title" class="screen-title">🏆 SECTOR LIBERATED!</div>
+      <div id="res-desc" class="screen-subtitle" style="font-size: 15px; max-width: 600px; line-height: 1.6;">Sector cleared.</div>
+      <button id="btn-res-next" class="btn-main">TACTICAL MAP [WORLD MAP]</button>
+      <button id="btn-res-replay" class="btn-secondary">REPLAY SECTOR</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    <span><b>P1:</b> <kbd>WASD</kbd> + <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>Space</kbd> <kbd>T</kbd></span>
+    <span><b>P2:</b> <kbd>Arrows</kbd> + <kbd>1</kbd>/<kbd>K</kbd> <kbd>2</kbd>/<kbd>L</kbd> <kbd>3</kbd>/<kbd>O</kbd> <kbd>0</kbd>/<kbd>Shift</kbd> <kbd>4</kbd>/<kbd>P</kbd></span>
+    <span><b>Relics:</b> 🧆 Köttbullar (+HP) | 🐟 Surströmming (Gas Hazard) | ☕ Fika (+Energy)</span>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

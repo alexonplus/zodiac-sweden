@@ -1,0 +1,281 @@
+#ui-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 18px;
+  z-index: 10;
+}
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+.player-hud-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(3, 10, 25, 0.88);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  padding: 6px 14px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+}
+.p2-card { border-color: rgba(250, 204, 21, 0.5); }
+.hero-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 12px currentColor;
+}
+.player-tag {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.p1-tag { background: #0284c7; color: #fff; }
+.p2-tag { background: #d97706; color: #fff; }
+
+.hero-name-text {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 165px;
+}
+.bar-wrapper {
+  position: relative;
+  height: 11px;
+  background: #0f172a;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.bar-fill-hp {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 8px #ef4444;
+}
+.bar-fill-energy {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 8px #38bdf8;
+}
+.bar-fill-ult {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #a855f7, #ec4899, #facc15);
+  transition: width 0.15s ease-out;
+  box-shadow: 0 0 10px #ec4899;
+}
+.bar-label {
+  position: absolute;
+  top: -1px;
+  left: 5px;
+  font-size: 8px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.center-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(3, 10, 25, 0.88);
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  padding: 6px 16px;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+.location-city {
+  font-size: 14px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.7);
+}
+.score-badge {
+  font-size: 12px;
+  font-weight: 900;
+  color: #38bdf8;
+}
+
+#boss-hud-container {
+  position: absolute;
+  top: 62px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 580px;
+  background: rgba(3, 8, 20, 0.92);
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  padding: 6px 14px 8px;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 20;
+  animation: bossHudAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes bossHudAppear {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.boss-hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.boss-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#boss-hud-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px #ef4444);
+}
+#boss-hud-name {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #fee2e2;
+  text-shadow: 0 0 10px #ef4444;
+  text-transform: uppercase;
+}
+.boss-phase-badge {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  letter-spacing: 1px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+  transition: all 0.3s;
+}
+.boss-phase-badge.phase2 {
+  background: linear-gradient(135deg, #f59e0b, #dc2626);
+  animation: pulsePhase 1s infinite alternate;
+}
+@keyframes pulsePhase {
+  0% { transform: scale(1); box-shadow: 0 0 10px #f59e0b; }
+  100% { transform: scale(1.1); box-shadow: 0 0 20px #ef4444; }
+}
+.boss-bar-outer {
+  position: relative;
+  height: 16px;
+  background: #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+}
+.boss-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ef4444, #f43f5e, #fb7185);
+  box-shadow: 0 0 15px #ef4444;
+  transition: width 0.15s ease-out;
+}
+.boss-bar-fill.phase2 {
+  background: linear-gradient(90deg, #dc2626, #f97316, #facc15);
+  box-shadow: 0 0 20px #f97316;
+}
+.boss-hp-label {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 4px #000, 1px 1px 2px #000;
+}
+
+.hud-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+.coop-controls-guide {
+  background: rgba(3, 10, 25, 0.85);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  color: #94a3b8;
+  backdrop-filter: blur(6px);
+}
+.coop-controls-guide kbd {
+  background: #1e293b;
+  color: #38bdf8;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.combo-banner {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 26px;
+  font-weight: 900;
+  color: #f43f5e;
+  text-shadow: 0 0 12px #f43f5e, 2px 2px 0 #000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.combo-banner.active { opacity: 1; }
+
+.synergy-popup {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  background: linear-gradient(135deg, #ec4899, #facc15);
+  color: #000;
+  font-weight: 900;
+  font-size: 15px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.8);
+  opacity: 0;
+  transition: all 0.2s ease-out;
+  pointer-events: none;
+  letter-spacing: 1px;
+}
+.synergy-popup.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.1);
+}
