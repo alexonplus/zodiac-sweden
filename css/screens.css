@@ -12,14 +12,14 @@
   align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 20px;
+  padding: 16px 20px;
   text-align: center;
 }
 .screen-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   letter-spacing: 3px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   text-transform: uppercase;
   background: linear-gradient(135deg, #00f0ff, #facc15, #ec4899);
   -webkit-background-clip: text;
@@ -27,10 +27,10 @@
   text-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
 }
 .screen-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #94a3b8;
-  margin-bottom: 16px;
-  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  letter-spacing: 1.2px;
 }
 .mode-buttons {
   display: flex;
@@ -41,8 +41,8 @@
   background: linear-gradient(135deg, #00f0ff, #0284c7);
   color: #020617;
   font-weight: 900;
-  font-size: 14px;
-  padding: 10px 28px;
+  font-size: 13px;
+  padding: 10px 26px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -52,7 +52,7 @@
   transition: all 0.2s;
 }
 .btn-main:hover {
-  transform: scale(1.06);
+  transform: scale(1.05);
   box-shadow: 0 0 30px #00f0ff;
 }
 .btn-coop {
@@ -68,7 +68,7 @@
   padding: 6px 18px;
   border-radius: 6px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 6px;
   transition: all 0.2s;
 }
 .btn-secondary:hover { background: #38bdf8; color: #000; }
@@ -78,46 +78,166 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+  width: 100%;
   max-width: 980px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .zodiac-card {
   background: #091124;
   border: 2px solid #1e293b;
   border-radius: 10px;
-  padding: 8px 6px;
+  padding: 6px 4px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
 }
 .zodiac-card:hover {
-  border-color: #38bdf8;
-  transform: translateY(-4px);
+  border-color: var(--card-color, #38bdf8);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 240, 255, 0.25);
 }
 .zodiac-card.p1-sel {
   border-color: #00f0ff !important;
-  background: #033c5e !important;
-  box-shadow: 0 0 14px #00f0ff;
+  background: linear-gradient(180deg, #033c5e 0%, #082f49 100%) !important;
+  box-shadow: 0 0 16px #00f0ff;
 }
 .zodiac-card.p2-sel {
   border-color: #facc15 !important;
-  background: #613803 !important;
-  box-shadow: 0 0 14px #facc15;
+  background: linear-gradient(180deg, #613803 0%, #451a03 100%) !important;
+  box-shadow: 0 0 16px #facc15;
 }
-.zodiac-sym { font-size: 26px; }
-.zodiac-name { font-size: 11px; font-weight: 900; margin-top: 2px; }
-.zodiac-city { font-size: 9px; color: #94a3b8; font-weight: 600; }
-.zodiac-elem { font-size: 8px; padding: 1px 4px; border-radius: 4px; margin-top: 3px; font-weight: 800; }
+
+.zodiac-avatar-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  transition: transform 0.2s ease;
+}
+.zodiac-card:hover .zodiac-avatar-wrap {
+  transform: scale(1.1);
+}
+.zodiac-sym-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 9px;
+  font-weight: 900;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fff;
+}
+
+.zodiac-name { font-size: 11px; font-weight: 900; margin-top: 1px; letter-spacing: 0.5px; }
+.zodiac-title-sub { font-size: 8px; color: #94a3b8; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 95%; margin: 1px 0; }
+.zodiac-city { font-size: 8.5px; color: #cbd5e1; font-weight: 600; }
+.zodiac-elem { font-size: 7.5px; padding: 1px 4px; border-radius: 4px; margin-top: 2px; font-weight: 900; letter-spacing: 0.5px; }
 
 .selector-status-bar {
   display: flex;
   gap: 30px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+/* HERO DETAILS PREVIEW PANEL */
+.char-preview-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 980px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(8px);
+}
+.char-preview-avatar {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid #00f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #030816;
+  transition: all 0.3s ease;
+}
+.char-preview-info {
+  flex: 1;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.preview-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.preview-name {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.preview-title {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-left: 8px;
+  font-style: italic;
+}
+.preview-elem-badge {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.preview-details-grid {
+  display: flex;
+  gap: 18px;
+  font-size: 10.5px;
+  color: #cbd5e1;
+}
+.preview-skills-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.preview-skill { color: #f8fafc; }
+.skill-key { color: #00f0ff; font-weight: 900; }
+.preview-stats-bar {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+.stat-item { font-size: 9.5px; color: #e2e8f0; }
+.stat-label { color: #94a3b8; }
+.char-select-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* MAP SCREEN */

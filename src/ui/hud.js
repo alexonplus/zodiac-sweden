@@ -1,4 +1,22 @@
+import { getHeroAvatarSvg } from '../config/avatars.js';
+
 export class HudManager {
+  initPlayerAvatars(p1Hero, p2Hero, isCoopMode) {
+    const p1Av = document.getElementById('p1-avatar');
+    if (p1Av && p1Hero) {
+      p1Av.innerHTML = getHeroAvatarSvg(p1Hero.id, 44);
+      p1Av.style.borderColor = p1Hero.color;
+      p1Av.style.boxShadow = `0 0 16px ${p1Hero.color}`;
+    }
+
+    const p2Av = document.getElementById('p2-avatar');
+    if (p2Av && p2Hero && isCoopMode) {
+      p2Av.innerHTML = getHeroAvatarSvg(p2Hero.id, 44);
+      p2Av.style.borderColor = p2Hero.color;
+      p2Av.style.boxShadow = `0 0 16px ${p2Hero.color}`;
+    }
+  }
+
   updateHUD(p1, p2, isCoopMode, score, activeBoss) {
     const p1HpPct = Math.max(0, (p1.hp / p1.maxHp) * 100);
     document.getElementById('p1-hp-bar').style.width = `${p1HpPct}%`;

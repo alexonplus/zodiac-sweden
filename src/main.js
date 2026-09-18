@@ -190,9 +190,6 @@ export class GameManager {
     relicManager.clear();
 
     this.player1.init(this.p1HeroId, this.isCoopMode ? 80 : 120);
-    document.getElementById('p1-avatar').innerText = this.player1.hero.symbol;
-    document.getElementById('p1-avatar').style.color = this.player1.hero.color;
-    document.getElementById('p1-avatar').style.borderColor = this.player1.hero.color;
     document.getElementById('p1-name').innerText = this.player1.hero.name.toUpperCase();
     document.getElementById('p1-energy-name').innerText = this.player1.hero.energyName;
 
@@ -200,15 +197,14 @@ export class GameManager {
       this.player2.init(this.p2HeroId, 160);
       document.getElementById('p2-hud').style.display = 'flex';
       document.getElementById('p2-controls-guide').style.display = 'block';
-      document.getElementById('p2-avatar').innerText = this.player2.hero.symbol;
-      document.getElementById('p2-avatar').style.color = this.player2.hero.color;
-      document.getElementById('p2-avatar').style.borderColor = this.player2.hero.color;
       document.getElementById('p2-name').innerText = this.player2.hero.name.toUpperCase();
       document.getElementById('p2-energy-name').innerText = this.player2.hero.energyName;
     } else {
       document.getElementById('p2-hud').style.display = 'none';
       document.getElementById('p2-controls-guide').style.display = 'none';
     }
+
+    hudManager.initPlayerAvatars(this.player1.hero, this.player2.hero, this.isCoopMode);
 
     const lvlData = LEVELS[levelId];
     document.getElementById('hud-city').innerText = lvlData ? lvlData.name : '🇸🇪 SWEDISH REALM';
