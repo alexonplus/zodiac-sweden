@@ -17,6 +17,15 @@ export class HudManager {
     }
   }
 
+  updateProgress(currentX, totalWidth = 3200) {
+    const trackWidth = Math.max(1, totalWidth - 1080);
+    const pct = Math.min(100, Math.max(0, (currentX / trackWidth) * 100));
+    const fill = document.getElementById('stage-progress-fill');
+    const marker = document.getElementById('stage-progress-marker');
+    if (fill) fill.style.width = `${pct}%`;
+    if (marker) marker.style.left = `${pct}%`;
+  }
+
   updateHUD(p1, p2, isCoopMode, score, activeBoss) {
     const p1HpPct = Math.max(0, (p1.hp / p1.maxHp) * 100);
     document.getElementById('p1-hp-bar').style.width = `${p1HpPct}%`;

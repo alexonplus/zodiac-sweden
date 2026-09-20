@@ -1,6 +1,7 @@
 import { HERO_CONFIGS } from './config/heroes.js';
 import { LEVELS } from './config/levels.js';
 import { SYNERGIES } from './config/synergies.js';
+import { Camera } from './engine/Camera.js';
 import { sound } from './engine/Audio.js';
 import { particles } from './engine/Particles.js';
 import { checkRectCollision } from './engine/Physics.js';
@@ -25,6 +26,7 @@ export class GameManager {
     this.p1HeroId = 'aquarius';
     this.p2HeroId = 'aries';
     this.currentLevel = 'goteborg';
+    this.levelWidth = 3200;
     this.selectingForPlayer = 1;
 
     this.score = 0;
@@ -33,7 +35,9 @@ export class GameManager {
     this.screenShake = 0;
     this.gameTime = 0;
     this.waveNumber = 1;
+    this.spawnedZones = {};
 
+    this.camera = new Camera(W, H, 3200, H);
     this.player1 = new PlayerEntity(1);
     this.player2 = new PlayerEntity(2);
 
@@ -90,14 +94,14 @@ export class GameManager {
     if (code === 'KeyG') this.player1.castQ(this.projectiles, (s) => this.screenShake = s);
     if (code === 'KeyH') this.player1.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s);
     if (code === 'Space') this.player1.castDash();
-    if (code === 'KeyT') this.player1.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, W, H);
+    if (code === 'KeyT') this.player1.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, this.levelWidth, H);
 
     if (this.isCoopMode && this.player2.hp > 0) {
       if (code === 'Numpad1' || code === 'KeyK') this.player2.attack(this.projectiles, this.meleeHits, (s) => this.screenShake = s);
       if (code === 'Numpad2' || code === 'KeyL') this.player2.castQ(this.projectiles, (s) => this.screenShake = s);
       if (code === 'Numpad3' || code === 'KeyO') this.player2.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s);
       if (code === 'Numpad0' || code === 'ShiftRight') this.player2.castDash();
-      if (code === 'Numpad4' || code === 'KeyP') this.player2.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, W, H);
+      if (code === 'Numpad4' || code === 'KeyP') this.player2.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, this.levelWidth, H);
     }
   }
 
@@ -177,10 +181,14 @@ export class GameManager {
   startLevel(levelId) {
     sound.init();
     this.currentLevel = levelId;
+    const lvlData = LEVELS[levelId] || LEVELS['goteborg'];
+    this.levelWidth = lvlData.width || 3200;
+
     this.isPlaying = true;
     this.score = 0;
     this.combo = 0;
     this.waveNumber = 1;
+    this.spawnedZones = { 1: true };
 
     this.enemies.length = 0;
     this.projectiles.length = 0;
@@ -188,6 +196,9 @@ export class GameManager {
     this.enemyProjectiles.length = 0;
     particles.clear();
     relicManager.clear();
+
+    this.camera.setLevelBounds(this.levelWidth, H);
+    this.camera.x = 0;
 
     this.player1.init(this.p1HeroId, this.isCoopMode ? 80 : 120);
     document.getElementById('p1-name').innerText = this.player1.hero.name.toUpperCase();
@@ -205,66 +216,91 @@ export class GameManager {
     }
 
     hudManager.initPlayerAvatars(this.player1.hero, this.player2.hero, this.isCoopMode);
-
-    const lvlData = LEVELS[levelId];
     document.getElementById('hud-city').innerText = lvlData ? lvlData.name : '🇸🇪 SWEDISH REALM';
 
     document.querySelectorAll('.screen-overlay').forEach(el => el.style.display = 'none');
     document.getElementById('ui-hud').style.display = 'flex';
 
-    this.spawnWave();
+    this.spawnZoneWave(1, 0);
   }
 
-  spawnWave() {
+  spawnZoneWave(zoneIndex, spawnOriginX) {
     const scale = this.isCoopMode ? 1.4 : 1.0;
+    const spawnX = spawnOriginX + 600;
+
     if (this.currentLevel === 'goteborg') {
-      if (this.waveNumber === 1) {
-        this.enemies.push(new EnemyMob(W + 50, 220, 'seagull'));
-        this.enemies.push(new EnemyMob(W + 120, 260, 'seagull'));
-        this.enemies.push(new EnemyMob(W + 80, 180, 'drone'));
-        if (this.isCoopMode) this.enemies.push(new EnemyMob(W + 160, 240, 'seagull'));
-      } else if (this.waveNumber === 2) {
-        this.enemies.push(new EnemyMob(W + 40, 420, 'troll'));
-        this.enemies.push(new EnemyMob(W + 100, 160, 'drone'));
-        this.enemies.push(new EnemyMob(W + 160, 220, 'nacken'));
-      } else if (this.waveNumber === 3) {
-        this.enemies.push(new BossEntity(W - 160, 320, 'MEKANISK KRAN-KRAKEN', 650 * scale, '🐙'));
-        this.enemies.push(new EnemyMob(W - 200, 160, 'drone'));
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 100, 220, 'seagull'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 260, 'seagull'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'troll'));
+        if (this.isCoopMode) this.enemies.push(new EnemyMob(spawnX + 180, 240, 'seagull'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 160, 180, 'drone'));
+        this.enemies.push(new EnemyMob(spawnX + 260, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 220, 'nacken'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 140, 160, 'drone'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 200, 'nacken'));
+      } else if (zoneIndex === 4) {
+        // BOSS ENCOUNTER
+        this.camera.lockAt(this.levelWidth - W);
+        this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'MEKANISK KRAN-KRAKEN', 750 * scale, '🐙'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 360, 160, 'drone'));
+        sound.playUlt();
       }
     } else if (this.currentLevel === 'kiruna') {
-      if (this.waveNumber === 1) {
-        this.enemies.push(new EnemyMob(W + 60, 420, 'troll'));
-        this.enemies.push(new EnemyMob(W + 140, 420, 'troll'));
-      } else if (this.waveNumber === 2) {
-        this.enemies.push(new EnemyMob(W + 40, 420, 'troll'));
-        this.enemies.push(new EnemyMob(W + 80, 180, 'drone'));
-        this.enemies.push(new EnemyMob(W + 160, 420, 'troll'));
-      } else if (this.waveNumber === 3) {
-        this.enemies.push(new BossEntity(W - 160, 320, 'LKAB MALM-JÄTTE', 750 * scale, '❄️'));
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 160, 180, 'drone'));
+        this.enemies.push(new EnemyMob(spawnX + 240, 420, 'troll'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 160, 220, 'nacken'));
+        this.enemies.push(new EnemyMob(spawnX + 260, 420, 'troll'));
+      } else if (zoneIndex === 4) {
+        this.camera.lockAt(this.levelWidth - W);
+        this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'LKAB MALM-JÄTTE', 850 * scale, '❄️'));
+        sound.playUlt();
       }
     } else if (this.currentLevel === 'stockholm') {
-      if (this.waveNumber === 1) {
-        this.enemies.push(new EnemyMob(W + 50, 420, 'guard'));
-        this.enemies.push(new EnemyMob(W + 120, 180, 'drone'));
-      } else if (this.waveNumber === 2) {
-        this.enemies.push(new EnemyMob(W + 40, 420, 'guard'));
-        this.enemies.push(new EnemyMob(W + 110, 420, 'guard'));
-        this.enemies.push(new EnemyMob(W + 160, 180, 'nacken'));
-      } else if (this.waveNumber === 3) {
-        this.enemies.push(new BossEntity(W - 160, 320, 'KUNGLIGA ÅNG-GRYFON', 700 * scale, '👑'));
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 180, 'drone'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'guard'));
+        this.enemies.push(new EnemyMob(spawnX + 280, 180, 'nacken'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'guard'));
+        this.enemies.push(new EnemyMob(spawnX + 280, 200, 'drone'));
+      } else if (zoneIndex === 4) {
+        this.camera.lockAt(this.levelWidth - W);
+        this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'KUNGLIGA ÅNG-GRYFON', 800 * scale, '👑'));
+        sound.playUlt();
       }
     } else if (this.currentLevel === 'visby') {
-      if (this.waveNumber === 1) {
-        this.enemies.push(new EnemyMob(W + 50, 420, 'pirate'));
-        this.enemies.push(new EnemyMob(W + 120, 220, 'seagull'));
-        this.enemies.push(new EnemyMob(W + 160, 420, 'pirate'));
-      } else if (this.waveNumber === 2) {
-        this.enemies.push(new EnemyMob(W + 40, 420, 'pirate'));
-        this.enemies.push(new EnemyMob(W + 100, 300, 'nacken'));
-        this.enemies.push(new EnemyMob(W + 160, 420, 'pirate'));
-      } else if (this.waveNumber === 3) {
-        this.enemies.push(new BossEntity(W - 160, 320, 'VALDEMAR SPÖKSJÖRÖVARE', 720 * scale, '⚔️'));
-        this.enemies.push(new EnemyMob(W - 220, 300, 'nacken'));
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 220, 'seagull'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 300, 'nacken'));
+        this.enemies.push(new EnemyMob(spawnX + 280, 420, 'pirate'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 220, 'seagull'));
+        this.enemies.push(new EnemyMob(spawnX + 280, 420, 'pirate'));
+      } else if (zoneIndex === 4) {
+        this.camera.lockAt(this.levelWidth - W);
+        this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'VALDEMAR SPÖKSJÖRÖVARE', 820 * scale, '⚔️'));
+        sound.playUlt();
       }
     }
   }
@@ -317,7 +353,7 @@ export class GameManager {
     if (victory) {
       title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 SECTOR LIBERATED!';
       title.style.color = '#facc15';
-      desc.innerHTML = `Glorious triumph in <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>${this.score} ⭐</b>.<br>Choose your next Swedish province on the tactical map!`;
+      desc.innerHTML = `Glorious triumph across <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>${this.score} ⭐</b>.<br>Choose your next Swedish province on the tactical map!`;
     } else {
       title.innerHTML = '💥 GUARDIANS FALLEN';
       title.style.color = '#ef4444';
@@ -331,9 +367,29 @@ export class GameManager {
     if (this.isPlaying) {
       const platforms = LEVELS[this.currentLevel] ? LEVELS[this.currentLevel].platforms : [];
       
-      this.player1.update(this.keys['KeyA'], this.keys['KeyD'], this.keys['KeyW'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), W);
+      this.player1.update(this.keys['KeyA'], this.keys['KeyD'], this.keys['KeyW'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth);
       if (this.isCoopMode && this.player2.hp > 0) {
-        this.player2.update(this.keys['ArrowLeft'], this.keys['ArrowRight'], this.keys['ArrowUp'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), W);
+        this.player2.update(this.keys['ArrowLeft'], this.keys['ArrowRight'], this.keys['ArrowUp'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth);
+      }
+
+      // Update Side-Scrolling Camera
+      this.camera.update(this.player1, this.player2, this.isCoopMode, this.screenShake);
+
+      // Check Progressive Stage Zones
+      const focalX = Math.max(this.player1.x, this.isCoopMode && this.player2.hp > 0 ? this.player2.x : 0);
+      hudManager.updateProgress(focalX, this.levelWidth);
+
+      if (focalX > 750 && !this.spawnedZones[2]) {
+        this.spawnedZones[2] = true;
+        this.spawnZoneWave(2, 750);
+      }
+      if (focalX > 1550 && !this.spawnedZones[3]) {
+        this.spawnedZones[3] = true;
+        this.spawnZoneWave(3, 1550);
+      }
+      if (focalX > 2350 && !this.spawnedZones[4]) {
+        this.spawnedZones[4] = true;
+        this.spawnZoneWave(4, 2350);
       }
 
       if (this.screenShake > 0) this.screenShake *= 0.88;
@@ -425,6 +481,8 @@ export class GameManager {
 
       // Enemies Update
       let activeBoss = null;
+      let hasBossSpawned = !!this.spawnedZones[4];
+
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const en = this.enemies[i];
         if (en instanceof BossEntity) {
@@ -445,13 +503,9 @@ export class GameManager {
         }
       }
 
-      if (this.enemies.length === 0) {
-        if (this.waveNumber < 3) {
-          this.waveNumber++;
-          this.spawnWave();
-        } else {
-          this.finishLevel(true);
-        }
+      // Level victory check: Boss defeated in zone 4
+      if (hasBossSpawned && !activeBoss && this.enemies.length === 0) {
+        this.finishLevel(true);
       }
 
       particles.update();
@@ -474,11 +528,15 @@ export class GameManager {
     }
   }
 
-  drawBackground() {
+  drawParallaxBackground() {
     const bgImg = this.bgImages[this.currentLevel];
+    const parallaxOffset = -(this.camera.x * 0.35) % W;
+
     if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(bgImg, 0, 0, W, H);
+      ctx.drawImage(bgImg, parallaxOffset, 0, W, H);
+      ctx.drawImage(bgImg, parallaxOffset + W, 0, W, H);
+      if (parallaxOffset > 0) ctx.drawImage(bgImg, parallaxOffset - W, 0, W, H);
     } else {
       const grad = ctx.createLinearGradient(0, 0, 0, H);
       grad.addColorStop(0, '#020617');
@@ -486,38 +544,46 @@ export class GameManager {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
     }
-
-    const lvlData = LEVELS[this.currentLevel];
-    const platforms = lvlData ? lvlData.platforms : [];
-
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-    ctx.fillRect(0, 490, W, 130);
-
-    ctx.fillStyle = lvlData ? lvlData.color : '#00f0ff';
-    for (let x = 0; x < W; x += 40) ctx.fillRect(x, 490, 20, 4);
-
-    for (let i = 1; i < platforms.length; i++) {
-      const p = platforms[i];
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-      ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.fillRect(p.x, p.y, p.w, p.h);
-      ctx.strokeRect(p.x, p.y, p.w, p.h);
-    }
   }
 
   render() {
     ctx.save();
-    if (this.screenShake > 0) {
-      ctx.translate((Math.random() - 0.5) * this.screenShake, (Math.random() - 0.5) * this.screenShake);
-    }
 
-    this.drawBackground();
+    // 1. Draw Parallax Background (Screenspace)
+    this.drawParallaxBackground();
 
-    // Weather Particles
+    // Weather Particles (Screenspace)
     ctx.fillStyle = this.currentLevel === 'kiruna' ? '#ffffff' : (this.currentLevel === 'visby' ? 'rgba(168, 85, 247, 0.4)' : 'rgba(125, 211, 252, 0.4)');
     for (const w of this.weatherParticles) {
       ctx.fillRect(w.x, w.y, w.size, this.currentLevel === 'kiruna' ? w.size : w.size * 4);
+    }
+
+    // 2. World Space Transformation (Camera Tracking + Shake)
+    const shake = this.camera.getShakeOffset();
+    ctx.save();
+    ctx.translate(-Math.round(this.camera.x) + shake.sx, -Math.round(this.camera.y) + shake.sy);
+
+    // Platforms & Continuous Ground
+    const lvlData = LEVELS[this.currentLevel];
+    const platforms = lvlData ? lvlData.platforms : [];
+
+    // Continuous Ground Floor
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+    ctx.fillRect(0, 490, this.levelWidth, 130);
+
+    ctx.fillStyle = lvlData ? lvlData.color : '#00f0ff';
+    for (let x = 0; x < this.levelWidth; x += 40) ctx.fillRect(x, 490, 20, 4);
+
+    // Raised Platforms
+    for (let i = 1; i < platforms.length; i++) {
+      const p = platforms[i];
+      if (this.camera.isVisible(p.x, p.w)) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+      }
     }
 
     relicManager.draw(ctx);
@@ -572,6 +638,9 @@ export class GameManager {
 
     particles.draw(ctx);
 
+    ctx.restore(); // Restore world transform
+
+    // 3. Screenspace UI Overlays (Ult effect, etc.)
     if (this.ultEffect) {
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.fillRect(0, 0, W, H);
