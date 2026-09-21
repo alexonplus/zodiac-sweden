@@ -138,14 +138,31 @@ export class PlayerEntity {
       this.drone.y += (targetDroneY - this.drone.y) * 0.16;
     }
 
-    // Relic Pickups
+    // Relic & Loot Pickups
     for (let i = relicManager.relicPickups.length - 1; i >= 0; i--) {
       const r = relicManager.relicPickups[i];
       if (checkRectCollision(this, r)) {
         sound.playItem();
-        if (r.type === 'meatball') {
+        if (r.type === 'heart') {
+          this.hp = Math.min(this.maxHp, this.hp + 25);
+          particles.createDamageNumber(this.x + this.w/2, this.y - 12, '+25 HP! ❤️', '#ef4444');
+          particles.createSparks(this.x + this.w/2, this.y + this.h/2, '#ef4444', 12);
+        } else if (r.type === 'energy') {
+          this.energy = Math.min(this.maxEnergy, this.energy + 40);
+          particles.createDamageNumber(this.x + this.w/2, this.y - 12, `+40 ${this.hero.energyName}! ⚡`, '#00f0ff');
+          particles.createSparks(this.x + this.w/2, this.y + this.h/2, '#00f0ff', 12);
+        } else if (r.type === 'shard') {
+          this.ultCharge = Math.min(100, this.ultCharge + 15);
+          particles.createDamageNumber(this.x + this.w/2, this.y - 12, '+15% ULT! ⭐', '#facc15');
+          particles.createSparks(this.x + this.w/2, this.y + this.h/2, '#facc15', 14);
+        } else if (r.type === 'kanelbulle') {
+          this.hp = Math.min(this.maxHp, this.hp + 60);
+          this.energy = this.maxEnergy;
+          particles.createDamageNumber(this.x + this.w/2, this.y - 14, 'KANELBULLE BOOST! 🥐', '#fb923c');
+          particles.createSparks(this.x + this.w/2, this.y + this.h/2, '#fb923c', 20);
+        } else if (r.type === 'meatball') {
           this.hp = Math.min(this.maxHp, this.hp + 35);
-          particles.createDamageNumber(this.x + this.w/2, this.y - 10, '+35 HP! 🧆', '#4ade80');
+          particles.createDamageNumber(this.x + this.w/2, this.y - 12, '+35 HP! 🧆', '#4ade80');
         } else if (r.type === 'surstromming') {
           if (onShake) onShake(10);
           enemies.forEach(en => {
@@ -154,10 +171,6 @@ export class PlayerEntity {
             particles.createDamageNumber(en.x + en.w/2, en.y, 'GAS! -40 🐟', '#a855f7');
           });
           particles.createSparks(this.x, this.y, '#a855f7', 30);
-        } else if (r.type === 'fika') {
-          this.energy = this.maxEnergy;
-          this.ultCharge = Math.min(100, this.ultCharge + 25);
-          particles.createDamageNumber(this.x + this.w/2, this.y - 10, 'FIKA BOOST! ☕', '#38bdf8');
         }
         relicManager.relicPickups.splice(i, 1);
       }
