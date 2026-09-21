@@ -6,9 +6,11 @@ import { sound } from './engine/Audio.js';
 import { particles } from './engine/Particles.js';
 import { checkRectCollision } from './engine/Physics.js';
 import { relicManager } from './entities/Relics.js';
+import { destructibleManager } from './entities/Destructibles.js';
+import { buffManager } from './entities/Powerups.js';
 import { PlayerEntity } from './entities/Player.js';
 import { EnemyMob } from './entities/Enemy.js';
-import { BossEntity } from './entities/Bosses.js';
+import { BossEntity, createBoss, BaseBoss } from './entities/Bosses.js';
 import { hudManager } from './ui/hud.js';
 import { populateZodiacGrid, refreshSelectionUI } from './ui/screens.js';
 
@@ -26,7 +28,7 @@ export class GameManager {
     this.p1HeroId = 'aquarius';
     this.p2HeroId = 'aries';
     this.currentLevel = 'goteborg';
-    this.levelWidth = 4800;
+    this.levelWidth = 6400;
     this.selectingForPlayer = 1;
 
     this.score = 0;
@@ -37,7 +39,7 @@ export class GameManager {
     this.waveNumber = 1;
     this.spawnedZones = {};
 
-    this.camera = new Camera(W, H, 4800, H);
+    this.camera = new Camera(W, H, 6400, H);
     this.player1 = new PlayerEntity(1);
     this.player2 = new PlayerEntity(2);
 
@@ -182,7 +184,7 @@ export class GameManager {
     sound.init();
     this.currentLevel = levelId;
     const lvlData = LEVELS[levelId] || LEVELS['goteborg'];
-    this.levelWidth = lvlData.width || 4800;
+    this.levelWidth = lvlData.width || 6400;
 
     this.isPlaying = true;
     this.score = 0;
@@ -196,6 +198,8 @@ export class GameManager {
     this.enemyProjectiles.length = 0;
     particles.clear();
     relicManager.clear();
+    buffManager.clear();
+    destructibleManager.populateForLevel(levelId, this.levelWidth);
 
     this.camera.setLevelBounds(this.levelWidth, H);
     this.camera.x = 0;
@@ -230,26 +234,28 @@ export class GameManager {
 
     if (this.currentLevel === 'goteborg') {
       if (zoneIndex === 1) {
-        // Sector 1: Harbor Pier
         this.enemies.push(new EnemyMob(spawnX + 100, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 260, 420, 'karolin'));
         if (this.isCoopMode) this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
       } else if (zoneIndex === 2) {
-        // Sector 2: Crane Cargo Yards
         this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
       } else if (zoneIndex === 3) {
-        // Sector 3: Submarine Drydock
         this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 280, 420, 'karolin'));
         this.enemies.push(new EnemyMob(spawnX + 380, 420, 'troll'));
       } else if (zoneIndex === 4) {
-        // Sector 4: Sunken Kraken Abyssal Rig
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'troll'));
+      } else if (zoneIndex === 5) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(new BossEntity(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 900 * scale, '🐙'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 440, 420, 'golem'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 950 * scale, '🐙'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'kiruna') {
@@ -266,9 +272,14 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'troll'));
         this.enemies.push(new EnemyMob(spawnX + 400, 420, 'golem'));
       } else if (zoneIndex === 4) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'skogsra'));
+      } else if (zoneIndex === 5) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(new BossEntity(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1000 * scale, '❄️'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 440, 420, 'troll'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1050 * scale, '❄️'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'troll'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'stockholm') {
@@ -285,9 +296,14 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 320, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 420, 420, 'karolin'));
       } else if (zoneIndex === 4) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'golem'));
+      } else if (zoneIndex === 5) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(new BossEntity(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 950 * scale, '👑'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 440, 420, 'karolin'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 1000 * scale, '👑'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'skogsra'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'visby') {
@@ -304,9 +320,14 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 320, 420, 'skogsra'));
         this.enemies.push(new EnemyMob(spawnX + 420, 420, 'corsair'));
       } else if (zoneIndex === 4) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'viking'));
+      } else if (zoneIndex === 5) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(new BossEntity(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 980 * scale, '⚔️'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 440, 420, 'corsair'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 1020 * scale, '⚔️'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'troll'));
         sound.playUlt();
       }
     }
@@ -358,7 +379,7 @@ export class GameManager {
     screen.style.display = 'flex';
 
     if (victory) {
-      title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 SECTOR LIBERATED!';
+      title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 PROVINCE LIBERATED!';
       title.style.color = '#facc15';
       desc.innerHTML = `Glorious triumph across <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>${this.score} ⭐</b>.<br>Choose your next Swedish province on the tactical map!`;
     } else {
@@ -382,21 +403,25 @@ export class GameManager {
       // Update Side-Scrolling Camera
       this.camera.update(this.player1, this.player2, this.isCoopMode, this.screenShake);
 
-      // Check Progressive Stage Zones (4 Sectors: 0, 1100, 2300, 3500)
+      // Check Progressive Stage Zones (5 Sectors: 0, 1300, 2600, 3900, 5200)
       const focalX = Math.max(this.player1.x, this.isCoopMode && this.player2.hp > 0 ? this.player2.x : 0);
       hudManager.updateProgress(focalX, this.levelWidth);
 
-      if (focalX > 1100 && !this.spawnedZones[2]) {
+      if (focalX > 1300 && !this.spawnedZones[2]) {
         this.spawnedZones[2] = true;
-        this.spawnZoneWave(2, 1100);
+        this.spawnZoneWave(2, 1300);
       }
-      if (focalX > 2300 && !this.spawnedZones[3]) {
+      if (focalX > 2600 && !this.spawnedZones[3]) {
         this.spawnedZones[3] = true;
-        this.spawnZoneWave(3, 2300);
+        this.spawnZoneWave(3, 2600);
       }
-      if (focalX > 3500 && !this.spawnedZones[4]) {
+      if (focalX > 3900 && !this.spawnedZones[4]) {
         this.spawnedZones[4] = true;
-        this.spawnZoneWave(4, 3500);
+        this.spawnZoneWave(4, 3900);
+      }
+      if (focalX > 5200 && !this.spawnedZones[5]) {
+        this.spawnedZones[5] = true;
+        this.spawnZoneWave(5, 5200);
       }
 
       if (this.screenShake > 0) this.screenShake *= 0.88;
@@ -410,7 +435,10 @@ export class GameManager {
         }
       }
 
+      // Update Buffs and Relics
+      buffManager.update(this.player1, this.player2);
       relicManager.update(this.player1, this.player2, this.isCoopMode);
+      destructibleManager.update(this.enemies, (s) => this.screenShake = s);
 
       // Projectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -419,6 +447,20 @@ export class GameManager {
         p.y += p.vy;
         p.life--;
 
+        // Check Destructible Props Hit
+        for (const prop of destructibleManager.props) {
+          if (p.x > prop.x && p.x < prop.x + prop.w && p.y > prop.y && p.y < prop.y + prop.h) {
+            destructibleManager.hitProp(prop, p.damage, (s) => this.screenShake = s, this.enemies);
+            p.life = 0;
+            break;
+          }
+        }
+        if (p.life <= 0) {
+          this.projectiles.splice(i, 1);
+          continue;
+        }
+
+        // Check Enemy Hits
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const en = this.enemies[j];
           if (p.x > en.x && p.x < en.x + en.w && p.y > en.y && p.y < en.y + en.h) {
@@ -436,6 +478,21 @@ export class GameManager {
             
             const owner = p.owner === 1 ? this.player1 : this.player2;
             owner.ultCharge = Math.min(100, owner.ultCharge + 3);
+
+            // Chain Lightning Effect from Mjölnir Powerup
+            if (p.chainLightning) {
+              sound.playLaser();
+              for (const other of this.enemies) {
+                if (other !== en) {
+                  const dist = Math.hypot((other.x + other.w / 2) - p.x, (other.y + other.h / 2) - p.y);
+                  if (dist < 180) {
+                    other.hp -= 20;
+                    particles.createSparks(other.x + other.w / 2, other.y + other.h / 2, '#facc15', 12);
+                    particles.createDamageNumber(other.x + other.w / 2, other.y, '⚡ CHAIN -20', '#facc15');
+                  }
+                }
+              }
+            }
 
             this.applyElementalHit(en, p.element, p.owner, finalDmg);
 
@@ -456,6 +513,15 @@ export class GameManager {
       for (let i = this.meleeHits.length - 1; i >= 0; i--) {
         const m = this.meleeHits[i];
         m.life--;
+
+        // Check Destructible Props Hit
+        for (const prop of destructibleManager.props) {
+          if (checkRectCollision(m, prop)) {
+            destructibleManager.hitProp(prop, m.damage, (s) => this.screenShake = s, this.enemies);
+          }
+        }
+
+        // Check Enemy Hits
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const en = this.enemies[j];
           if (checkRectCollision(m, en)) {
@@ -499,17 +565,20 @@ export class GameManager {
         if (ep.life <= 0) this.enemyProjectiles.splice(i, 1);
       }
 
-      // Enemies Update (Walking Ground Physics & AI)
+      // Enemies Update (Slowed if Time Freeze active)
       let activeBoss = null;
-      let hasBossSpawned = !!this.spawnedZones[4];
+      let hasBossSpawned = !!this.spawnedZones[5];
+      const isFrozen = buffManager.timeFreezeTimer > 0;
 
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const en = this.enemies[i];
-        if (en instanceof BossEntity) {
+        if (en instanceof BaseBoss || en.isEnraged !== undefined) {
           activeBoss = en;
           en.update(this.enemyProjectiles, (s) => this.screenShake = s);
         } else {
-          en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s);
+          if (!isFrozen || this.gameTime % 3 === 0) {
+            en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s);
+          }
         }
 
         if (en.hp <= 0) {
@@ -518,7 +587,7 @@ export class GameManager {
           this.player1.ultCharge = Math.min(100, this.player1.ultCharge + 10);
           if (this.isCoopMode) this.player2.ultCharge = Math.min(100, this.player2.ultCharge + 10);
 
-          // 75% Drop chance for Hearts, Energy Cells, Star Shards, Cinnamon Buns
+          // 75% Drop chance for Loot or Powerups
           if (Math.random() < 0.75) {
             relicManager.spawn(en.x, en.y);
           }
@@ -526,7 +595,7 @@ export class GameManager {
         }
       }
 
-      // Level victory check: Boss defeated in sector 4
+      // Level victory check: Boss defeated in sector 5
       if (hasBossSpawned && !activeBoss && this.enemies.length === 0) {
         this.finishLevel(true);
       }
@@ -571,7 +640,7 @@ export class GameManager {
     }
 
     // 2. Dynamic Sector Mood Tinting & Landmarks
-    const sectorIndex = Math.min(3, Math.floor(this.camera.x / 1200));
+    const sectorIndex = Math.min(4, Math.floor(this.camera.x / 1300));
     const currentSector = lvlData && lvlData.sectors ? lvlData.sectors[sectorIndex] : null;
 
     if (currentSector) {
@@ -600,7 +669,7 @@ export class GameManager {
     ctx.save();
     ctx.translate(-Math.round(this.camera.x) + shake.sx, -Math.round(this.camera.y) + shake.sy);
 
-    // Continuous Ground Floor across 4800px
+    // Continuous Ground Floor across 6400px
     const lvlData = LEVELS[this.currentLevel];
     const platforms = lvlData ? lvlData.platforms : [];
 
@@ -611,17 +680,17 @@ export class GameManager {
     for (let x = 0; x < this.levelWidth; x += 40) ctx.fillRect(x, 490, 20, 4);
 
     // Sector Transition Gateway Arches
-    for (let s = 1; s <= 3; s++) {
-      const archX = s * 1200;
+    for (let s = 1; s <= 4; s++) {
+      const archX = s * 1300;
       if (this.camera.isVisible(archX, 60)) {
         ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
-        ctx.fillRect(archX - 10, 200, 20, 290);
+        ctx.fillRect(archX - 10, 180, 20, 310);
         ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
         ctx.lineWidth = 2;
-        ctx.strokeRect(archX - 10, 200, 20, 290);
+        ctx.strokeRect(archX - 10, 180, 20, 310);
         ctx.fillStyle = '#facc15';
         ctx.font = 'bold 11px monospace';
-        ctx.fillText(`SECTOR ${s+1}`, archX - 28, 230);
+        ctx.fillText(`SECTOR ${s+1}`, archX - 28, 210);
       }
     }
 
@@ -637,6 +706,9 @@ export class GameManager {
       }
     }
 
+    // Draw Destructibles (Crates, Barrels, Chests)
+    destructibleManager.draw(ctx, this.camera);
+
     // Draw Relics & Loot Drops
     relicManager.draw(ctx);
 
@@ -648,84 +720,74 @@ export class GameManager {
       if (p.type === 'binary') {
         ctx.font = 'bold 16px monospace';
         ctx.fillText(p.char, p.x, p.y);
-      } else if (p.type === 'wave') {
+      } else if (p.type === 'dagger') {
+        ctx.fillRect(p.x, p.y, 14, 4);
+      } else if (p.type === 'skillQ') {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
         ctx.fill();
-      } else if (p.type === 'crescent') {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 12, 0.5, 2.5);
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = p.color;
-        ctx.stroke();
-      } else if (p.type === 'dagger') {
-        ctx.fillRect(p.x - 8, p.y - 2, 16, 4);
+      } else {
+        ctx.fillRect(p.x, p.y, 12, 6);
       }
       ctx.shadowBlur = 0;
     }
 
-    for (const m of this.meleeHits) {
-      ctx.fillStyle = m.color;
-      ctx.globalAlpha = 0.4;
-      ctx.fillRect(m.x, m.y, m.w, m.h);
-      ctx.globalAlpha = 1.0;
-    }
-
     // Enemy Projectiles & Ground Shockwaves
     for (const ep of this.enemyProjectiles) {
+      ctx.fillStyle = ep.color;
+      ctx.shadowColor = ep.color;
+      ctx.shadowBlur = 10;
       if (ep.isGroundWave) {
-        ctx.fillStyle = '#78350f';
-        ctx.beginPath();
-        ctx.moveTo(ep.x - 12, 490);
-        ctx.lineTo(ep.x, 460);
-        ctx.lineTo(ep.x + 12, 490);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#ea580c';
-        ctx.fillRect(ep.x - 4, 464, 8, 26);
+        ctx.fillRect(ep.x, ep.y, 24, 20);
       } else {
-        ctx.fillStyle = ep.color;
-        ctx.shadowColor = ep.color;
-        ctx.shadowBlur = 10;
         ctx.beginPath();
-        ctx.arc(ep.x, ep.y, 6, 0, Math.PI * 2);
+        ctx.arc(ep.x, ep.y, 9, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
+      ctx.shadowBlur = 0;
     }
 
     // Draw Enemies & Bosses
-    for (const en of this.enemies) en.draw(ctx);
-
-    if (this.isPlaying) {
-      this.player1.draw(ctx);
-      if (this.isCoopMode) this.player2.draw(ctx);
+    for (const en of this.enemies) {
+      if (this.camera.isVisible(en.x, en.w)) {
+        en.draw(ctx);
+      }
     }
 
+    // Draw Players
+    if (this.player1.hp > 0) this.player1.draw(ctx);
+    if (this.isCoopMode && this.player2.hp > 0) this.player2.draw(ctx);
+
+    // Particles in World Space
     particles.draw(ctx);
 
-    ctx.restore(); // Restore world transform
+    ctx.restore();
 
-    // 3. Screenspace UI Overlays
+    // 3. Screenspace Overlay (Ult Banner)
     if (this.ultEffect) {
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+      ctx.fillRect(0, H/2 - 50, W, 100);
       ctx.fillStyle = this.ultEffect.color;
-      ctx.font = 'bold 26px monospace';
+      ctx.shadowColor = this.ultEffect.color;
+      ctx.shadowBlur = 20;
+      ctx.font = '900 28px "Orbitron", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`⚡ ${this.ultEffect.name} ⚡`, W/2, 100);
-      ctx.textAlign = 'left';
+      ctx.fillText(`⚡ ${this.ultEffect.name} ⚡`, W/2, H/2 + 10);
+      ctx.shadowBlur = 0;
     }
 
     ctx.restore();
   }
+
+  loop() {
+    this.update();
+    this.render();
+    requestAnimationFrame(() => this.loop());
+  }
 }
 
-const game = new GameManager();
-
-function mainLoop() {
-  game.update();
-  game.render();
-  requestAnimationFrame(mainLoop);
-}
-mainLoop();
+// Instantiate and start game loop
+window.addEventListener('DOMContentLoaded', () => {
+  const game = new GameManager();
+  game.loop();
+});

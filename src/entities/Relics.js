@@ -1,6 +1,7 @@
 /**
  * Relic and Loot Drop Manager for Zodiac Sweden
- * Manages floating drops: Hearts, Energy Cells, Star Shards, Cinnamon Buns, Meatballs, Surströmming
+ * Manages floating drops: Hearts, Energy Cells, Star Shards, Cinnamon Buns, Meatballs,
+ * Surströmming, and Legendary Powerup Buffs (Aegis, Mjölnir, Chronos, Valkyrie, Fika, Berserker, Magnet).
  */
 export class RelicManager {
   constructor() {
@@ -8,18 +9,22 @@ export class RelicManager {
   }
 
   /**
-   * Spawns random or specific loot from defeated enemies
+   * Spawns random or specific loot from defeated enemies or smashed crates
    */
   spawn(x, y, forcedType = null) {
     let type = forcedType;
     if (!type) {
       const rand = Math.random();
-      if (rand < 0.38) type = 'heart';         // 38% Healing Heart
-      else if (rand < 0.65) type = 'energy';   // 27% Energy Cell
-      else if (rand < 0.85) type = 'shard';    // 20% Star Shard
-      else if (rand < 0.94) type = 'kanelbulle'; // 9% Cinnamon Bun
-      else if (rand < 0.98) type = 'meatball'; // 4% Köttbullar
-      else type = 'surstromming';              // 2% Surströmming
+      if (rand < 0.28) type = 'heart';         // 28% Healing Heart
+      else if (rand < 0.50) type = 'energy';   // 22% Energy Cell
+      else if (rand < 0.68) type = 'shard';    // 18% Star Shard
+      else if (rand < 0.78) type = 'kanelbulle'; // 10% Cinnamon Bun
+      else if (rand < 0.86) type = 'meatball'; // 8% Köttbullar
+      else if (rand < 0.90) type = 'fika';     // 4% Swedish Fika
+      else if (rand < 0.94) type = 'mjolnir';  // 4% Thor Lightning
+      else if (rand < 0.97) type = 'aegis';    // 3% Shield of Odin
+      else if (rand < 0.99) type = 'berserker';// 2% Berserker Rune
+      else type = 'magnet';                    // 1% Star Magnet
     }
 
     this.relicPickups.push({
@@ -28,9 +33,9 @@ export class RelicManager {
       vx: (Math.random() - 0.5) * 3,
       vy: -4.5 - Math.random() * 2,
       type: type,
-      w: 24,
-      h: 24,
-      life: 600,
+      w: 26,
+      h: 26,
+      life: 650,
       bob: Math.random() * 10,
       color: this.getColorForType(type)
     });
@@ -43,10 +48,17 @@ export class RelicManager {
     if (type === 'kanelbulle') return '#fb923c';
     if (type === 'meatball') return '#4ade80';
     if (type === 'surstromming') return '#a855f7';
+    if (type === 'aegis') return '#38bdf8';
+    if (type === 'mjolnir') return '#facc15';
+    if (type === 'valkyrie') return '#06b6d4';
+    if (type === 'chronos') return '#818cf8';
+    if (type === 'fika') return '#f97316';
+    if (type === 'berserker') return '#dc2626';
+    if (type === 'magnet') return '#ec4899';
     return '#ffffff';
   }
 
-  update(player1, player2, isCoopMode) {
+  update(player1, player2, isCoopMode, isMagnetActive = false) {
     const groundY = 480;
 
     for (let i = this.relicPickups.length - 1; i >= 0; i--) {
@@ -65,9 +77,11 @@ export class RelicManager {
         r.vy = 0;
       }
 
-      // Magnetic attraction towards nearby active player (within 110px)
+      // Magnetic attraction towards nearby active player (or screen-wide if magnet active)
       const targets = [player1];
       if (isCoopMode && player2 && player2.hp > 0) targets.push(player2);
+
+      const pullDistance = isMagnetActive ? 1200 : 130;
 
       for (const p of targets) {
         if (!p || p.hp <= 0) continue;
@@ -75,10 +89,10 @@ export class RelicManager {
         const dy = (p.y + p.h / 2) - (r.y + r.h / 2);
         const dist = Math.hypot(dx, dy);
 
-        if (dist < 120 && dist > 1) {
-          const pullSpeed = (1 - dist / 120) * 4.5;
-          r.x += (dx / dist) * pullSpeed;
-          r.y += (dy / dist) * pullSpeed;
+        if (dist < pullDistance && dist > 1) {
+          const speed = isMagnetActive ? 14 : (1 - dist / pullDistance) * 5.5;
+          r.x += (dx / dist) * speed;
+          r.y += (dy / dist) * speed;
         }
       }
 
@@ -100,44 +114,38 @@ export class RelicManager {
       // Glowing Aura Ring
       ctx.save();
       ctx.shadowColor = r.color;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 14;
       ctx.strokeStyle = r.color;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.arc(0, 0, 14, 0, Math.PI * 2);
+      ctx.arc(0, 0, 15, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
 
-      // Item Graphic / Icon
+      // Item Graphic / Emoji Icon
       ctx.font = 'bold 18px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      if (r.type === 'heart') {
-        ctx.shadowColor = '#ef4444';
-        ctx.shadowBlur = 10;
-        ctx.fillText('❤️', 0, 0);
-      } else if (r.type === 'energy') {
-        ctx.shadowColor = '#00f0ff';
-        ctx.shadowBlur = 10;
-        ctx.fillText('⚡', 0, 0);
-      } else if (r.type === 'shard') {
-        ctx.shadowColor = '#facc15';
-        ctx.shadowBlur = 10;
-        ctx.fillText('⭐', 0, 0);
-      } else if (r.type === 'kanelbulle') {
-        ctx.shadowColor = '#fb923c';
-        ctx.shadowBlur = 10;
-        ctx.fillText('🥐', 0, 0);
-      } else if (r.type === 'meatball') {
-        ctx.shadowColor = '#4ade80';
-        ctx.shadowBlur = 10;
-        ctx.fillText('🧆', 0, 0);
-      } else if (r.type === 'surstromming') {
-        ctx.shadowColor = '#a855f7';
-        ctx.shadowBlur = 10;
-        ctx.fillText('🐟', 0, 0);
-      }
+      const icons = {
+        heart: '❤️',
+        energy: '⚡',
+        shard: '⭐',
+        kanelbulle: '🥐',
+        meatball: '🧆',
+        surstromming: '🐟',
+        aegis: '🛡️',
+        mjolnir: '⚡',
+        valkyrie: '🚀',
+        chronos: '⏱️',
+        fika: '☕',
+        berserker: '⚔️',
+        magnet: '🧲'
+      };
+
+      ctx.shadowColor = r.color;
+      ctx.shadowBlur = 10;
+      ctx.fillText(icons[r.type] || '⭐', 0, 0);
 
       ctx.restore();
     }
