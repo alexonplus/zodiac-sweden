@@ -230,76 +230,77 @@ export class GameManager {
 
     if (this.currentLevel === 'goteborg') {
       if (zoneIndex === 1) {
-        this.enemies.push(new EnemyMob(spawnX + 100, 220, 'seagull'));
-        this.enemies.push(new EnemyMob(spawnX + 220, 260, 'seagull'));
-        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'troll'));
-        if (this.isCoopMode) this.enemies.push(new EnemyMob(spawnX + 180, 240, 'seagull'));
+        this.enemies.push(new EnemyMob(spawnX + 100, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 260, 420, 'karolin'));
+        if (this.isCoopMode) this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
       } else if (zoneIndex === 2) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 160, 180, 'drone'));
-        this.enemies.push(new EnemyMob(spawnX + 260, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 320, 220, 'nacken'));
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
       } else if (zoneIndex === 3) {
-        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 140, 160, 'drone'));
-        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 300, 200, 'nacken'));
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 280, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 380, 420, 'troll'));
       } else if (zoneIndex === 4) {
         // BOSS ENCOUNTER
         this.camera.lockAt(this.levelWidth - W);
         this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'MEKANISK KRAN-KRAKEN', 750 * scale, '🐙'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 360, 160, 'drone'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 420, 420, 'golem'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'kiruna') {
       if (zoneIndex === 1) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
       } else if (zoneIndex === 2) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 160, 180, 'drone'));
-        this.enemies.push(new EnemyMob(spawnX + 240, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'golem'));
       } else if (zoneIndex === 3) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
-        this.enemies.push(new EnemyMob(spawnX + 160, 220, 'nacken'));
-        this.enemies.push(new EnemyMob(spawnX + 260, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'troll'));
       } else if (zoneIndex === 4) {
         this.camera.lockAt(this.levelWidth - W);
         this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'LKAB MALM-JÄTTE', 850 * scale, '❄️'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 420, 420, 'troll'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'stockholm') {
       if (zoneIndex === 1) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
-        this.enemies.push(new EnemyMob(spawnX + 200, 180, 'drone'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'viking'));
       } else if (zoneIndex === 2) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
-        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'guard'));
-        this.enemies.push(new EnemyMob(spawnX + 280, 180, 'nacken'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'golem'));
       } else if (zoneIndex === 3) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'guard'));
-        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'guard'));
-        this.enemies.push(new EnemyMob(spawnX + 280, 200, 'drone'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'viking'));
       } else if (zoneIndex === 4) {
         this.camera.lockAt(this.levelWidth - W);
         this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'KUNGLIGA ÅNG-GRYFON', 800 * scale, '👑'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 420, 420, 'karolin'));
         sound.playUlt();
       }
     } else if (this.currentLevel === 'visby') {
       if (zoneIndex === 1) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
-        this.enemies.push(new EnemyMob(spawnX + 200, 220, 'seagull'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'viking'));
       } else if (zoneIndex === 2) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
-        this.enemies.push(new EnemyMob(spawnX + 180, 300, 'nacken'));
-        this.enemies.push(new EnemyMob(spawnX + 280, 420, 'pirate'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'corsair'));
       } else if (zoneIndex === 3) {
-        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'pirate'));
-        this.enemies.push(new EnemyMob(spawnX + 180, 220, 'seagull'));
-        this.enemies.push(new EnemyMob(spawnX + 280, 420, 'pirate'));
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'skogsra'));
       } else if (zoneIndex === 4) {
         this.camera.lockAt(this.levelWidth - W);
         this.enemies.push(new BossEntity(this.levelWidth - 280, 320, 'VALDEMAR SPÖKSJÖRÖVARE', 820 * scale, '⚔️'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 420, 420, 'corsair'));
         sound.playUlt();
       }
     }
@@ -415,15 +416,23 @@ export class GameManager {
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const en = this.enemies[j];
           if (p.x > en.x && p.x < en.x + en.w && p.y > en.y && p.y < en.y + en.h) {
-            en.hp -= p.damage;
+            // Shield deflection for Viking if hitting from front
+            let finalDmg = p.damage;
+            if (en.type === 'viking' && en.isShielding && Math.sign(p.vx) !== en.facing) {
+              finalDmg = Math.floor(p.damage * 0.25);
+              particles.createSparks(p.x, p.y, '#facc15', 10);
+              sound.playHit();
+            }
+
+            en.hp -= finalDmg;
             sound.playHit();
             particles.createSparks(p.x, p.y, p.color, 6);
-            particles.createDamageNumber(en.x + en.w/2, en.y, `-${p.damage}`);
+            particles.createDamageNumber(en.x + en.w/2, en.y, `-${finalDmg}`);
             
             const owner = p.owner === 1 ? this.player1 : this.player2;
             owner.ultCharge = Math.min(100, owner.ultCharge + 3);
 
-            this.applyElementalHit(en, p.element, p.owner, p.damage);
+            this.applyElementalHit(en, p.element, p.owner, finalDmg);
 
             this.combo++;
             this.comboTimer = 100;
@@ -445,14 +454,20 @@ export class GameManager {
         for (let j = this.enemies.length - 1; j >= 0; j--) {
           const en = this.enemies[j];
           if (checkRectCollision(m, en)) {
-            en.hp -= m.damage;
+            let finalDmg = m.damage;
+            if (en.type === 'viking' && en.isShielding && Math.sign(this.player1.facing) !== en.facing) {
+              finalDmg = Math.floor(m.damage * 0.3);
+              particles.createSparks(en.x + en.w/2, en.y + en.h/2, '#facc15', 12);
+            }
+
+            en.hp -= finalDmg;
             sound.playHit();
-            particles.createDamageNumber(en.x + en.w/2, en.y, `CRIT! -${m.damage}`, m.color);
+            particles.createDamageNumber(en.x + en.w/2, en.y, `CRIT! -${finalDmg}`, m.color);
             
             const owner = m.owner === 1 ? this.player1 : this.player2;
             owner.ultCharge = Math.min(100, owner.ultCharge + 5);
 
-            this.applyElementalHit(en, m.element, m.owner, m.damage);
+            this.applyElementalHit(en, m.element, m.owner, finalDmg);
 
             this.combo++;
             this.score += 20 * this.combo;
@@ -479,7 +494,7 @@ export class GameManager {
         if (ep.life <= 0) this.enemyProjectiles.splice(i, 1);
       }
 
-      // Enemies Update
+      // Enemies Update (Walking Ground Physics & AI)
       let activeBoss = null;
       let hasBossSpawned = !!this.spawnedZones[4];
 
@@ -489,7 +504,7 @@ export class GameManager {
           activeBoss = en;
           en.update(this.enemyProjectiles, (s) => this.screenShake = s);
         } else {
-          en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles);
+          en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s);
         }
 
         if (en.hp <= 0) {
@@ -619,16 +634,31 @@ export class GameManager {
       ctx.globalAlpha = 1.0;
     }
 
+    // Enemy Projectiles & Ground Shockwaves
     for (const ep of this.enemyProjectiles) {
-      ctx.fillStyle = ep.color;
-      ctx.shadowColor = ep.color;
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(ep.x, ep.y, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      if (ep.isGroundWave) {
+        // Traveling Stone Shockwave Spikes
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.moveTo(ep.x - 12, 490);
+        ctx.lineTo(ep.x, 460);
+        ctx.lineTo(ep.x + 12, 490);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(ep.x - 4, 464, 8, 26);
+      } else {
+        ctx.fillStyle = ep.color;
+        ctx.shadowColor = ep.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(ep.x, ep.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
     }
 
+    // Draw Enemies & Bosses
     for (const en of this.enemies) en.draw(ctx);
 
     if (this.isPlaying) {
