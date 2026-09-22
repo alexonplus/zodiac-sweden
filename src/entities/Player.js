@@ -8,7 +8,8 @@ import { buffManager } from './Powerups.js';
 
 /**
  * PlayerEntity manages hero physics, animations, combat skills,
- * buff statuses, and delegates character-specific rendering to dedicated hero modules.
+ * buff statuses, and layered character sprite rendering delegating
+ * to dedicated hero modules.
  */
 export class PlayerEntity {
   constructor(pIndex) {
@@ -63,8 +64,7 @@ export class PlayerEntity {
   }
 
   takeDamage(amount, onDefeat, onShake) {
-    // Shield of Odin invulnerability check
-    if (buffManager.hasBuff(this.pIndex, 'aegis') || this.invulnTime > 0) {
+    if (buffManager.hasBuff(this.pIndex, 'aegis') || this.invulnTime > 0 || this.isDashing > 0) {
       sound.playLaser();
       particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, '#38bdf8', 10);
       particles.createDamageNumber(this.x + this.w / 2, this.y - 15, 'BLOCKED! 🛡️', '#38bdf8');
@@ -72,7 +72,7 @@ export class PlayerEntity {
     }
 
     this.hp -= amount;
-    this.invulnTime = 25;
+    this.invulnTime = 30;
     sound.playHit();
     if (onShake) onShake(10);
     particles.createDamageNumber(this.x + this.w / 2, this.y - 12, `-${amount}`, '#ef4444');
@@ -327,23 +327,25 @@ export class PlayerEntity {
     if (this.energy < 25 || this.qCooldown > 0) return;
     this.energy -= 25;
     this.qCooldown = 45;
-    sound.playLaser();
+    sound.playWave();
     if (onShake) onShake(6);
 
     const damageMult = buffManager.getDamageMultiplier(this.pIndex);
 
-    projectiles.push({
-      x: this.x + (this.facing > 0 ? this.w + 10 : -20),
-      y: this.y + 15,
-      vx: this.facing * 15,
-      vy: 0,
-      type: 'skillQ',
-      color: this.hero.color,
-      element: this.hero.element,
-      owner: this.pIndex,
-      damage: Math.floor(45 * damageMult),
-      life: 55
-    });
+    for (let i = -1; i <= 1; i++) {
+      projectiles.push({
+        x: this.x + (this.facing > 0 ? this.w + 10 : -20),
+        y: this.y + 15 + i * 10,
+        vx: this.facing * 10,
+        vy: i * 1.5,
+        type: 'skillQ',
+        color: this.hero.color,
+        element: this.hero.element,
+        owner: this.pIndex,
+        damage: Math.floor(40 * damageMult),
+        life: 65
+      });
+    }
     particles.createSparks(this.x + this.w / 2, this.y + 20, this.hero.color, 16);
   }
 
@@ -351,7 +353,7 @@ export class PlayerEntity {
     if (this.energy < 40 || this.eCooldown > 0) return;
     this.energy -= 40;
     this.eCooldown = 75;
-    sound.playWave();
+    sound.playLaser();
     if (onShake) onShake(12);
 
     const damageMult = buffManager.getDamageMultiplier(this.pIndex);
@@ -376,8 +378,8 @@ export class PlayerEntity {
     this.energy -= 15;
     this.dashCooldown = 30;
     this.isDashing = 10;
-    this.invulnTime = 12;
-    sound.playSword();
+    this.invulnTime = 14;
+    sound.playLaser();
   }
 
   castUlt(enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH) {
@@ -407,31 +409,158 @@ export class PlayerEntity {
     particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, this.hero.color, 60);
   }
 
+  /**
+   * Complete layered character renderer with modular accessories, helmet, weapons,
+   * animated legs, torso armor, glowing sigil, and buff auras.
+   */
   draw(ctx) {
+    if (this.hp <= 0) {
+      ctx.save();
+      ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('👻', -12, 0);
+      ctx.restore();
+      return;
+    }
+
     // Draw Active Aura Rings & Shields (Aegis, Mjölnir, Berserker)
     buffManager.drawPlayerAuras(ctx, this);
 
-    ctx.save();
-    ctx.translate(this.x, this.y);
+    const hCol = this.hero.color;
+    const isMoving = Math.abs(this.vx) > 0.2;
+    const bobY = this.isGrounded && !isMoving ? Math.sin(this.animTimer) * 2.2 : 0;
+    const walkSine = Math.sin(this.walkCycle);
+    const legOffset = isMoving ? walkSine * 9 : 0;
+    const tiltAngle = (this.vx / (this.hero.speed || 4)) * 0.12;
+    const speedRatio = Math.abs(this.vx) / (this.hero.speed || 4);
+    const capeFlutter = Math.sin(this.animTimer * 2.5) * (4 + speedRatio * 8);
 
-    // Flashing when invulnerable
-    if (this.invulnTime > 0 && Math.floor(this.invulnTime / 3) % 2 === 0) {
+    // Aquarius Cyber Drone Follower
+    if (this.hero.id === 'aquarius') {
+      ctx.save();
+      ctx.translate(this.drone.x, this.drone.y);
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#082f49';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(-4, -1.5, 8, 3);
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-10, -4);
+      ctx.lineTo(10, -4);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, 6);
+      ctx.lineTo(this.facing * 24, 38);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(this.x + this.w / 2, this.y + this.h / 2 + bobY);
+    if (this.facing < 0) ctx.scale(-1, 1);
+    ctx.rotate(tiltAngle);
+
+    // Invulnerability Flashing
+    if (this.invulnTime > 0 && Math.floor(this.invulnTime / 4) % 2 === 0) {
       ctx.globalAlpha = 0.45;
     }
 
-    // Direction flip
-    if (this.facing < 0) {
-      ctx.scale(-1, 1);
-      ctx.translate(-this.w, 0);
+    // Player Tag (P1 / P2)
+    ctx.fillStyle = this.pIndex === 1 ? '#00f0ff' : '#facc15';
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`P${this.pIndex}`, 0, -40);
+    ctx.textAlign = 'left';
+
+    // 1. Back accessories (Cape / Tail / Wings) from dedicated Hero Module
+    if (this.heroModule && this.heroModule.drawBackAccessories) {
+      this.heroModule.drawBackAccessories(ctx, this, speedRatio, capeFlutter);
     }
 
-    // Delegate rendering to modular hero file
-    if (this.heroModule && typeof this.heroModule.draw === 'function') {
-      this.heroModule.draw(ctx, this);
-    } else {
-      // Fallback
-      ctx.fillStyle = this.hero.color;
-      ctx.fillRect(0, 0, this.w, this.h);
+    // 2. Articulated Legs & Boots
+    const legFrontX = this.isGrounded ? legOffset : 4;
+    const legBackX = this.isGrounded ? -legOffset : -6;
+    const legFrontY = this.isGrounded ? 0 : -3;
+    const legBackY = this.isGrounded ? 0 : 4;
+
+    // Back Leg
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-8 + legBackX, 6 + legBackY, 7, 18);
+    ctx.fillStyle = hCol;
+    ctx.fillRect(-8 + legBackX, 18 + legBackY, 8, 8);
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(-8 + legBackX, 24 + legBackY, 9, 3);
+
+    // Front Leg
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(1 + legFrontX, 6 + legFrontY, 7, 18);
+    ctx.fillStyle = hCol;
+    ctx.fillRect(1 + legFrontX, 18 + legFrontY, 8, 8);
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(1 + legFrontX, 24 + legFrontY, 9, 3);
+
+    // 3. Torso & Rune Armor
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-12, -18, 24, 26);
+    ctx.fillStyle = hCol;
+    ctx.fillRect(-10, -16, 20, 22);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-7, -13, 14, 16);
+
+    // Glowing Zodiac Sigil
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(this.hero.symbol, 0, 0);
+    ctx.textAlign = 'left';
+
+    // Belt
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-11, 4, 22, 4);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(-3, 3, 6, 6);
+
+    // 4. Head, Face & Custom Helmet from dedicated Hero Module
+    ctx.fillStyle = '#fed7aa';
+    ctx.fillRect(-6, -28, 12, 11);
+    if (this.heroModule && this.heroModule.drawHelmet) {
+      this.heroModule.drawHelmet(ctx, this);
+    }
+
+    // 5. Weapon & Attack Motion from dedicated Hero Module
+    const swingPhase = this.attackSwing > 0 ? (this.attackSwing / 14) : 0;
+    const swingAngle = swingPhase > 0 ? (Math.sin(swingPhase * Math.PI) * -1.3) : (isMoving ? Math.sin(this.walkCycle) * 0.2 : 0);
+
+    ctx.save();
+    ctx.translate(10, -2);
+    ctx.rotate(swingAngle);
+    if (this.heroModule && this.heroModule.drawWeapon) {
+      this.heroModule.drawWeapon(ctx, this);
+    }
+    ctx.restore();
+
+    // 6. Attack Arc Trail & Flash
+    if (this.attackSwing > 0) {
+      ctx.save();
+      ctx.strokeStyle = hCol;
+      ctx.lineWidth = 4;
+      ctx.shadowColor = hCol;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(10, -2, 32, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.restore();
