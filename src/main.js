@@ -8,6 +8,7 @@ import { checkRectCollision } from './engine/Physics.js';
 import { relicManager } from './entities/Relics.js';
 import { destructibleManager } from './entities/Destructibles.js';
 import { buffManager } from './entities/Powerups.js';
+import { sceneryManager } from './entities/Scenery.js';
 import { PlayerEntity } from './entities/Player.js';
 import { EnemyMob } from './entities/Enemy.js';
 import { BossEntity, createBoss, BaseBoss } from './entities/Bosses.js';
@@ -771,6 +772,9 @@ export class GameManager {
       }
     }
 
+    // Swedish Architectural Landmarks, Houses, Neon Signs & Streetlamps
+    sceneryManager.draw(ctx, this.currentLevel, this.levelWidth, this.camera, this.gameTime);
+
     // Raised Platforms with Metallic Borders
     for (let i = 1; i < platforms.length; i++) {
       const p = platforms[i];
@@ -871,4 +875,15 @@ export class GameManager {
 window.addEventListener('DOMContentLoaded', () => {
   const game = new GameManager();
   game.loop();
+
+  // Unlock AudioContext on first user interaction anywhere
+  const unlockAudio = () => {
+    sound.init();
+    if (game.isPlaying && !sound.currentTrack) {
+      sound.playMusic(game.currentLevel);
+    }
+  };
+  window.addEventListener('click', unlockAudio);
+  window.addEventListener('keydown', unlockAudio);
+  window.addEventListener('touchstart', unlockAudio);
 });
