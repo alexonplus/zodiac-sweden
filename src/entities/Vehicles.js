@@ -51,15 +51,19 @@ export class VehicleEntity {
     p.y = this.y - 15;
     p.invulnTime = 10; // Rider is invulnerable while inside vehicle
 
-    // Ram through enemies
+    // Ram through enemies with hit cooldown
     for (const en of enemies) {
-      if (checkRectCollision(this, en)) {
-        en.hp -= 45;
+      if (en.vehicleHitTimer > 0) {
+        en.vehicleHitTimer--;
+      }
+      if (checkRectCollision(this, en) && (!en.vehicleHitTimer || en.vehicleHitTimer <= 0)) {
+        en.hp -= 50;
         en.stunTimer = 40;
+        en.vehicleHitTimer = 35; // 35 frames (~0.6s) cooldown per enemy
         sound.playHammer();
-        if (onShake) onShake(8);
+        if (onShake) onShake(10);
         particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#facc15', 20);
-        particles.createDamageNumber(en.x + en.w / 2, en.y, 'RAM! -45 💥', '#facc15');
+        particles.createDamageNumber(en.x + en.w / 2, en.y, 'RAM! -50 💥', '#facc15');
       }
     }
 

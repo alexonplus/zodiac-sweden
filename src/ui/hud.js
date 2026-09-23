@@ -73,9 +73,21 @@ export class HudManager {
 
   showSynergy(text) {
     const pop = document.getElementById('synergy-popup');
-    pop.innerText = `⚡ ${text} ⚡`;
-    pop.classList.add('show');
-    setTimeout(() => pop.classList.remove('show'), 2200);
+    if (pop) {
+      pop.innerText = `⚡ ${text} ⚡`;
+      pop.classList.add('show');
+      setTimeout(() => pop.classList.remove('show'), 2200);
+    }
+  }
+
+  showBossWarning(bossName) {
+    const pop = document.getElementById('synergy-popup');
+    if (pop) {
+      pop.innerHTML = `⚠️ BOSS ARENA! ⚠️<br><span style="font-size:16px;color:#ef4444;text-shadow:0 0 10px #ef4444;">${bossName}</span>`;
+      pop.classList.add('show');
+      setTimeout(() => pop.classList.remove('show'), 3500);
+    }
   }
 }
 export const hudManager = new HudManager();
+

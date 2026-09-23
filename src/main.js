@@ -349,6 +349,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1050 * scale, '🐙'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        hudManager.showBossWarning('MEKANISK KRAN-KRAKEN');
         sound.playMusic('boss');
         sound.playUlt();
       }
@@ -378,6 +379,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1150 * scale, '❄️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'troll'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
+        hudManager.showBossWarning('LKAB MALM-JÄTTE');
         sound.playMusic('boss');
         sound.playUlt();
       }
@@ -406,6 +408,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 1100 * scale, '👑'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'karolin'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'skogsra'));
+        hudManager.showBossWarning('KUNGLIGA ÅNG-GRYFON');
         sound.playMusic('boss');
         sound.playUlt();
       }
@@ -434,6 +437,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 1120 * scale, '⚔️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'corsair'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'troll'));
+        hudManager.showBossWarning('VALDEMAR SPÖKSJÖRÖVARE');
         sound.playMusic('boss');
         sound.playUlt();
       }
