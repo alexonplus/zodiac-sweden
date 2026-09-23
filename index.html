@@ -117,7 +117,14 @@
         <button id="btn-mode-solo" class="btn-main">SOLO CAMPAIGN [1P SOLO]</button>
         <button id="btn-mode-coop" class="btn-main btn-coop">CO-OP ARCADE [2P CO-OP] 👥</button>
       </div>
-      <button id="btn-goto-map" class="btn-secondary">SWEDEN REALM MAP</button>
+
+      <div class="mode-buttons" style="margin-top: 10px;">
+        <button id="btn-mode-pvp" class="btn-secondary" style="border-color: #ef4444; color: #fca5a5;">⚔️ PVP DUEL [1 vs 1]</button>
+        <button id="btn-mode-bossrush" class="btn-secondary" style="border-color: #facc15; color: #fde047;">🏆 BOSS RUSH MODE</button>
+        <button id="btn-open-shop" class="btn-secondary" style="border-color: #fb923c; color: #fdba74;">☕ FIKA CAFÉ SHOP</button>
+      </div>
+
+      <button id="btn-goto-map" class="btn-secondary" style="margin-top: 10px;">SWEDEN REALM MAP</button>
     </div>
 
     <!-- SCREEN 2: ALL 12 ZODIACS SELECTION -->
@@ -213,6 +220,19 @@
       <div id="res-desc" class="screen-subtitle" style="font-size: 15px; max-width: 600px; line-height: 1.6;">Sector cleared.</div>
       <button id="btn-res-next" class="btn-main">TACTICAL MAP [WORLD MAP]</button>
       <button id="btn-res-replay" class="btn-secondary">REPLAY SECTOR</button>
+    </div>
+
+    <!-- SCREEN 5: FIKA CAFÉ & UPGRADE SHOP -->
+    <div id="screen-shop" class="screen-overlay" style="display: none;">
+      <div class="screen-title">☕ KONDITORI ZODIAC FIKA CAFÉ</div>
+      <div class="screen-subtitle">Spend collected Star Shards (⭐) on permanent combat upgrades</div>
+      <div style="font-size: 18px; font-weight: 900; color: #facc15; margin-bottom: 12px;">AVAILABLE STAR SHARDS: <span id="shop-shards-display">0</span> ⭐</div>
+
+      <div class="shop-grid" id="shop-items-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 880px; width: 100%;">
+        <!-- Dynamic shop cards populated in JavaScript -->
+      </div>
+
+      <button id="btn-close-shop" class="btn-main" style="margin-top: 16px;">RETURN TO TITLE MENU</button>
     </div>
   </div>
 

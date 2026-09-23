@@ -5,6 +5,7 @@ import { particles } from '../engine/Particles.js';
 import { checkRectCollision } from '../engine/Physics.js';
 import { relicManager } from './Relics.js';
 import { buffManager } from './Powerups.js';
+import { shopManager } from './Shop.js';
 
 /**
  * PlayerEntity manages hero physics, animations, combat skills,
@@ -46,7 +47,7 @@ export class PlayerEntity {
   init(heroId, startX) {
     this.hero = HERO_CONFIGS[heroId] || HERO_CONFIGS['aquarius'];
     this.heroModule = getHeroModule(heroId);
-    this.maxHp = this.hero.maxHp;
+    this.maxHp = this.hero.maxHp + shopManager.getBonusHp();
     this.hp = this.maxHp;
     this.energy = 100;
     this.ultCharge = 25;
@@ -71,11 +72,14 @@ export class PlayerEntity {
       return;
     }
 
-    this.hp -= amount;
+    // Apply Viking Ring-Mail damage resistance
+    const reducedDmg = Math.max(1, Math.floor(amount * (1 - shopManager.getDamageReduction())));
+
+    this.hp -= reducedDmg;
     this.invulnTime = 30;
     sound.playHit();
     if (onShake) onShake(10);
-    particles.createDamageNumber(this.x + this.w / 2, this.y - 12, `-${amount}`, '#ef4444');
+    particles.createDamageNumber(this.x + this.w / 2, this.y - 12, `-${reducedDmg}`, '#ef4444');
 
     if (this.hp <= 0) {
       this.hp = 0;
@@ -105,10 +109,10 @@ export class PlayerEntity {
     if (moveLeft) moveX -= 1;
     if (moveRight) moveX += 1;
 
-    // Speed multiplier (Valkyrie Frost Dash / Fika)
-    let speedMult = 1.0;
-    if (buffManager.hasBuff(this.pIndex, 'valkyrie')) speedMult = 1.6;
-    else if (buffManager.hasBuff(this.pIndex, 'fika')) speedMult = 1.25;
+    // Speed multiplier (Valkyrie Frost Dash / Fika / Shop Upgrade)
+    let speedMult = shopManager.getSpeedMultiplier();
+    if (buffManager.hasBuff(this.pIndex, 'valkyrie')) speedMult *= 1.6;
+    else if (buffManager.hasBuff(this.pIndex, 'fika')) speedMult *= 1.25;
 
     if (moveX !== 0) {
       this.facing = moveX;
@@ -240,7 +244,7 @@ export class PlayerEntity {
     this.energy -= 5;
     this.attackSwing = 14;
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex);
+    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
     const hasThorLightning = buffManager.hasBuff(this.pIndex, 'mjolnir');
 
     const hId = this.hero.id;
@@ -330,7 +334,7 @@ export class PlayerEntity {
     sound.playWave();
     if (onShake) onShake(6);
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex);
+    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
 
     for (let i = -1; i <= 1; i++) {
       projectiles.push({
@@ -356,7 +360,7 @@ export class PlayerEntity {
     sound.playLaser();
     if (onShake) onShake(12);
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex);
+    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
     const radius = 170;
 
     particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, this.hero.color, 35);
@@ -388,7 +392,7 @@ export class PlayerEntity {
     sound.playUlt();
     if (onShake) onShake(24);
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex);
+    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
     const ultDamage = Math.floor(130 * damageMult);
 
     if (onUltEffect) {
