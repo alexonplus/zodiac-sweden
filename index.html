@@ -40,7 +40,10 @@
 
         <!-- CENTER CITY & SCORE -->
         <div class="center-hud">
-          <div id="hud-city" class="location-city">🇸🇪 GÖTEBORG DOCKS</div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <div id="hud-city" class="location-city">🇸🇪 GÖTEBORG DOCKS</div>
+            <button id="btn-sound-toggle" style="background: rgba(15, 23, 42, 0.8); border: 1px solid #00f0ff; color: #fff; border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 12px; pointer-events: auto;">🔊</button>
+          </div>
           <div class="score-badge">TEAM SHARDS: <span id="score-val">0</span> ⭐</div>
           <div class="stage-progress-track">
             <span class="stage-flag">START</span>

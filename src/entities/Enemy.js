@@ -4,7 +4,14 @@ import { particles } from '../engine/Particles.js';
 
 /**
  * EnemyMob represents fully animated ground-walking enemies
- * with specialized AI, telegraphs, and unique Swedish folklore/cyber mechanics.
+ * with deep pixel-art detailing, custom accessories, and specialized AI.
+ * Types:
+ * - viking: Nordic Berserker Raider with horned helm & heavy shield
+ * - golem: LKAB Heavy Iron Ore Automaton with spinning coring drill & steam vents
+ * - karolin: Royal Swedish Musketeer with bayoneted flintlock & laser aim
+ * - corsair: Visby Ghost Pirate with translucent coat & glowing ethereal cutlass
+ * - troll: Moss-Covered Mountain Forest Troll with boulder fists & birch club
+ * - skogsra: Enchanted Forest Mystic with antler crown & nature storm aura
  */
 export class EnemyMob {
   constructor(x, y, type) {
@@ -60,7 +67,6 @@ export class EnemyMob {
       this.hp = 90; this.maxHp = 90;
       this.dmg = 15; this.speed = 1.9;
     } else {
-      // Fallback
       this.w = 36; this.h = 58;
       this.hp = 90; this.maxHp = 90;
       this.dmg = 16; this.speed = 2.0;
@@ -78,6 +84,9 @@ export class EnemyMob {
   update(p1, p2, isCoopMode, enemyProjectiles, platforms = [], onShake) {
     this.animTimer += 0.08;
     if (this.elementTimer > 0) this.elementTimer--;
+    if (this.cooldown > 0) this.cooldown--;
+    if (this.actionTimer > 0) this.actionTimer--;
+
     if (this.stunTimer > 0) {
       this.stunTimer--;
       this.vx = 0;
@@ -86,61 +95,57 @@ export class EnemyMob {
     }
 
     const target = this.getNearestPlayer(p1, p2, isCoopMode);
-    const distToTarget = target ? Math.abs(target.x - this.x) : 9999;
-    const dirToTarget = target ? Math.sign(target.x - this.x) : -1;
-
-    if (this.cooldown > 0) this.cooldown--;
-    if (this.actionTimer > 0) this.actionTimer--;
-
-    // ================= SPECIFIC ENEMY COMBAT AI =================
-    if (this.type === 'viking') {
-      this.updateVikingAI(target, distToTarget, dirToTarget, onShake);
-    } else if (this.type === 'golem') {
-      this.updateGolemAI(target, distToTarget, dirToTarget, onShake);
-    } else if (this.type === 'karolin') {
-      this.updateKarolinAI(target, distToTarget, dirToTarget, enemyProjectiles);
-    } else if (this.type === 'corsair') {
-      this.updateCorsairAI(target, distToTarget, dirToTarget);
-    } else if (this.type === 'troll') {
-      this.updateTrollAI(target, distToTarget, dirToTarget, enemyProjectiles, onShake);
-    } else if (this.type === 'skogsra') {
-      this.updateSkogsraAI(target, distToTarget, dirToTarget, enemyProjectiles);
+    if (!target || target.hp <= 0) {
+      this.vx = 0;
+      this.applyPhysics(platforms);
+      return;
     }
 
-    // Apply movement physics and ground collision
+    const dist = Math.abs(target.x - this.x);
+    const dir = target.x > this.x ? 1 : -1;
+
+    // AI branch by type
+    if (this.type === 'viking') {
+      this.updateVikingAI(target, dist, dir, onShake);
+    } else if (this.type === 'golem') {
+      this.updateGolemAI(target, dist, dir, onShake);
+    } else if (this.type === 'karolin') {
+      this.updateKarolinAI(target, dist, dir, enemyProjectiles);
+    } else if (this.type === 'corsair') {
+      this.updateCorsairAI(target, dist, dir, onShake);
+    } else if (this.type === 'troll') {
+      this.updateTrollAI(target, dist, dir, onShake);
+    } else if (this.type === 'skogsra') {
+      this.updateSkogsraAI(target, dist, dir, enemyProjectiles);
+    }
+
     this.applyPhysics(platforms);
 
-    // Collision damage with player during melee contact
-    if (this.state === 'attack' || (this.state === 'dash' && this.type === 'golem')) {
-      if (checkRectCollision(this, target)) {
+    // Contact damage during melee attack states
+    if (this.state === 'attack' || this.state === 'dash') {
+      const pDist = Math.hypot((target.x + target.w/2) - (this.x + this.w/2), (target.y + target.h/2) - (this.y + this.h/2));
+      if (pDist < 45 && target.invulnTime === 0) {
         target.takeDamage(this.dmg, null, onShake);
       }
-    } else if (checkRectCollision(this, target) && this.cooldown <= 0) {
-      target.takeDamage(10, null, onShake);
-      this.cooldown = 30;
     }
   }
 
   applyPhysics(platforms) {
-    this.x += this.vx;
-    this.y += this.vy;
-
-    // Gravity
     this.vy += 0.55;
     if (this.vy > 14) this.vy = 14;
 
-    const groundY = 490;
-    let onPlatform = false;
+    this.x += this.vx;
+    this.y += this.vy;
 
-    // Floor collision
+    const groundY = 490;
     if (this.y + this.h >= groundY) {
       this.y = groundY - this.h;
       this.vy = 0;
       this.isGrounded = true;
-      onPlatform = true;
+      return;
     }
 
-    // Platforms
+    let onPlatform = false;
     for (const p of platforms) {
       if (this.x + this.w > p.x && this.x < p.x + p.w) {
         if (this.y + this.h >= p.y && this.y + this.h <= p.y + 16 && this.vy >= 0) {
@@ -156,7 +161,6 @@ export class EnemyMob {
     if (!onPlatform) this.isGrounded = false;
   }
 
-  // 1. Viking Raider AI: Guard advance, leap cleave
   updateVikingAI(target, dist, dir, onShake) {
     if (this.state === 'walk') {
       this.facing = dir || -1;
@@ -174,7 +178,7 @@ export class EnemyMob {
       if (this.actionTimer <= 0) {
         this.state = 'attack';
         this.actionTimer = 18;
-        this.vy = -7.5; // Leap chop
+        this.vy = -7.5;
         this.vx = this.facing * 5.5;
         this.isShielding = false;
         sound.playHammer();
@@ -188,9 +192,8 @@ export class EnemyMob {
     }
   }
 
-  // 2. Automaton Golem AI: Pneumatic Drill Charge & Scalding Steam
   updateGolemAI(target, dist, dir, onShake) {
-    this.drillSpin += 0.3;
+    this.drillSpin += 0.35;
     if (this.state === 'walk') {
       this.facing = dir || -1;
       this.vx = this.facing * this.speed;
@@ -198,40 +201,36 @@ export class EnemyMob {
 
       if (dist < 220 && this.cooldown <= 0) {
         this.state = 'windup';
-        this.actionTimer = 30; // Steam buildup
+        this.actionTimer = 30;
         this.vx = 0;
       }
     } else if (this.state === 'windup') {
       this.vx = 0;
-      this.drillSpin += 0.6;
+      this.drillSpin += 0.7;
       if (this.actionTimer <= 0) {
         this.state = 'dash';
-        this.actionTimer = 35; // Charge forward
+        this.actionTimer = 35;
         this.vx = this.facing * 6.5;
         sound.playLaser();
         if (onShake) onShake(6);
       }
     } else if (this.state === 'dash') {
-      this.drillSpin += 0.8;
+      this.drillSpin += 0.9;
       particles.createTrail(this.x, this.y, this.w, this.h, '#f59e0b');
       if (this.actionTimer <= 0) {
         this.state = 'walk';
         this.cooldown = 120;
         this.vx = 0;
-        // Steam Vent Explosion
         particles.createSparks(this.x + this.w/2, this.y + this.h/2, '#e2e8f0', 25);
         sound.playWave();
       }
     }
   }
 
-  // 3. Caroliner Sniper AI: Aimed Musket Laser & Tactical Backstep
   updateKarolinAI(target, dist, dir, enemyProjectiles) {
     if (this.state === 'walk') {
       this.facing = dir || -1;
-      // Maintain distance around 240px
       if (dist < 100) {
-        // Too close, backstep away
         this.state = 'backstep';
         this.actionTimer = 16;
         this.vx = -this.facing * 5.0;
@@ -240,7 +239,6 @@ export class EnemyMob {
         this.vx = this.facing * this.speed;
         this.walkCycle += 0.2;
       } else {
-        // In sweet spot, enter aim mode
         this.vx = 0;
         if (this.cooldown <= 0) {
           this.state = 'aim';
@@ -248,168 +246,141 @@ export class EnemyMob {
           this.laserAim = true;
         }
       }
+    } else if (this.state === 'backstep') {
+      if (this.actionTimer <= 0) this.state = 'walk';
     } else if (this.state === 'aim') {
       this.vx = 0;
-      this.facing = dir || -1;
+      this.facing = dir;
       if (this.actionTimer <= 0) {
         this.laserAim = false;
-        this.state = 'walk';
-        this.cooldown = 100;
         sound.playLaser();
-        // Fire armor-piercing musket bullet
         enemyProjectiles.push({
           x: this.x + (this.facing > 0 ? this.w + 10 : -10),
           y: this.y + 20,
-          vx: this.facing * 14,
+          vx: this.facing * 12,
           vy: 0,
-          color: '#fbbf24',
+          color: '#38bdf8',
           damage: this.dmg,
           life: 70
         });
-        particles.createSparks(this.x + (this.facing > 0 ? this.w + 10 : -10), this.y + 20, '#fbbf24', 8);
-      }
-    } else if (this.state === 'backstep') {
-      if (this.actionTimer <= 0) {
-        this.state = 'walk';
-        this.cooldown = 40;
-      }
-    }
-  }
-
-  // 4. Ghost Corsair AI: Shadow phase dash behind player, cutlass flurry
-  updateCorsairAI(target, dist, dir) {
-    if (this.state === 'walk') {
-      this.facing = dir || -1;
-      this.vx = this.facing * this.speed;
-      this.walkCycle += 0.24;
-      this.isPhased = false;
-
-      if (dist < 160 && this.cooldown <= 0) {
-        this.state = 'dash';
-        this.actionTimer = 20;
-        this.isPhased = true;
-        this.vx = this.facing * 10;
-        sound.playLaser();
-      }
-    } else if (this.state === 'dash') {
-      particles.createTrail(this.x, this.y, this.w, this.h, '#38bdf8');
-      if (this.actionTimer <= 0) {
-        this.isPhased = false;
-        this.state = 'attack';
-        this.actionTimer = 22;
-        this.vx = 0;
-        this.facing = -this.facing; // Turn to hit from back
-        sound.playHit();
-      }
-    } else if (this.state === 'attack') {
-      if (this.actionTimer <= 0) {
+        particles.createSparks(this.x + (this.facing > 0 ? this.w + 12 : -12), this.y + 20, '#facc15', 10);
         this.state = 'walk';
         this.cooldown = 110;
       }
     }
   }
 
-  // 5. Stone Troll AI: Ground-Shaking Spike Wave Shockwave
-  updateTrollAI(target, dist, dir, enemyProjectiles, onShake) {
+  updateCorsairAI(target, dist, dir, onShake) {
+    if (this.state === 'walk') {
+      this.facing = dir || -1;
+      this.vx = this.facing * this.speed;
+      this.walkCycle += 0.25;
+
+      if (dist < 160 && this.cooldown <= 0) {
+        this.state = 'dash';
+        this.actionTimer = 18;
+        this.vx = this.facing * 8.5;
+        this.isPhased = true;
+        sound.playSword();
+      }
+    } else if (this.state === 'dash') {
+      particles.createTrail(this.x, this.y, this.w, this.h, '#c084fc');
+      if (this.actionTimer <= 0) {
+        this.state = 'attack';
+        this.actionTimer = 20;
+        this.vx = 0;
+        this.isPhased = false;
+        sound.playPoison();
+      }
+    } else if (this.state === 'attack') {
+      if (this.actionTimer <= 0) {
+        this.state = 'walk';
+        this.cooldown = 80;
+      }
+    }
+  }
+
+  updateTrollAI(target, dist, dir, onShake) {
     if (this.state === 'walk') {
       this.facing = dir || -1;
       this.vx = this.facing * this.speed;
       this.walkCycle += 0.14;
 
-      if (dist < 180 && this.cooldown <= 0 && this.isGrounded) {
+      if (dist < 80 && this.cooldown <= 0) {
         this.state = 'windup';
-        this.actionTimer = 40; // High overhead raise
+        this.actionTimer = 28;
         this.vx = 0;
       }
     } else if (this.state === 'windup') {
       this.vx = 0;
       if (this.actionTimer <= 0) {
         this.state = 'attack';
-        this.actionTimer = 24;
+        this.actionTimer = 20;
+        this.vx = 0;
         sound.playHammer();
         if (onShake) onShake(14);
-        particles.createSparks(this.x + (this.facing > 0 ? this.w + 10 : -10), this.y + this.h, '#78350f', 30);
-
-        // Spawn traveling ground rock spike shockwave projectile
-        enemyProjectiles.push({
-          x: this.x + (this.facing > 0 ? this.w + 10 : -10),
-          y: 470,
-          vx: this.facing * 7.0,
-          vy: 0,
-          color: '#d97706',
-          damage: this.dmg,
-          life: 65,
-          isGroundWave: true
-        });
+        particles.createSparks(this.x + (this.facing > 0 ? this.w + 10 : -10), this.y + this.h, '#ca8a04', 30);
       }
     } else if (this.state === 'attack') {
       if (this.actionTimer <= 0) {
         this.state = 'walk';
-        this.cooldown = 130;
+        this.cooldown = 90;
       }
     }
   }
 
-  // 6. Skogsrå Enchantress AI: Root Briar Spores
   updateSkogsraAI(target, dist, dir, enemyProjectiles) {
     if (this.state === 'walk') {
       this.facing = dir || -1;
-      this.vx = this.facing * this.speed;
-      this.walkCycle += 0.2;
-
-      if (dist < 320 && this.cooldown <= 0) {
-        this.state = 'windup';
-        this.actionTimer = 35;
+      if (dist < 140) {
+        this.vx = -this.facing * (this.speed * 1.2);
+      } else if (dist > 300) {
+        this.vx = this.facing * this.speed;
+      } else {
         this.vx = 0;
+        if (this.cooldown <= 0) {
+          this.state = 'cast';
+          this.actionTimer = 35;
+          sound.playWave();
+        }
       }
-    } else if (this.state === 'windup') {
+      this.walkCycle += 0.2;
+    } else if (this.state === 'cast') {
       this.vx = 0;
       particles.createSparks(this.x + this.w/2, this.y + 10, '#4ade80', 2);
       if (this.actionTimer <= 0) {
+        sound.playPoison();
+        for (let i = -1; i <= 1; i++) {
+          enemyProjectiles.push({
+            x: this.x + this.w/2,
+            y: this.y + 15,
+            vx: this.facing * 7.5,
+            vy: i * 2.2,
+            color: '#4ade80',
+            damage: 16,
+            life: 80
+          });
+        }
         this.state = 'walk';
-        this.cooldown = 140;
-        sound.playWave();
-        // Fire tracking briar spore projectile
-        enemyProjectiles.push({
-          x: this.x + (this.facing > 0 ? this.w + 6 : -6),
-          y: this.y + 15,
-          vx: this.facing * 4.5,
-          vy: (target.y - this.y) * 0.02,
-          color: '#22c55e',
-          damage: this.dmg,
-          life: 90
-        });
+        this.cooldown = 110;
       }
     }
   }
 
-  // ================= 16/32-BIT PROCEDURAL ANIMATED ENEMY RENDERING =================
+  /* ================= DETAILED PIXEL-ART DRAWING ================= */
+
   draw(ctx) {
     ctx.save();
     ctx.translate(this.x + this.w/2, this.y + this.h/2);
     if (this.facing < 0) ctx.scale(-1, 1);
 
-    if (this.isPhased) ctx.globalAlpha = 0.45;
-    if (this.stunTimer > 0 && Math.floor(this.stunTimer / 4) % 2 === 0) ctx.globalAlpha = 0.6;
-
-    const isMoving = Math.abs(this.vx) > 0.1;
-    const walkSine = Math.sin(this.walkCycle);
-    const legOffset = isMoving ? walkSine * 8 : 0;
-
-    // Aim Laser Line for Karolin
-    if (this.laserAim) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.75)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(18, -6);
-      ctx.lineTo(350, -6);
-      ctx.stroke();
-      ctx.restore();
+    if (this.stunTimer > 0 && Math.floor(this.stunTimer / 4) % 2 === 0) {
+      ctx.globalAlpha = 0.5;
     }
 
-    // Specific enemy rendering routines
+    const isMoving = Math.abs(this.vx) > 0.2;
+    const legOffset = isMoving ? Math.sin(this.walkCycle) * 8 : 0;
+
     if (this.type === 'viking') {
       this.drawViking(ctx, legOffset);
     } else if (this.type === 'golem') {
@@ -424,276 +395,255 @@ export class EnemyMob {
       this.drawSkogsra(ctx, legOffset);
     }
 
+    ctx.restore();
+
     // Health Bar
     if (this.hp < this.maxHp) {
-      ctx.save();
-      ctx.scale(this.facing < 0 ? -1 : 1, 1);
       const hpPct = Math.max(0, this.hp / this.maxHp);
       ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-18, -this.h/2 - 12, 36, 5);
+      ctx.fillRect(this.x, this.y - 12, this.w, 4);
       ctx.fillStyle = '#ef4444';
-      ctx.fillRect(-17, -this.h/2 - 11, 34 * hpPct, 3);
-      ctx.restore();
+      ctx.fillRect(this.x, this.y - 12, this.w * hpPct, 4);
     }
-
-    ctx.restore();
   }
 
-  // 1. Draw Viking Raider
+  // 1. Viking Berserker
   drawViking(ctx, legOffset) {
-    // Legs & Fur Boots
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(-8 - legOffset, 8, 6, 16);
-    ctx.fillRect(2 + legOffset, 8, 6, 16);
+    // Cape & Fur Pelt
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(-14, -14, 8, 26);
+    ctx.fillStyle = '#92400e';
+    ctx.fillRect(-12, -18, 16, 6);
+
+    // Legs & Boots
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-8 - legOffset, 8, 6, 18);
+    ctx.fillRect(2 + legOffset, 8, 6, 18);
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(-9 - legOffset, 18, 8, 6);
-    ctx.fillRect(1 + legOffset, 18, 8, 6);
+    ctx.fillRect(-8 - legOffset, 20, 8, 7);
+    ctx.fillRect(2 + legOffset, 20, 8, 7);
 
-    // Torso & Chainmail
-    ctx.fillStyle = '#64748b';
-    ctx.fillRect(-10, -14, 20, 22);
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(-8, -12, 16, 18);
+    // Torso Chainmail & Belt
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-10, -14, 20, 24);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(-10, 4, 20, 4); // Belt
 
-    // Head, Spectacle Helmet & Red Beard
+    // Head & Horned Helmet
     ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(-6, -26, 12, 10);
-    ctx.fillStyle = '#b91c1c'; // Red Beard
-    ctx.fillRect(-6, -18, 12, 8);
-    ctx.fillStyle = '#94a3b8'; // Iron Helm
+    ctx.fillRect(-6, -26, 12, 12);
+    ctx.fillStyle = '#64748b'; // Iron Helm
     ctx.fillRect(-8, -32, 16, 8);
-    ctx.fillStyle = '#e2e8f0'; // Eyebrow Spectacle Guard
-    ctx.fillRect(-6, -26, 12, 3);
+    ctx.fillStyle = '#f8fafc'; // Horns
+    ctx.fillRect(-12, -36, 4, 8);
+    ctx.fillRect(8, -36, 4, 8);
 
-    // Round Painted Viking Wooden Shield
+    // Braided Yellow Beard
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(-4, -18, 8, 10);
+    ctx.fillRect(-2, -8, 4, 6);
+
+    // Round Shield
     if (this.isShielding) {
-      ctx.fillStyle = '#0284c7';
+      ctx.fillStyle = '#1e3a8a';
       ctx.beginPath();
-      ctx.arc(8, -2, 13, 0, Math.PI * 2);
+      ctx.arc(10, 0, 14, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.fillStyle = '#facc15';
       ctx.beginPath();
-      ctx.arc(8, -2, 4, 0, Math.PI * 2);
+      ctx.arc(10, 0, 4, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Bearded Battleaxe
-    const axeAngle = this.state === 'windup' ? -1.5 : (this.state === 'attack' ? 0.8 : -0.2);
-    ctx.save();
-    ctx.translate(this.isShielding ? -4 : 6, -4);
-    ctx.rotate(axeAngle);
+    // Heavy Bearded War Axe
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(0, -16, 4, 26);
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(2, -18, 12, 14);
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(4, -14, 8, 8);
-    ctx.restore();
+    ctx.fillRect(-16, -10, 4, 24);
+    ctx.fillStyle = '#ea580c';
+    ctx.fillRect(-22, -16, 12, 10);
   }
 
-  // 2. Draw Heavy LKAB Steam Automaton
+  // 2. LKAB Ore Mining Automaton Golem
   drawGolem(ctx, legOffset) {
-    // Heavy Mechanical Piston Legs
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(-12 - legOffset, 10, 10, 18);
-    ctx.fillRect(2 + legOffset, 10, 10, 18);
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(-13 - legOffset, 22, 12, 6);
-    ctx.fillRect(1 + legOffset, 22, 12, 6);
-
-    // Heavy Boiler Torso with Hazard Stripes
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(-15, -16, 30, 26);
+    // Heavy Riveted Steam Legs
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-12 - legOffset, 10, 10, 20);
+    ctx.fillRect(4 + legOffset, 10, 10, 20);
     ctx.fillStyle = '#d97706';
-    ctx.fillRect(-12, -14, 24, 22);
+    ctx.fillRect(-12 - legOffset, 22, 10, 8);
+    ctx.fillRect(4 + legOffset, 22, 10, 8);
 
-    // Hazard Stripes
+    // Boiler Torso with Glowing Furnace Core
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-12, 2, 24, 4);
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillRect(-8, 2, 6, 4);
-    ctx.fillRect(2, 2, 6, 4);
-
-    // Glowing Furnace Core in Chest
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(0, -4, 5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Head / Monocular Golem Visor
-    ctx.fillStyle = '#92400e';
-    ctx.fillRect(-9, -30, 18, 12);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(-4, -25, 8, 4);
-
-    // Rotating Pneumatic Drill Arm
-    ctx.save();
-    ctx.translate(14, -2);
-    ctx.rotate(this.drillSpin);
-    ctx.fillStyle = '#64748b';
-    ctx.fillRect(-2, -6, 14, 12);
-    ctx.fillStyle = '#e2e8f0';
-    ctx.beginPath();
-    ctx.moveTo(12, -8);
-    ctx.lineTo(24, 0);
-    ctx.lineTo(12, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 3. Draw Caroliner Musketeer
-  drawKarolin(ctx, legOffset) {
-    // Tall Riding Boots & White Breeches
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(-8 - legOffset, 6, 6, 12);
-    ctx.fillRect(2 + legOffset, 6, 6, 12);
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-8 - legOffset, 16, 7, 10);
-    ctx.fillRect(2 + legOffset, 16, 7, 10);
-
-    // Swedish Royal Blue Longcoat with Yellow Facings
-    ctx.fillStyle = '#1e3a8a';
-    ctx.fillRect(-10, -16, 20, 22);
-    ctx.fillStyle = '#facc15'; // Yellow Cuffs & Trim
-    ctx.fillRect(-10, -6, 4, 12);
-    ctx.fillRect(6, -6, 4, 12);
-
-    // Head & Tricorn Hat with Yellow Cockade
-    ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(-6, -26, 12, 10);
-    ctx.fillStyle = '#0f172a'; // Tricorn
-    ctx.beginPath();
-    ctx.moveTo(-14, -26);
-    ctx.lineTo(14, -26);
-    ctx.lineTo(0, -36);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#facc15'; // Cockade
-    ctx.fillRect(-2, -30, 4, 4);
-
-    // Flintlock Musket with Bayonet
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(-4, -8, 28, 4); // Wood stock
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(24, -9, 8, 2); // Steel Barrel
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillRect(32, -9, 8, 1.5); // Bayonet Blade
-  }
-
-  // 4. Draw Ghost Corsair
-  drawCorsair(ctx, legOffset) {
-    // Tattered Ethereal Robes & Mist
-    ctx.fillStyle = '#082f49';
-    ctx.fillRect(-8 - legOffset, 6, 6, 16);
-    ctx.fillRect(2 + legOffset, 6, 6, 16);
-
-    ctx.fillStyle = '#0c4a6e';
-    ctx.fillRect(-10, -14, 20, 20);
-
-    // Ghost Skull Visage & Cyan Eye Sockets
-    ctx.fillStyle = '#e0f2fe';
-    ctx.fillRect(-6, -26, 12, 10);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(-4, -23, 3, 3);
-    ctx.fillRect(1, -23, 3, 3);
-
-    // Tattered Pirate Tricorn Hat
-    ctx.fillStyle = '#082f49';
-    ctx.fillRect(-12, -32, 24, 6);
-    ctx.fillRect(-8, -36, 16, 6);
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(-2, -32, 4, 2);
-
-    // Spectral Cyan Cutlass
-    const swing = this.state === 'attack' ? Math.sin(this.animTimer * 10) * 0.8 : -0.3;
-    ctx.save();
-    ctx.translate(8, -4);
-    ctx.rotate(swing);
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillRect(0, -3, 20, 3);
-    ctx.fillStyle = '#facc15';
-    ctx.beginPath();
-    ctx.arc(0, -1, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 5. Draw Nordic Stone Troll
-  drawTroll(ctx, legOffset) {
-    // Hulking Granite Legs
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(-14 - legOffset, 12, 12, 18);
-    ctx.fillRect(2 + legOffset, 12, 12, 18);
-
-    // Moss-covered Granite Torso
+    ctx.fillRect(-16, -18, 32, 30);
     ctx.fillStyle = '#334155';
-    ctx.fillRect(-18, -18, 36, 30);
-    ctx.fillStyle = '#166534'; // Runic Moss
-    ctx.fillRect(-14, -14, 10, 12);
-    ctx.fillRect(4, -8, 12, 10);
+    ctx.fillRect(-14, -16, 28, 26);
+    ctx.fillStyle = '#ea580c';
+    ctx.shadowColor = '#ea580c';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(-6, -8, 12, 12);
+    ctx.shadowBlur = 0;
 
-    // Hunchbacked Head & Protruding Fangs
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(-10, -32, 20, 14);
-    ctx.fillStyle = '#facc15'; // Glowing Amber Eyes
-    ctx.fillRect(-6, -26, 4, 3);
-    ctx.fillRect(2, -26, 4, 3);
-    ctx.fillStyle = '#ffffff'; // Fangs
-    ctx.fillRect(-5, -20, 2, 4);
-    ctx.fillRect(3, -20, 2, 4);
+    // Steam Chimney Exhaust
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(-10, -32, 6, 14);
+    ctx.fillRect(4, -32, 6, 14);
 
-    // Spiked Tree Trunk Club
-    const clubAngle = this.state === 'windup' ? -1.8 : (this.state === 'attack' ? 0.6 : -0.4);
+    // Heavy Diamond Coring Drill (Right Arm)
     ctx.save();
-    ctx.translate(12, -6);
-    ctx.rotate(clubAngle);
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(-2, -26, 8, 36); // Trunk
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillRect(6, -22, 4, 4); // Iron Spikes
-    ctx.fillRect(6, -12, 4, 4);
-    ctx.fillRect(-6, -18, 4, 4);
+    ctx.translate(14, 4);
+    ctx.rotate(this.drillSpin);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(0, -6, 8, 12);
+    ctx.fillStyle = '#06b6d4'; // Cyan Diamond Bit
+    ctx.beginPath();
+    ctx.moveTo(8, -8);
+    ctx.lineTo(24, 0);
+    ctx.lineTo(8, 8);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
 
-  // 6. Draw Skogsrå Enchantress
-  drawSkogsra(ctx, legOffset) {
-    // Flowing Autumn Leaves Robe
-    ctx.fillStyle = '#14532d';
-    ctx.fillRect(-8 - legOffset, 8, 6, 16);
-    ctx.fillRect(2 + legOffset, 8, 6, 16);
-    ctx.fillStyle = '#15803d';
-    ctx.fillRect(-9, -14, 18, 22);
+  // 3. Royal Caroliner Musketeer
+  drawKarolin(ctx, legOffset) {
+    // Blue & Yellow Royal Coat
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fillRect(-10, -14, 20, 24);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(-10, -14, 20, 4); // Epaulettes
+    ctx.fillRect(-4, -10, 8, 16); // Yellow Vest
 
-    // Head, Pale Visage & Antler Crown
+    // Legs & White Gaiters
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-8 - legOffset, 10, 6, 18);
+    ctx.fillRect(2 + legOffset, 10, 6, 18);
+    ctx.fillStyle = '#f8fafc'; // Gaiters
+    ctx.fillRect(-8 - legOffset, 16, 6, 8);
+    ctx.fillRect(2 + legOffset, 16, 6, 8);
+
+    // Head & Tricorne Hat with Cockade
     ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(-5, -24, 10, 10);
-    ctx.fillStyle = '#86efac';
-    ctx.fillRect(-3, -21, 2, 2);
-    ctx.fillRect(1, -21, 2, 2);
+    ctx.fillRect(-6, -26, 12, 12);
+    ctx.fillStyle = '#0f172a'; // Tricorne
+    ctx.fillRect(-12, -32, 24, 6);
+    ctx.fillRect(-8, -38, 16, 6);
+    ctx.fillStyle = '#38bdf8'; // Cockade
+    ctx.fillRect(6, -34, 4, 4);
 
-    // Birch Antler Branches
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-4, -24);
-    ctx.lineTo(-10, -34);
-    ctx.lineTo(-6, -38);
-    ctx.moveTo(4, -24);
-    ctx.lineTo(10, -34);
-    ctx.lineTo(6, -38);
-    ctx.stroke();
-
-    // Wooden Staff with Amber Gem
+    // Flintlock Musket with Razor Bayonet
     ctx.fillStyle = '#78350f';
-    ctx.fillRect(8, -26, 3, 34);
-    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(4, -4, 26, 4);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(24, -6, 8, 8); // Lock
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(30, -5, 14, 2); // Bayonet
+
+    // Laser Sight when aiming
+    if (this.laserAim) {
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(32, -4);
+      ctx.lineTo(300, -4);
+      ctx.stroke();
+    }
+  }
+
+  // 4. Visby Ghost Corsair
+  drawCorsair(ctx, legOffset) {
+    const floatBob = Math.sin(this.animTimer * 3) * 3;
+
+    // Translucent Ethereal Ghost Coat
+    ctx.fillStyle = '#3b0764';
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(-10, -14 + floatBob, 20, 26);
+
+    // Ghost Skull & Cyan Eye Glow
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(-6, -26 + floatBob, 12, 12);
+    ctx.fillStyle = '#00f0ff';
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(-2, -22 + floatBob, 3, 3);
+    ctx.fillRect(3, -22 + floatBob, 3, 3);
+    ctx.shadowBlur = 0;
+
+    // Pirate Tricorn Hat
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-12, -32 + floatBob, 24, 6);
+    ctx.fillRect(-8, -38 + floatBob, 16, 6);
+
+    // Ethereal Ghost Cutlass
+    ctx.fillStyle = '#a855f7';
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(8, -6 + floatBob, 18, 4);
+    ctx.fillRect(22, -10 + floatBob, 6, 12);
+    ctx.shadowBlur = 0;
+  }
+
+  // 5. Mountain Forest Troll
+  drawTroll(ctx, legOffset) {
+    // Hulking Mossy Stone Body
+    ctx.fillStyle = '#3f6212';
+    ctx.fillRect(-18, -16, 36, 32);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(-14, -12, 28, 24);
+
+    // Heavy Stone Legs
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-14 - legOffset, 14, 12, 18);
+    ctx.fillRect(2 + legOffset, 14, 12, 18);
+
+    // Big Troll Nose & Amber Eyes
+    ctx.fillStyle = '#4d7c0f';
+    ctx.fillRect(-10, -28, 20, 14);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(-2, -24, 4, 4); // Glowing Eye
+    ctx.fillStyle = '#65a30d';
+    ctx.fillRect(-6, -20, 12, 8); // Huge Nose
+
+    // Birch Trunk Club with Spikes
+    ctx.fillStyle = '#fef08a'; // Birch Bark
+    ctx.fillRect(12, -24, 10, 36);
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(14, 12, 6, 12); // Handle
+  }
+
+  // 6. Skogsrå Forest Mystic Dryad
+  drawSkogsra(ctx, legOffset) {
+    // Flowing Willow Dress
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(-10, -14, 20, 28);
+    ctx.fillStyle = '#86efac';
+    ctx.fillRect(-8, -10, 16, 18);
+
+    // Fox Tail
+    const tailWave = Math.sin(this.animTimer * 2.5) * 5;
+    ctx.fillStyle = '#ea580c';
     ctx.beginPath();
-    ctx.arc(9.5, -28, 4, 0, Math.PI * 2);
+    ctx.moveTo(-8, 6);
+    ctx.quadraticCurveTo(-22 + tailWave, -4, -14, -20);
+    ctx.lineTo(-6, -12);
+    ctx.closePath();
     ctx.fill();
+
+    // Antler Crown Head
+    ctx.fillStyle = '#fed7aa';
+    ctx.fillRect(-6, -26, 12, 12);
+    ctx.fillStyle = '#ca8a04'; // Antlers
+    ctx.fillRect(-12, -34, 4, 10);
+    ctx.fillRect(8, -34, 4, 10);
+    ctx.fillRect(-16, -38, 6, 4);
+    ctx.fillRect(10, -38, 6, 4);
+
+    // Emerald Glowing Eyes
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(-2, -22, 3, 3);
+    ctx.fillRect(3, -22, 3, 3);
   }
 }

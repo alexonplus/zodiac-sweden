@@ -1,49 +1,51 @@
 /**
- * Leo - The Lion (Stockholm / Solar)
- * Solar Sovereign wielding the Radiant Sunblade
+ * Leo - The Lion (Stockholm / Sun)
+ * Solar Paladin wielding the Radiant Sunblade & Golden Lion Mane
  */
 export class LeoHero {
   static id = 'leo';
 
   static drawBackAccessories(ctx, player, speedRatio, capeFlutter) {
-    // Royal Crimson & Gold-Edged Flowing Cape
-    ctx.fillStyle = '#991b1b';
-    ctx.strokeStyle = '#facc15';
-    ctx.lineWidth = 1.5;
+    // Golden Sunfire Cape & Lion Mane
+    ctx.fillStyle = '#f59e0b';
+    ctx.shadowColor = '#facc15';
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.moveTo(-10, -14);
-    ctx.quadraticCurveTo(-26 - speedRatio * 16, 8 + capeFlutter, -22 - speedRatio * 14, 26);
-    ctx.lineTo(-6, 18);
+    ctx.moveTo(-8, -18);
+    ctx.quadraticCurveTo(-26 - speedRatio * 16, -6 + capeFlutter, -32 - speedRatio * 14, 8);
+    ctx.lineTo(-8, -2);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
   static drawHelmet(ctx, player) {
-    // Radiant Solar Sunburst Lion Mane + Gold Crown
-    ctx.fillStyle = '#ea580c';
-    ctx.fillRect(-12, -37, 24, 14);
+    // Royal Solar Crown & Golden Mane
+    ctx.fillStyle = '#b45309';
+    ctx.fillRect(-10, -36, 20, 10);
+    // Golden Crown Points
     ctx.fillStyle = '#facc15';
-    ctx.fillRect(-9, -39, 18, 6);
-    // Crown points
-    ctx.fillRect(-7, -42, 3, 4);
-    ctx.fillRect(-1, -43, 3, 5);
-    ctx.fillRect(5, -42, 3, 4);
-    // Feline Gaze
+    ctx.fillRect(-8, -42, 4, 8);
+    ctx.fillRect(-2, -44, 4, 10);
+    ctx.fillRect(4, -42, 4, 8);
+    // Solar Gaze Eyes
     ctx.fillStyle = '#fef08a';
-    ctx.fillRect(-5, -26, 4, 2);
-    ctx.fillRect(1, -26, 4, 2);
+    ctx.fillRect(-5, -26, 4, 2.5);
+    ctx.fillRect(1, -26, 4, 2.5);
   }
 
   static drawWeapon(ctx, player) {
     // Radiant Glowing Sunblade
     ctx.fillStyle = '#facc15';
-    ctx.fillRect(-2, -3, 6, 4); // Hilt
+    ctx.fillRect(-2, -4, 6, 4); // Hilt
     ctx.fillStyle = '#fbbf24';
-    ctx.fillRect(4, -6, 3, 10); // Crossguard
+    ctx.fillRect(4, -7, 3, 11); // Crossguard
     ctx.fillStyle = '#fef08a';
-    ctx.fillRect(7, -3, 22, 5); // Blade
+    ctx.shadowColor = '#facc15';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(7, -4, 24, 6); // Blade
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(8, -1, 20, 2); // Core
+    ctx.fillRect(9, -2, 20, 2); // Core
+    ctx.shadowBlur = 0;
   }
 }

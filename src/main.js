@@ -72,12 +72,13 @@ export class GameManager {
   }
 
   initWeather() {
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 110; i++) {
       this.weatherParticles.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        speed: 6 + Math.random() * 8,
-        size: 1 + Math.random() * 3
+        speed: 4 + Math.random() * 7,
+        size: 1.5 + Math.random() * 3,
+        drift: (Math.random() - 0.5) * 1.5
       });
     }
   }
@@ -162,6 +163,14 @@ export class GameManager {
     document.getElementById('btn-res-replay').addEventListener('click', () => {
       this.startLevel(this.currentLevel);
     });
+
+    const sndBtn = document.getElementById('btn-sound-toggle');
+    if (sndBtn) {
+      sndBtn.addEventListener('click', () => {
+        const isMuted = sound.toggleMute();
+        sndBtn.innerText = isMuted ? '🔇' : '🔊';
+      });
+    }
   }
 
   onHeroSelected(heroId) {
@@ -225,6 +234,9 @@ export class GameManager {
     document.querySelectorAll('.screen-overlay').forEach(el => el.style.display = 'none');
     document.getElementById('ui-hud').style.display = 'flex';
 
+    // Start Procedural Retro BGM
+    sound.playMusic(this.currentLevel);
+
     this.spawnZoneWave(1, 0);
   }
 
@@ -256,6 +268,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 950 * scale, '🐙'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        sound.playMusic('boss');
         sound.playUlt();
       }
     } else if (this.currentLevel === 'kiruna') {
@@ -280,6 +293,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1050 * scale, '❄️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'troll'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
+        sound.playMusic('boss');
         sound.playUlt();
       }
     } else if (this.currentLevel === 'stockholm') {
@@ -304,6 +318,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 1000 * scale, '👑'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'karolin'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'skogsra'));
+        sound.playMusic('boss');
         sound.playUlt();
       }
     } else if (this.currentLevel === 'visby') {
@@ -328,6 +343,7 @@ export class GameManager {
         this.enemies.push(createBoss(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 1020 * scale, '⚔️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'corsair'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'troll'));
+        sound.playMusic('boss');
         sound.playUlt();
       }
     }
@@ -372,6 +388,7 @@ export class GameManager {
 
   finishLevel(victory) {
     this.isPlaying = false;
+    sound.stopMusic();
     document.getElementById('ui-hud').style.display = 'none';
     const screen = document.getElementById('screen-result');
     const title = document.getElementById('res-title');
@@ -379,6 +396,7 @@ export class GameManager {
     screen.style.display = 'flex';
 
     if (victory) {
+      sound.playSynergy();
       title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 PROVINCE LIBERATED!';
       title.style.color = '#facc15';
       desc.innerHTML = `Glorious triumph across <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>${this.score} ⭐</b>.<br>Choose your next Swedish province on the tactical map!`;
@@ -565,7 +583,7 @@ export class GameManager {
         if (ep.life <= 0) this.enemyProjectiles.splice(i, 1);
       }
 
-      // Enemies Update (Slowed if Time Freeze active)
+      // Enemies Update
       let activeBoss = null;
       let hasBossSpawned = !!this.spawnedZones[5];
       const isFrozen = buffManager.timeFreezeTimer > 0;
@@ -610,13 +628,16 @@ export class GameManager {
       hudManager.updateHUD(this.player1, this.player2, this.isCoopMode, this.score, activeBoss);
     }
 
-    // Weather Particles
+    // Weather & Atmospheric Particles
     for (const w of this.weatherParticles) {
       w.y += w.speed;
+      w.x += w.drift;
       if (w.y > H) {
         w.y = -10;
         w.x = Math.random() * W;
       }
+      if (w.x > W) w.x = 0;
+      if (w.x < 0) w.x = W;
     }
   }
 
@@ -639,14 +660,34 @@ export class GameManager {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // 2. Dynamic Sector Mood Tinting & Landmarks
+    // 2. Animated Aurora Borealis Effect for Kiruna
+    if (this.currentLevel === 'kiruna') {
+      ctx.save();
+      const wave = Math.sin(this.gameTime * 0.02) * 40;
+      const grad = ctx.createLinearGradient(0, 0, W, 250);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.0)');
+      grad.addColorStop(0.4, 'rgba(34, 197, 94, 0.22)');
+      grad.addColorStop(0.7, 'rgba(168, 85, 247, 0.18)');
+      grad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(0, 80 + wave);
+      ctx.bezierCurveTo(W * 0.3, 30 - wave, W * 0.7, 140 + wave, W, 70 - wave);
+      ctx.lineTo(W, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 3. Dynamic Sector Mood Tinting & Atmosphere
     const sectorIndex = Math.min(4, Math.floor(this.camera.x / 1300));
     const currentSector = lvlData && lvlData.sectors ? lvlData.sectors[sectorIndex] : null;
 
     if (currentSector) {
       ctx.save();
       ctx.fillStyle = currentSector.tint;
-      ctx.globalAlpha = 0.08;
+      ctx.globalAlpha = 0.09;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
     }
@@ -658,10 +699,27 @@ export class GameManager {
     // 1. Draw Parallax Background (Screenspace)
     this.drawParallaxBackground();
 
-    // Weather Particles (Screenspace)
-    ctx.fillStyle = this.currentLevel === 'kiruna' ? '#ffffff' : (this.currentLevel === 'visby' ? 'rgba(168, 85, 247, 0.4)' : 'rgba(125, 211, 252, 0.4)');
+    // Weather Particles (Snow, Rain, Sparks, Spores)
     for (const w of this.weatherParticles) {
-      ctx.fillRect(w.x, w.y, w.size, this.currentLevel === 'kiruna' ? w.size : w.size * 4);
+      if (this.currentLevel === 'kiruna') {
+        // Snow Flakes
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillRect(w.x, w.y, w.size, w.size);
+      } else if (this.currentLevel === 'visby') {
+        // Purple Ghost Mist Spores
+        ctx.fillStyle = 'rgba(192, 132, 252, 0.45)';
+        ctx.beginPath();
+        ctx.arc(w.x, w.y, w.size, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (this.currentLevel === 'stockholm') {
+        // Golden Royal Leaves / Embers
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.6)';
+        ctx.fillRect(w.x, w.y, w.size * 1.5, w.size);
+      } else {
+        // Neon Rain Streaks
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.55)';
+        ctx.fillRect(w.x, w.y, 1.5, w.size * 5);
+      }
     }
 
     // 2. World Space Transformation (Camera Tracking + Shake)
@@ -669,40 +727,63 @@ export class GameManager {
     ctx.save();
     ctx.translate(-Math.round(this.camera.x) + shake.sx, -Math.round(this.camera.y) + shake.sy);
 
-    // Continuous Ground Floor across 6400px
+    // Continuous Textured Ground Floor across 6400px
     const lvlData = LEVELS[this.currentLevel];
     const platforms = lvlData ? lvlData.platforms : [];
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+    // Base Bedrock & Ground Platform
+    ctx.fillStyle = '#090d16';
     ctx.fillRect(0, 490, this.levelWidth, 130);
 
+    // Ground Edge Trim with Glowing Neon Conduits
     ctx.fillStyle = lvlData ? lvlData.color : '#00f0ff';
-    for (let x = 0; x < this.levelWidth; x += 40) ctx.fillRect(x, 490, 20, 4);
+    ctx.shadowColor = lvlData ? lvlData.color : '#00f0ff';
+    ctx.shadowBlur = 8;
+    ctx.fillRect(0, 490, this.levelWidth, 4);
+    ctx.shadowBlur = 0;
 
-    // Sector Transition Gateway Arches
+    // Road Grid Pattern & Cyber Lines
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    for (let x = 0; x < this.levelWidth; x += 60) {
+      ctx.fillRect(x, 494, 28, 2);
+      ctx.fillRect(x + 10, 520, 20, 2);
+    }
+
+    // Sector Transition Gateway Arches with Province Holograms
     for (let s = 1; s <= 4; s++) {
       const archX = s * 1300;
-      if (this.camera.isVisible(archX, 60)) {
-        ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
-        ctx.fillRect(archX - 10, 180, 20, 310);
+      if (this.camera.isVisible(archX, 80)) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.fillRect(archX - 12, 170, 24, 320);
         ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(archX - 10, 180, 20, 310);
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = lvlData ? lvlData.color : '#38bdf8';
+        ctx.shadowBlur = 10;
+        ctx.strokeRect(archX - 12, 170, 24, 320);
+        ctx.shadowBlur = 0;
+
+        // Hologram Banner
         ctx.fillStyle = '#facc15';
-        ctx.font = 'bold 11px monospace';
-        ctx.fillText(`SECTOR ${s+1}`, archX - 28, 210);
+        ctx.font = '900 12px "Orbitron", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`SECTOR ${s+1}`, archX, 200);
+        ctx.textAlign = 'left';
       }
     }
 
-    // Raised Platforms
+    // Raised Platforms with Metallic Borders
     for (let i = 1; i < platforms.length; i++) {
       const p = platforms[i];
       if (this.camera.isVisible(p.x, p.w)) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
         ctx.lineWidth = 2;
-        ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.strokeRect(p.x, p.y, p.w, p.h);
+
+        // Platform Neon Top Highlight
+        ctx.fillStyle = lvlData ? lvlData.color : '#38bdf8';
+        ctx.fillRect(p.x, p.y, p.w, 3);
       }
     }
 
@@ -716,18 +797,18 @@ export class GameManager {
     for (const p of this.projectiles) {
       ctx.fillStyle = p.color;
       ctx.shadowColor = p.color;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 10;
       if (p.type === 'binary') {
         ctx.font = 'bold 16px monospace';
         ctx.fillText(p.char, p.x, p.y);
       } else if (p.type === 'dagger') {
-        ctx.fillRect(p.x, p.y, 14, 4);
+        ctx.fillRect(p.x, p.y, 16, 4);
       } else if (p.type === 'skillQ') {
         ctx.beginPath();
         ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        ctx.fillRect(p.x, p.y, 12, 6);
+        ctx.fillRect(p.x, p.y, 14, 6);
       }
       ctx.shadowBlur = 0;
     }
@@ -736,9 +817,9 @@ export class GameManager {
     for (const ep of this.enemyProjectiles) {
       ctx.fillStyle = ep.color;
       ctx.shadowColor = ep.color;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 12;
       if (ep.isGroundWave) {
-        ctx.fillRect(ep.x, ep.y, 24, 20);
+        ctx.fillRect(ep.x, ep.y, 26, 20);
       } else {
         ctx.beginPath();
         ctx.arc(ep.x, ep.y, 9, 0, Math.PI * 2);
@@ -765,12 +846,12 @@ export class GameManager {
 
     // 3. Screenspace Overlay (Ult Banner)
     if (this.ultEffect) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-      ctx.fillRect(0, H/2 - 50, W, 100);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.fillRect(0, H/2 - 55, W, 110);
       ctx.fillStyle = this.ultEffect.color;
       ctx.shadowColor = this.ultEffect.color;
-      ctx.shadowBlur = 20;
-      ctx.font = '900 28px "Orbitron", sans-serif';
+      ctx.shadowBlur = 24;
+      ctx.font = '900 30px "Orbitron", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(`⚡ ${this.ultEffect.name} ⚡`, W/2, H/2 + 10);
       ctx.shadowBlur = 0;
