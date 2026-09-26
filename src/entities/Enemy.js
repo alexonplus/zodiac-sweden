@@ -81,7 +81,7 @@ export class EnemyMob {
     return d1 < d2 ? p1 : p2;
   }
 
-  update(p1, p2, isCoopMode, enemyProjectiles, platforms = [], onShake) {
+  update(p1, p2, isCoopMode, enemyProjectiles, platforms = [], onShake, movingPlatforms = []) {
     this.animTimer += 0.08;
     if (this.elementTimer > 0) this.elementTimer--;
     if (this.cooldown > 0) this.cooldown--;
@@ -90,14 +90,14 @@ export class EnemyMob {
     if (this.stunTimer > 0) {
       this.stunTimer--;
       this.vx = 0;
-      this.applyPhysics(platforms);
+      this.applyPhysics(platforms, movingPlatforms, onShake);
       return;
     }
 
     const target = this.getNearestPlayer(p1, p2, isCoopMode);
     if (!target || target.hp <= 0) {
       this.vx = 0;
-      this.applyPhysics(platforms);
+      this.applyPhysics(platforms, movingPlatforms, onShake);
       return;
     }
 
@@ -119,7 +119,7 @@ export class EnemyMob {
       this.updateSkogsraAI(target, dist, dir, enemyProjectiles);
     }
 
-    this.applyPhysics(platforms);
+    this.applyPhysics(platforms, movingPlatforms, onShake);
 
     // Contact damage during melee attack states
     if (this.state === 'attack' || this.state === 'dash') {
@@ -130,25 +130,19 @@ export class EnemyMob {
     }
   }
 
-  applyPhysics(platforms) {
+  applyPhysics(platforms, movingPlatforms = [], onShake) {
     this.vy += 0.55;
     if (this.vy > 14) this.vy = 14;
 
     this.x += this.vx;
     this.y += this.vy;
 
-    const groundY = 490;
-    if (this.y + this.h >= groundY) {
-      this.y = groundY - this.h;
-      this.vy = 0;
-      this.isGrounded = true;
-      return;
-    }
-
     let onPlatform = false;
+
+    // Check Solid Level Platforms
     for (const p of platforms) {
       if (this.x + this.w > p.x && this.x < p.x + p.w) {
-        if (this.y + this.h >= p.y && this.y + this.h <= p.y + 16 && this.vy >= 0) {
+        if (this.y + this.h >= p.y && this.y + this.h <= p.y + 18 && this.vy >= 0) {
           this.y = p.y - this.h;
           this.vy = 0;
           this.isGrounded = true;
@@ -158,7 +152,34 @@ export class EnemyMob {
       }
     }
 
-    if (!onPlatform) this.isGrounded = false;
+    // Check Moving Platforms
+    if (!onPlatform && movingPlatforms && movingPlatforms.length > 0) {
+      for (const mp of movingPlatforms) {
+        if (this.x + this.w > mp.x && this.x < mp.x + mp.w) {
+          if (this.y + this.h >= mp.y && this.y + this.h <= mp.y + 20 && this.vy >= 0) {
+            this.y = mp.y - this.h;
+            this.vy = 0;
+            this.x += mp.vx;
+            this.isGrounded = true;
+            onPlatform = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!onPlatform) {
+      this.isGrounded = false;
+    }
+
+    // Pit Hazard / Fall Instant Elimination
+    if (this.y > 580 && this.hp > 0) {
+      this.hp = 0;
+      sound.playHammer();
+      if (onShake) onShake(12);
+      particles.createDamageNumber(this.x + this.w / 2, 530, '💀 PIT KNOCKOUT! +300 ⭐', '#facc15');
+      particles.createSparks(this.x + this.w / 2, 540, '#00f0ff', 30);
+    }
   }
 
   updateVikingAI(target, dist, dir, onShake) {

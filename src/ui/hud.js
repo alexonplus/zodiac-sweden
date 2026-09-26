@@ -88,6 +88,15 @@ export class HudManager {
       setTimeout(() => pop.classList.remove('show'), 3500);
     }
   }
+
+  showCheckpoint(sectorName) {
+    const pop = document.getElementById('synergy-popup');
+    if (pop) {
+      pop.innerHTML = `🚩 CHECKPOINT ACTIVATED! ☕<br><span style="font-size:15px;color:#facc15;text-shadow:0 0 10px #facc15;">${sectorName}</span>`;
+      pop.classList.add('show');
+      setTimeout(() => pop.classList.remove('show'), 3000);
+    }
+  }
 }
 export const hudManager = new HudManager();
 

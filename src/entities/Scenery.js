@@ -19,8 +19,8 @@ export class SceneryManager {
 
   /* ================= 1. GÖTEBORG: CYBER HARBOR & CRANES ================= */
   drawGoteborgScenery(ctx, levelWidth, camera, gameTime, groundY) {
-    // 1. Massive Eriksberg Harbor Cranes in Background
-    const cranePositions = [800, 2100, 3400, 4700];
+    // 1. Massive Eriksberg Harbor Cranes in Background across 12,000px
+    const cranePositions = [800, 2100, 3400, 4700, 6200, 7800, 9300, 10700];
     for (const cx of cranePositions) {
       if (camera.isVisible(cx, 180)) {
         ctx.save();
@@ -52,12 +52,16 @@ export class SceneryManager {
       }
     }
 
-    // 2. Cyber Neon Signs on Buildings
+    // 2. Cyber Neon Signs on Buildings across 12,000px
     const neonSigns = [
       { x: 450, text: 'NEON GÖTEBORG', col: '#00f0ff' },
       { x: 1650, text: 'LINDHOLMEN TECH 2045', col: '#38bdf8' },
       { x: 2850, text: 'VOLVO CYBERNETIX', col: '#facc15' },
-      { x: 4150, text: 'SKF KULLAGER AB', col: '#4ade80' }
+      { x: 4150, text: 'SKF KULLAGER AB', col: '#4ade80' },
+      { x: 5750, text: 'FIKA CAFÉ CHECKPOINT ☕', col: '#fb923c' },
+      { x: 7250, text: 'SKANSEN KRONAN FORTS', col: '#a855f7' },
+      { x: 8850, text: 'VOLVO AUTONOMOUS PLANT', col: '#00f0ff' },
+      { x: 10450, text: 'ÄLVSBORGSBRON DANGER ⚠️', col: '#ef4444' }
     ];
     for (const sign of neonSigns) {
       if (camera.isVisible(sign.x, 140)) {
@@ -98,8 +102,8 @@ export class SceneryManager {
 
   /* ================= 2. KIRUNA: ARCTIC MINES & FALUN COTTAGES ================= */
   drawKirunaScenery(ctx, levelWidth, camera, gameTime, groundY) {
-    // 1. Traditional Swedish Red Falun Cottages (Röda Stugor)
-    const housePositions = [600, 1850, 3100, 4400];
+    // 1. Traditional Swedish Red Falun Cottages (Röda Stugor) across 12,000px
+    const housePositions = [600, 1850, 3100, 4400, 5900, 7300, 8800, 10300];
     for (const hx of housePositions) {
       if (camera.isVisible(hx, 160)) {
         ctx.save();
@@ -164,8 +168,8 @@ export class SceneryManager {
       }
     }
 
-    // 3. Mining Headframe & Ore Carts
-    const minePositions = [1250, 2550, 3850, 5150];
+    // 3. Mining Headframe & Ore Carts across 12,000px
+    const minePositions = [1250, 2550, 3850, 5150, 6750, 8250, 9650, 10950];
     for (const mx of minePositions) {
       if (camera.isVisible(mx, 120)) {
         ctx.save();

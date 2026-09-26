@@ -203,9 +203,11 @@ export class VehicleManager {
     else if (levelId === 'stockholm') vType = 'chariot';
     else if (levelId === 'visby') vType = 'drakkar';
 
-    // Spawn 2 vehicles in Sector 2 (2200px) and Sector 4 (4800px)
-    this.vehicles.push(new VehicleEntity(2300, groundY - 48, vType));
-    this.vehicles.push(new VehicleEntity(4900, groundY - 48, vType));
+    // Spawn 4 vehicles across 12,000px level on solid platform sections
+    this.vehicles.push(new VehicleEntity(1400, groundY - 48, vType));
+    this.vehicles.push(new VehicleEntity(3600, groundY - 48, vType));
+    this.vehicles.push(new VehicleEntity(6600, groundY - 48, vType));
+    this.vehicles.push(new VehicleEntity(9200, groundY - 48, vType));
   }
 
   update(player1, player2, enemies, onShake) {

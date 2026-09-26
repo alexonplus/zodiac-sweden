@@ -39,6 +39,8 @@ export class PlayerEntity {
     this.walkCycle = 0;
     this.attackSwing = 0;
     this.drone = { x: 70, y: 390, bob: 0 };
+    this.lastSafeX = 100;
+    this.lastSafeY = 420;
   }
 
   /**
@@ -53,6 +55,8 @@ export class PlayerEntity {
     this.ultCharge = 25;
     this.x = startX;
     this.y = 420;
+    this.lastSafeX = startX;
+    this.lastSafeY = 420;
     this.vx = 0;
     this.vy = 0;
     this.facing = this.pIndex === 1 ? 1 : -1;
@@ -91,7 +95,7 @@ export class PlayerEntity {
   /**
    * Updates player physics, movement inputs, platform collisions, and relic pickups.
    */
-  update(moveLeft, moveRight, jumpKey, platforms, enemies, onDefeat, onShake, onSynergyHit, levelWidth = 6400) {
+  update(moveLeft, moveRight, jumpKey, platforms, enemies, onDefeat, onShake, onSynergyHit, levelWidth = 12000, movingPlatforms = []) {
     this.animTimer += 0.08;
 
     // Energy regeneration (Super Fika boost if active)
@@ -149,21 +153,68 @@ export class PlayerEntity {
     if (this.x < 20) this.x = 20;
     if (this.x > levelWidth - this.w - 20) this.x = levelWidth - this.w - 20;
 
-    // Platform collisions
-    const groundY = 490;
+    // Platform & Moving Platform collisions
     let onPlatform = false;
+
+    // 1. Check Solid Level Platforms
     for (const p of platforms) {
       if (this.x + this.w > p.x && this.x < p.x + p.w) {
-        if (this.y + this.h >= p.y && this.y + this.h <= p.y + 16 && this.vy >= 0) {
+        if (this.y + this.h >= p.y && this.y + this.h <= p.y + 18 && this.vy >= 0) {
           this.y = p.y - this.h;
           this.vy = 0;
           this.isGrounded = true;
           onPlatform = true;
+          this.lastSafeX = this.x;
+          this.lastSafeY = this.y;
           break;
         }
       }
     }
-    if (!onPlatform && this.y + this.h < groundY) this.isGrounded = false;
+
+    // 2. Check Moving Platforms / Ferry Barges
+    if (movingPlatforms && movingPlatforms.length > 0) {
+      for (const mp of movingPlatforms) {
+        if (this.x + this.w > mp.x && this.x < mp.x + mp.w) {
+          if (this.y + this.h >= mp.y && this.y + this.h <= mp.y + 20 && this.vy >= 0) {
+            this.y = mp.y - this.h;
+            this.vy = 0;
+            this.x += mp.vx;
+            this.isGrounded = true;
+            onPlatform = true;
+            this.lastSafeX = this.x;
+            this.lastSafeY = this.y;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!onPlatform) {
+      this.isGrounded = false;
+    }
+
+    // 3. Pit Hazard / Bottomless Abyss Fall
+    if (this.y > 580) {
+      sound.playHammer();
+      if (onShake) onShake(18);
+      this.hp -= 40;
+      particles.createDamageNumber(this.x + this.w / 2, 530, '⚠️ PIT HAZARD! -40 HP 🌊', '#ef4444');
+      particles.createSparks(this.x + this.w / 2, 540, '#ef4444', 30);
+
+      if (this.hp <= 0) {
+        this.hp = 0;
+        sound.playRoar();
+        if (onDefeat) onDefeat();
+      } else {
+        // Safe ledge recovery with invulnerability
+        this.x = this.lastSafeX;
+        this.y = this.lastSafeY;
+        this.vx = 0;
+        this.vy = -3;
+        this.invulnTime = 90; // 1.5s invulnerability
+        this.isGrounded = true;
+      }
+    }
 
     // Aquarius companion drone follow logic
     if (this.hero.id === 'aquarius') {

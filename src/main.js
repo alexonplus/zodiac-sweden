@@ -10,6 +10,7 @@ import { destructibleManager } from './entities/Destructibles.js';
 import { buffManager } from './entities/Powerups.js';
 import { sceneryManager } from './entities/Scenery.js';
 import { vehicleManager } from './entities/Vehicles.js';
+import { movingPlatformManager } from './entities/MovingPlatforms.js';
 import { synergyUltManager } from './entities/SynergyUlt.js';
 import { miniGameManager } from './entities/MiniGames.js';
 import { shopManager } from './entities/Shop.js';
@@ -253,13 +254,14 @@ export class GameManager {
     sound.init();
     this.currentLevel = levelId;
     const lvlData = LEVELS[levelId] || LEVELS['goteborg'];
-    this.levelWidth = this.gameMode === 'pvp' ? 1080 : (lvlData.width || 8000);
+    this.levelWidth = this.gameMode === 'pvp' ? 1080 : (lvlData.width || 12000);
 
     this.isPlaying = true;
     this.score = 0;
     this.combo = 0;
     this.waveNumber = 1;
     this.spawnedZones = { 1: true };
+    this.checkpointReached = false;
 
     this.enemies.length = 0;
     this.projectiles.length = 0;
@@ -268,7 +270,8 @@ export class GameManager {
     particles.clear();
     relicManager.clear();
     buffManager.clear();
-    destructibleManager.populateForLevel(levelId, this.levelWidth);
+    movingPlatformManager.populateForLevel(lvlData);
+    destructibleManager.populateForLevel(levelId, this.levelWidth, lvlData ? lvlData.platforms : []);
     vehicleManager.populateForLevel(levelId, this.levelWidth);
 
     this.camera.setLevelBounds(this.levelWidth, H);
@@ -345,10 +348,21 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 360, 420, 'skogsra'));
       } else if (zoneIndex === 6) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'troll'));
+      } else if (zoneIndex === 7) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 480, 420, 'viking'));
+      } else if (zoneIndex === 8) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1050 * scale, '🐙'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1250 * scale, '🐙'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'troll'));
         hudManager.showBossWarning('MEKANISK KRAN-KRAKEN');
         sound.playMusic('boss');
         sound.playUlt();
@@ -375,10 +389,19 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
         this.enemies.push(new EnemyMob(spawnX + 360, 420, 'golem'));
       } else if (zoneIndex === 6) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'golem'));
+      } else if (zoneIndex === 7) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'skogsra'));
+      } else if (zoneIndex === 8) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1150 * scale, '❄️'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'LKAB MALM-JÄTTE', 1350 * scale, '❄️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'troll'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'skogsra'));
         hudManager.showBossWarning('LKAB MALM-JÄTTE');
         sound.playMusic('boss');
         sound.playUlt();
@@ -403,11 +426,21 @@ export class GameManager {
       } else if (zoneIndex === 5) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'troll'));
       } else if (zoneIndex === 6) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'golem'));
+      } else if (zoneIndex === 7) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'troll'));
+      } else if (zoneIndex === 8) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 1100 * scale, '👑'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'KUNGLIGA ÅNG-GRYFON', 1300 * scale, '👑'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'karolin'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'golem'));
         hudManager.showBossWarning('KUNGLIGA ÅNG-GRYFON');
         sound.playMusic('boss');
         sound.playUlt();
@@ -432,11 +465,21 @@ export class GameManager {
       } else if (zoneIndex === 5) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'skogsra'));
       } else if (zoneIndex === 6) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'viking'));
+      } else if (zoneIndex === 7) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'corsair'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'troll'));
+      } else if (zoneIndex === 8) {
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 1120 * scale, '⚔️'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'VALDEMAR SPÖKSJÖRÖVARE', 1320 * scale, '⚔️'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'corsair'));
         this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'troll'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'viking'));
         hudManager.showBossWarning('VALDEMAR SPÖKSJÖRÖVARE');
         sound.playMusic('boss');
         sound.playUlt();
@@ -524,40 +567,57 @@ export class GameManager {
     this.gameTime++;
 
     if (this.isPlaying) {
-      const platforms = LEVELS[this.currentLevel] ? LEVELS[this.currentLevel].platforms : [];
+      const lvlData = LEVELS[this.currentLevel];
+      const platforms = lvlData ? lvlData.platforms : [];
       
-      this.player1.update(this.keys['KeyA'], this.keys['KeyD'], this.keys['KeyW'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth);
+      // 1. Update Moving Platforms / Ferry Barges
+      movingPlatformManager.update();
+
+      this.player1.update(this.keys['KeyA'], this.keys['KeyD'], this.keys['KeyW'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth, movingPlatformManager.platforms);
       if ((this.isCoopMode || this.gameMode === 'pvp') && this.player2.hp > 0) {
-        this.player2.update(this.keys['ArrowLeft'], this.keys['ArrowRight'], this.keys['ArrowUp'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth);
+        this.player2.update(this.keys['ArrowLeft'], this.keys['ArrowRight'], this.keys['ArrowUp'], platforms, this.enemies, () => this.checkTeamDefeat(), (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.levelWidth, movingPlatformManager.platforms);
       }
 
       // Update Side-Scrolling Camera
       this.camera.update(this.player1, this.player2, this.isCoopMode, this.screenShake);
 
-      // Check Progressive Stage Zones (6 Sectors: 0, 1350, 2700, 4050, 5400, 6750)
+      // Check Progressive Stage Zones (8 Sectors across 12,000px: 0, 1500, 3000, 4500, 6000, 7500, 9000, 10500)
       if (this.gameMode === 'campaign') {
         const focalX = Math.max(this.player1.x, this.isCoopMode && this.player2.hp > 0 ? this.player2.x : 0);
         hudManager.updateProgress(focalX, this.levelWidth);
 
-        if (focalX > 1350 && !this.spawnedZones[2]) {
+        if (focalX > 1500 && !this.spawnedZones[2]) {
           this.spawnedZones[2] = true;
-          this.spawnZoneWave(2, 1350);
+          this.spawnZoneWave(2, 1500);
         }
-        if (focalX > 2700 && !this.spawnedZones[3]) {
+        if (focalX > 3000 && !this.spawnedZones[3]) {
           this.spawnedZones[3] = true;
-          this.spawnZoneWave(3, 2700);
+          this.spawnZoneWave(3, 3000);
         }
-        if (focalX > 4050 && !this.spawnedZones[4]) {
+        if (focalX > 4500 && !this.spawnedZones[4]) {
           this.spawnedZones[4] = true;
-          this.spawnZoneWave(4, 4050);
+          this.spawnZoneWave(4, 4500);
+          if (!this.checkpointReached) {
+            this.checkpointReached = true;
+            hudManager.showCheckpoint('SECTOR 4 CHECKPOINT ☕');
+            sound.playSynergy();
+          }
         }
-        if (focalX > 5400 && !this.spawnedZones[5]) {
+        if (focalX > 6000 && !this.spawnedZones[5]) {
           this.spawnedZones[5] = true;
-          this.spawnZoneWave(5, 5400);
+          this.spawnZoneWave(5, 6000);
         }
-        if (focalX > 6750 && !this.spawnedZones[6]) {
+        if (focalX > 7500 && !this.spawnedZones[6]) {
           this.spawnedZones[6] = true;
-          this.spawnZoneWave(6, 6750);
+          this.spawnZoneWave(6, 7500);
+        }
+        if (focalX > 9000 && !this.spawnedZones[7]) {
+          this.spawnedZones[7] = true;
+          this.spawnZoneWave(7, 9000);
+        }
+        if (focalX > 10500 && !this.spawnedZones[8]) {
+          this.spawnedZones[8] = true;
+          this.spawnZoneWave(8, 10500);
         }
       }
 
@@ -726,7 +786,7 @@ export class GameManager {
 
       // Enemies Update
       let activeBoss = null;
-      let hasBossSpawned = !!this.spawnedZones[6] || this.gameMode === 'bossrush';
+      let hasBossSpawned = !!this.spawnedZones[8] || this.gameMode === 'bossrush';
       const isFrozen = buffManager.timeFreezeTimer > 0;
 
       for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -736,7 +796,7 @@ export class GameManager {
           en.update(this.enemyProjectiles, (s) => this.screenShake = s);
         } else {
           if (!isFrozen || this.gameTime % 3 === 0) {
-            en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s);
+            en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s, movingPlatformManager.platforms);
           }
         }
 
@@ -871,57 +931,127 @@ export class GameManager {
     ctx.save();
     ctx.translate(-Math.round(this.camera.x) + shake.sx, -Math.round(this.camera.y) + shake.sy);
 
-    // Continuous Textured Ground Floor across 8000px
     const lvlData = LEVELS[this.currentLevel];
     const platforms = lvlData ? lvlData.platforms : [];
+    const hzType = lvlData ? lvlData.hazardType : 'water';
 
-    ctx.fillStyle = '#090d16';
+    // A. Draw Hazardous Pit Depths (Below 490px across the whole world)
+    ctx.fillStyle = '#020617';
     ctx.fillRect(0, 490, this.levelWidth, 130);
 
-    ctx.fillStyle = lvlData ? lvlData.color : '#00f0ff';
-    ctx.shadowColor = lvlData ? lvlData.color : '#00f0ff';
-    ctx.shadowBlur = 8;
-    ctx.fillRect(0, 490, this.levelWidth, 4);
-    ctx.shadowBlur = 0;
+    if (hzType === 'water') {
+      // Gothenburg Electric Harbor Water Canal
+      const grad = ctx.createLinearGradient(0, 490, 0, 620);
+      grad.addColorStop(0, 'rgba(2, 132, 199, 0.85)');
+      grad.addColorStop(0.5, 'rgba(3, 42, 77, 0.95)');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 490, this.levelWidth, 130);
 
-    // Road Grid Pattern & Cyber Lines
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    for (let x = 0; x < this.levelWidth; x += 60) {
-      ctx.fillRect(x, 494, 28, 2);
-      ctx.fillRect(x + 10, 520, 20, 2);
-    }
+      // Animated Water Wave Surface
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let x = 0; x < this.levelWidth; x += 20) {
+        const wy = 496 + Math.sin(this.gameTime * 0.08 + x * 0.03) * 4;
+        if (x === 0) ctx.moveTo(x, wy);
+        else ctx.lineTo(x, wy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
 
-    // Sector Transition Gateway Arches with Province Holograms
-    if (this.gameMode === 'campaign') {
-      for (let s = 1; s <= 5; s++) {
-        const archX = s * 1350;
-        if (this.camera.isVisible(archX, 80)) {
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-          ctx.fillRect(archX - 12, 170, 24, 320);
-          ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = lvlData ? lvlData.color : '#38bdf8';
-          ctx.shadowBlur = 10;
-          ctx.strokeRect(archX - 12, 170, 24, 320);
-          ctx.shadowBlur = 0;
+    } else if (hzType === 'ice_abyss') {
+      // Kiruna Sub-Zero LKAB Mine Chasm (-700m)
+      const grad = ctx.createLinearGradient(0, 490, 0, 620);
+      grad.addColorStop(0, 'rgba(6, 182, 212, 0.75)');
+      grad.addColorStop(0.4, 'rgba(15, 23, 42, 0.95)');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 490, this.levelWidth, 130);
 
-          // Hologram Banner
-          ctx.fillStyle = '#facc15';
-          ctx.font = '900 12px "Orbitron", monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(`SECTOR ${s+1}`, archX, 200);
-          ctx.textAlign = 'left';
-        }
+      // Freezing Frost Spikes at Pit Bottom
+      ctx.fillStyle = '#67e8f9';
+      for (let x = 0; x < this.levelWidth; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 620);
+        ctx.lineTo(x + 20, 560 + Math.sin(x + this.gameTime * 0.03) * 8);
+        ctx.lineTo(x + 40, 620);
+        ctx.fill();
+      }
+
+    } else if (hzType === 'clockwork') {
+      // Stockholm Royal Moat & Clockwork Gear Pit
+      const grad = ctx.createLinearGradient(0, 490, 0, 620);
+      grad.addColorStop(0, 'rgba(245, 158, 11, 0.75)');
+      grad.addColorStop(0.5, 'rgba(69, 26, 3, 0.95)');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 490, this.levelWidth, 130);
+
+      // Rotating Brass Gear Silhouettes in the Pits
+      ctx.fillStyle = '#b45309';
+      for (let x = 100; x < this.levelWidth; x += 300) {
+        ctx.save();
+        ctx.translate(x, 560);
+        ctx.rotate(this.gameTime * 0.02);
+        ctx.fillRect(-22, -22, 44, 44);
+        ctx.fillRect(-30, -8, 60, 16);
+        ctx.fillRect(-8, -30, 16, 60);
+        ctx.restore();
+      }
+
+    } else {
+      // Visby Baltic Sea Surf & Sharp Timber Spikes
+      const grad = ctx.createLinearGradient(0, 490, 0, 620);
+      grad.addColorStop(0, 'rgba(168, 85, 247, 0.75)');
+      grad.addColorStop(0.5, 'rgba(30, 12, 56, 0.95)');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 490, this.levelWidth, 130);
+
+      // Timber Defensive Spikes
+      ctx.fillStyle = '#78350f';
+      for (let x = 0; x < this.levelWidth; x += 36) {
+        ctx.beginPath();
+        ctx.moveTo(x, 620);
+        ctx.lineTo(x + 18, 550);
+        ctx.lineTo(x + 36, 620);
+        ctx.fill();
       }
     }
 
-    // Swedish Architectural Landmarks, Houses, Neon Signs & Streetlamps
-    sceneryManager.draw(ctx, this.currentLevel, this.levelWidth, this.camera, this.gameTime);
+    // B. Draw Solid Segmented Platforms
+    for (const p of platforms) {
+      if (!this.camera.isVisible(p.x, p.w)) continue;
 
-    // Raised Platforms with Metallic Borders
-    for (let i = 1; i < platforms.length; i++) {
-      const p = platforms[i];
-      if (this.camera.isVisible(p.x, p.w)) {
+      if (p.y === 490) {
+        // Ground Dock Platform
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+
+        // Neon Border Top
+        ctx.fillStyle = lvlData ? lvlData.color : '#00f0ff';
+        ctx.shadowColor = lvlData ? lvlData.color : '#00f0ff';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(p.x, p.y, p.w, 4);
+        ctx.shadowBlur = 0;
+
+        // Road Grid Pattern & Cyber Lines
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        for (let gx = p.x; gx < p.x + p.w; gx += 60) {
+          ctx.fillRect(gx, p.y + 4, 28, 2);
+          ctx.fillRect(gx + 10, p.y + 30, 20, 2);
+        }
+
+        // Yellow Hazard Stripes at Left and Right Platform Edges
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(p.x, p.y, 14, 6);
+        ctx.fillRect(p.x + p.w - 14, p.y, 14, 6);
+
+      } else {
+        // Raised Platform
         ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
         ctx.fillRect(p.x, p.y, p.w, p.h);
         ctx.strokeStyle = lvlData ? lvlData.color : '#38bdf8';
@@ -931,6 +1061,36 @@ export class GameManager {
         ctx.fillRect(p.x, p.y, p.w, 3);
       }
     }
+
+    // C. Sector Transition Gateway Arches with Province Holograms (8 Sectors across 12,000px)
+    if (this.gameMode === 'campaign') {
+      for (let s = 1; s <= 7; s++) {
+        const archX = s * 1500;
+        if (this.camera.isVisible(archX, 80)) {
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+          ctx.fillRect(archX - 12, 170, 24, 320);
+          ctx.strokeStyle = s === 3 ? '#22c55e' : (lvlData ? lvlData.color : '#38bdf8');
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = s === 3 ? '#22c55e' : (lvlData ? lvlData.color : '#38bdf8');
+          ctx.shadowBlur = 10;
+          ctx.strokeRect(archX - 12, 170, 24, 320);
+          ctx.shadowBlur = 0;
+
+          // Hologram Banner
+          ctx.fillStyle = s === 3 ? '#22c55e' : '#facc15';
+          ctx.font = '900 12px "Orbitron", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(s === 3 ? '🚩 CHECKPOINT' : `SECTOR ${s+1}`, archX, 200);
+          ctx.textAlign = 'left';
+        }
+      }
+    }
+
+    // Swedish Architectural Landmarks, Houses, Neon Signs & Streetlamps
+    sceneryManager.draw(ctx, this.currentLevel, this.levelWidth, this.camera, this.gameTime);
+
+    // Draw Moving Platforms & Ferry Barges
+    movingPlatformManager.draw(ctx, this.camera);
 
     // Draw Destructibles (Crates, Barrels, Chests)
     destructibleManager.draw(ctx, this.camera);

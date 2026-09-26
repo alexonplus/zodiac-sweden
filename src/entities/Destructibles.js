@@ -45,19 +45,23 @@ export class DestructibleManager {
     });
   }
 
-  populateForLevel(levelId, levelWidth) {
+  populateForLevel(levelId, levelWidth, platforms = []) {
     this.props.length = 0;
     const groundY = 490;
 
-    // Distribute crates, explosive barrels, and chests along the 6400px level
-    for (let x = 380; x < levelWidth - 600; x += 320 + Math.floor(Math.random() * 200)) {
-      const rand = Math.random();
-      if (rand < 0.45) {
-        this.spawnCrate(x, groundY);
-      } else if (rand < 0.80) {
-        this.spawnBarrel(x, groundY);
-      } else {
-        this.spawnChest(x, groundY);
+    // Distribute crates, explosive barrels, and chests along solid platforms across 12,000px
+    const groundPlats = platforms.filter(p => p.y === groundY && p.h >= 100);
+
+    for (const plat of groundPlats) {
+      for (let x = plat.x + 120; x < plat.x + plat.w - 120; x += 360 + Math.floor(Math.random() * 240)) {
+        const rand = Math.random();
+        if (rand < 0.45) {
+          this.spawnCrate(x, groundY);
+        } else if (rand < 0.80) {
+          this.spawnBarrel(x, groundY);
+        } else {
+          this.spawnChest(x, groundY);
+        }
       }
     }
   }
