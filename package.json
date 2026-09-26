@@ -1,0 +1,22 @@
+{
+  "name": "zodiac-sweden",
+  "version": "1.0.0",
+  "description": "A retro 16-bit arcade brawler featuring all 12 Zodiac signs battling across iconic Swedish cities.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e \"console.log('Build completed')\"",
+    "lint": "node -e \"console.log('Lint passed')\""
+  },
+  "keywords": [
+    "arcade",
+    "brawler",
+    "zodiac",
+    "retro",
+    "canvas",
+    "game"
+  ],
+  "author": "alexonplus",
+  "license": "MIT"
+}

@@ -10,6 +10,7 @@ import { destructibleManager } from './entities/Destructibles.js';
 import { buffManager } from './entities/Powerups.js';
 import { sceneryManager } from './entities/Scenery.js';
 import { vehicleManager } from './entities/Vehicles.js';
+import { levelInteractionsManager } from './entities/LevelInteractions.js';
 import { movingPlatformManager } from './entities/MovingPlatforms.js';
 import { synergyUltManager } from './entities/SynergyUlt.js';
 import { miniGameManager } from './entities/MiniGames.js';
@@ -20,6 +21,7 @@ import { EnemyMob } from './entities/Enemy.js';
 import { BossEntity, createBoss, BaseBoss } from './entities/Bosses.js';
 import { hudManager } from './ui/hud.js';
 import { populateZodiacGrid, refreshSelectionUI } from './ui/screens.js';
+import { cityMapManager, GOTEBORG_SUBLEVELS } from './ui/cityMap.js';
 
 /* ================= CANVAS SETUP ================= */
 const canvas = document.getElementById('gameCanvas');
@@ -35,7 +37,8 @@ export class GameManager {
     this.isCoopMode = false;
     this.p1HeroId = 'aquarius';
     this.p2HeroId = 'aries';
-    this.currentLevel = 'goteborg';
+    this.currentLevel = 'goteborg-1';
+    this.shopReturnScreen = 'screen-title';
     this.levelWidth = 8000;
     this.selectingForPlayer = 1;
 
@@ -96,6 +99,13 @@ export class GameManager {
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+      if (e.code === 'Enter') {
+        const charSelect = document.getElementById('screen-char-select');
+        if (charSelect && charSelect.style.display !== 'none') {
+          const btn = document.getElementById('btn-confirm-char');
+          if (btn) btn.click();
+        }
+      }
       if (this.isPlaying) this.handleGameKeys(e.code);
     });
     window.addEventListener('keyup', (e) => this.keys[e.code] = false);
@@ -105,7 +115,7 @@ export class GameManager {
     // 1. P1 Controls
     if (code === 'KeyF') this.player1.attack(this.projectiles, this.meleeHits, (s) => this.screenShake = s);
     if (code === 'KeyG') this.player1.castQ(this.projectiles, (s) => this.screenShake = s);
-    if (code === 'KeyH') this.player1.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s);
+    if (code === 'KeyH') this.player1.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s, this.projectiles);
     if (code === 'Space') this.player1.castDash();
     if (code === 'KeyT') this.handleUltCast(1);
 
@@ -113,7 +123,7 @@ export class GameManager {
     if ((this.isCoopMode || this.gameMode === 'pvp') && this.player2.hp > 0) {
       if (code === 'Numpad1' || code === 'KeyK') this.player2.attack(this.projectiles, this.meleeHits, (s) => this.screenShake = s);
       if (code === 'Numpad2' || code === 'KeyL') this.player2.castQ(this.projectiles, (s) => this.screenShake = s);
-      if (code === 'Numpad3' || code === 'KeyO') this.player2.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s);
+      if (code === 'Numpad3' || code === 'KeyO') this.player2.castE(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (s) => this.screenShake = s, this.projectiles);
       if (code === 'Numpad0' || code === 'ShiftRight') this.player2.castDash();
       if (code === 'Numpad4' || code === 'KeyP') this.handleUltCast(2);
     }
@@ -127,12 +137,14 @@ export class GameManager {
     }
 
     const caster = casterIndex === 1 ? this.player1 : this.player2;
-    caster.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, this.levelWidth, H);
+    caster.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, this.levelWidth, H, this.projectiles);
   }
 
   initUI() {
     // Solo Campaign Mode
     document.getElementById('btn-mode-solo').addEventListener('click', () => {
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'campaign';
       this.isCoopMode = false;
       document.getElementById('screen-title').style.display = 'none';
@@ -144,6 +156,8 @@ export class GameManager {
 
     // 2P Co-Op Arcade Mode
     document.getElementById('btn-mode-coop').addEventListener('click', () => {
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'campaign';
       this.isCoopMode = true;
       this.selectingForPlayer = 1;
@@ -156,6 +170,8 @@ export class GameManager {
 
     // 1v1 PvP Duel Mode
     document.getElementById('btn-mode-pvp').addEventListener('click', () => {
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'pvp';
       this.isCoopMode = false;
       this.selectingForPlayer = 1;
@@ -168,6 +184,8 @@ export class GameManager {
 
     // Boss Rush Mode
     document.getElementById('btn-mode-bossrush').addEventListener('click', () => {
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'bossrush';
       this.isCoopMode = false;
       this.bossRushIndex = 0;
@@ -180,16 +198,37 @@ export class GameManager {
 
     // Open Fika Café Shop
     document.getElementById('btn-open-shop').addEventListener('click', () => {
+      this.shopReturnScreen = 'screen-title';
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       document.getElementById('screen-title').style.display = 'none';
       populateShopUI();
       document.getElementById('screen-shop').style.display = 'flex';
     });
+
+    const cityShopBtn = document.getElementById('btn-open-shop-from-city');
+    if (cityShopBtn) {
+      cityShopBtn.addEventListener('click', () => {
+        this.shopReturnScreen = 'screen-goteborg-map';
+        sound.init();
+        document.getElementById('screen-goteborg-map').style.display = 'none';
+        populateShopUI();
+        document.getElementById('screen-shop').style.display = 'flex';
+      });
+    }
+
     document.getElementById('btn-close-shop').addEventListener('click', () => {
       document.getElementById('screen-shop').style.display = 'none';
-      document.getElementById('screen-title').style.display = 'flex';
+      const targetScreen = document.getElementById(this.shopReturnScreen || 'screen-title');
+      if (targetScreen) targetScreen.style.display = 'flex';
+      if (this.shopReturnScreen === 'screen-goteborg-map') {
+        cityMapManager.render();
+      }
     });
 
     document.getElementById('btn-goto-map').addEventListener('click', () => {
+      sound.init();
+      if (!sound.currentTrack) sound.playMusic('title');
       document.getElementById('screen-title').style.display = 'none';
       document.getElementById('screen-map').style.display = 'flex';
     });
@@ -202,49 +241,132 @@ export class GameManager {
       document.getElementById('screen-title').style.display = 'flex';
     });
 
+    // Initialize City Map Manager for Gothenburg
+    cityMapManager.init(
+      (subLevelId) => {
+        this.currentLevel = subLevelId;
+        this.startLevel(subLevelId);
+      },
+      () => {
+        document.getElementById('screen-goteborg-map').style.display = 'none';
+        document.getElementById('screen-map').style.display = 'flex';
+      }
+    );
+
     document.getElementById('btn-confirm-char').addEventListener('click', () => {
-      this.currentLevel = HERO_CONFIGS[this.p1HeroId].levelId;
-      this.startLevel(this.currentLevel);
+      const heroLevel = HERO_CONFIGS[this.p1HeroId].levelId;
+      this.currentLevel = heroLevel;
+      if (this.gameMode === 'campaign') {
+        // Direct player to Gothenburg tactical city map with 4 sub-levels
+        document.getElementById('screen-char-select').style.display = 'none';
+        cityMapManager.show();
+      } else {
+        this.startLevel(this.currentLevel);
+      }
     });
 
     document.querySelectorAll('.map-node').forEach(node => {
       node.addEventListener('click', () => {
-        this.currentLevel = node.getAttribute('data-level');
-        this.startLevel(this.currentLevel);
+        const lvl = node.getAttribute('data-level');
+        if (lvl === 'goteborg') {
+          document.getElementById('screen-map').style.display = 'none';
+          cityMapManager.show();
+        } else {
+          this.currentLevel = lvl;
+          this.startLevel(this.currentLevel);
+        }
       });
     });
+
+    const openGoteborgBtn = document.getElementById('btn-open-goteborg-direct');
+    if (openGoteborgBtn) {
+      openGoteborgBtn.addEventListener('click', () => {
+        document.getElementById('screen-map').style.display = 'none';
+        cityMapManager.show();
+      });
+    }
+
     document.getElementById('btn-start-level').addEventListener('click', () => {
-      this.startLevel(this.currentLevel);
+      if (this.currentLevel === 'goteborg' || this.currentLevel.startsWith('goteborg')) {
+        document.getElementById('screen-map').style.display = 'none';
+        cityMapManager.show();
+      } else {
+        this.startLevel(this.currentLevel);
+      }
     });
 
     document.getElementById('btn-res-next').addEventListener('click', () => {
       document.getElementById('screen-result').style.display = 'none';
       document.getElementById('screen-map').style.display = 'flex';
+      sound.playMusic('title');
     });
+
+    const resGoteborgBtn = document.getElementById('btn-res-goteborg-map');
+    if (resGoteborgBtn) {
+      resGoteborgBtn.addEventListener('click', () => {
+        document.getElementById('screen-result').style.display = 'none';
+        cityMapManager.show();
+        sound.playMusic('title');
+      });
+    }
+
+    const resNextSubBtn = document.getElementById('btn-res-next-sublevel');
+    if (resNextSubBtn) {
+      resNextSubBtn.addEventListener('click', () => {
+        const nextId = cityMapManager.getNextSubLevelId(this.currentLevel);
+        if (nextId) {
+          this.currentLevel = nextId;
+          this.startLevel(nextId);
+        } else {
+          document.getElementById('screen-result').style.display = 'none';
+          cityMapManager.show();
+        }
+      });
+    }
+
     document.getElementById('btn-res-replay').addEventListener('click', () => {
       this.startLevel(this.currentLevel);
     });
 
+    const updateSoundButtons = () => {
+      const isMuted = sound.isMuted;
+      const sndBtn = document.getElementById('btn-sound-toggle');
+      if (sndBtn) sndBtn.innerText = isMuted ? '🔇' : '🔊';
+      const menuSndBtn = document.getElementById('btn-sound-toggle-menu');
+      if (menuSndBtn) menuSndBtn.innerText = isMuted ? '🔇 SOUND: OFF' : '🔊 MUSIC & SFX: ON';
+    };
+
+    const handleSoundToggle = () => {
+      sound.toggleMute();
+      if (!sound.isMuted && !sound.currentTrack) {
+        sound.playMusic(this.isPlaying ? (this.gameMode === 'bossrush' ? 'boss' : this.currentLevel) : 'title');
+      }
+      updateSoundButtons();
+    };
+
     const sndBtn = document.getElementById('btn-sound-toggle');
-    if (sndBtn) {
-      sndBtn.addEventListener('click', () => {
-        const isMuted = sound.toggleMute();
-        sndBtn.innerText = isMuted ? '🔇' : '🔊';
-      });
-    }
+    if (sndBtn) sndBtn.addEventListener('click', handleSoundToggle);
+    const menuSndBtn = document.getElementById('btn-sound-toggle-menu');
+    if (menuSndBtn) menuSndBtn.addEventListener('click', handleSoundToggle);
   }
 
   onHeroSelected(heroId) {
     if (!this.isCoopMode && this.gameMode !== 'pvp') {
       this.p1HeroId = heroId;
       this.currentLevel = HERO_CONFIGS[heroId].levelId;
+      const sub = document.getElementById('char-select-sub');
+      if (sub) sub.innerText = `Selected ${HERO_CONFIGS[heroId].name.toUpperCase()}! Press ENTER or click CONFIRM HERO & DEPLOY below:`;
     } else {
       if (this.selectingForPlayer === 1) {
         this.p1HeroId = heroId;
         this.selectingForPlayer = 2;
+        const sub = document.getElementById('char-select-sub');
+        if (sub) sub.innerText = `Player 1 selected: ${HERO_CONFIGS[heroId].name.toUpperCase()}! Now click a hero for Player 2 [Gold]:`;
       } else {
         this.p2HeroId = heroId;
         this.selectingForPlayer = 1;
+        const sub = document.getElementById('char-select-sub');
+        if (sub) sub.innerText = `Both heroes selected! Press ENTER or click CONFIRM HERO & DEPLOY to start!`;
       }
     }
     refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode || this.gameMode === 'pvp');
@@ -273,6 +395,7 @@ export class GameManager {
     movingPlatformManager.populateForLevel(lvlData);
     destructibleManager.populateForLevel(levelId, this.levelWidth, lvlData ? lvlData.platforms : []);
     vehicleManager.populateForLevel(levelId, this.levelWidth);
+    levelInteractionsManager.populateForLevel(levelId, this.levelWidth);
 
     this.camera.setLevelBounds(this.levelWidth, H);
     this.camera.x = 0;
@@ -281,12 +404,30 @@ export class GameManager {
     document.getElementById('p1-name').innerText = this.player1.hero.name.toUpperCase();
     document.getElementById('p1-energy-name').innerText = this.player1.hero.energyName;
 
+    const p1H = this.player1.hero;
+    const p1Guide = document.getElementById('p1-controls-guide');
+    if (p1Guide && p1H) {
+      const qName = (p1H.skills && p1H.skills.q && p1H.skills.q.name) || 'Skill 1';
+      const eName = (p1H.skills && p1H.skills.e && p1H.skills.e.name) || 'Skill 2';
+      const ultName = p1H.ultName || (p1H.skills && p1H.skills.ult && p1H.skills.ult.name) || 'Superpower';
+      p1Guide.innerHTML = `<b>P1 [${p1H.name.toUpperCase()}]:</b> <kbd>WASD</kbd> | <kbd>F</kbd> Attack | <kbd>G</kbd> ${qName} | <kbd>H</kbd> ${eName} | <kbd>Space</kbd> Dash | <kbd>T</kbd> ⚡ ${ultName}`;
+    }
+
     if (this.isCoopMode || this.gameMode === 'pvp') {
       this.player2.init(this.p2HeroId, this.gameMode === 'pvp' ? 880 : 160);
       document.getElementById('p2-hud').style.display = 'flex';
       document.getElementById('p2-controls-guide').style.display = 'block';
       document.getElementById('p2-name').innerText = this.player2.hero.name.toUpperCase();
       document.getElementById('p2-energy-name').innerText = this.player2.hero.energyName;
+
+      const p2H = this.player2.hero;
+      const p2Guide = document.getElementById('p2-controls-guide');
+      if (p2Guide && p2H) {
+        const qName = (p2H.skills && p2H.skills.q && p2H.skills.q.name) || 'Skill 1';
+        const eName = (p2H.skills && p2H.skills.e && p2H.skills.e.name) || 'Skill 2';
+        const ultName = p2H.ultName || (p2H.skills && p2H.skills.ult && p2H.skills.ult.name) || 'Superpower';
+        p2Guide.innerHTML = `<b>P2 [${p2H.name.toUpperCase()}]:</b> <kbd>Arrows</kbd> | <kbd>1/K</kbd> Attack | <kbd>2/L</kbd> ${qName} | <kbd>3/O</kbd> ${eName} | <kbd>0/Shift</kbd> Dash | <kbd>4/P</kbd> ⚡ ${ultName}`;
+      }
     } else {
       document.getElementById('p2-hud').style.display = 'none';
       document.getElementById('p2-controls-guide').style.display = 'none';
@@ -299,7 +440,8 @@ export class GameManager {
     document.getElementById('ui-hud').style.display = 'flex';
 
     // Start Procedural Retro BGM
-    sound.playMusic(this.gameMode === 'bossrush' ? 'boss' : this.currentLevel);
+    const bgmTrack = this.gameMode === 'bossrush' ? 'boss' : (this.currentLevel.startsWith('goteborg') ? 'goteborg' : this.currentLevel);
+    sound.playMusic(bgmTrack);
 
     if (this.gameMode === 'bossrush') {
       this.spawnBossRushStage();
@@ -324,7 +466,121 @@ export class GameManager {
     const scale = this.isCoopMode ? 1.4 : 1.0;
     const spawnX = spawnOriginX + 650;
 
-    if (this.currentLevel === 'goteborg') {
+    if (this.currentLevel === 'goteborg-1') {
+      // 1-1: Eriksberg Shipyards & Marina (3,200px)
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'karolin'));
+        if (this.isCoopMode) this.enemies.push(new EnemyMob(spawnX + 150, 420, 'viking'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'karolin'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 400, 420, 'troll'));
+      } else if (zoneIndex === 4) {
+        // Climax Mini-Boss: Shipyard Syndicate Captain
+        this.camera.lockAt(this.levelWidth - W);
+        const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'viking');
+        miniBoss.w = 50; miniBoss.h = 66;
+        miniBoss.hp = 480 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 24; miniBoss.speed = 2.4;
+        miniBoss.isMiniBoss = true;
+        miniBoss.name = 'SHIPYARD SYNDICATE CAPTAIN';
+        this.enemies.push(miniBoss);
+        this.enemies.push(new EnemyMob(this.levelWidth - 450, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
+        hudManager.showBossWarning('SHIPYARD SYNDICATE CAPTAIN');
+        sound.playRoar();
+      }
+    } else if (this.currentLevel === 'goteborg-2') {
+      // 1-2: Blue Tramway & Lindholmen Tech Port (3,500px)
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'karolin'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'viking'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'golem'));
+      } else if (zoneIndex === 4) {
+        // Climax Mini-Boss: Cyber-Golem Vanguard
+        this.camera.lockAt(this.levelWidth - W);
+        const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'golem');
+        miniBoss.w = 58; miniBoss.h = 76;
+        miniBoss.hp = 580 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 26; miniBoss.speed = 1.9;
+        miniBoss.isMiniBoss = true;
+        miniBoss.name = 'CYBER-GOLEM VANGUARD';
+        this.enemies.push(miniBoss);
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        hudManager.showBossWarning('CYBER-GOLEM VANGUARD');
+        sound.playRoar();
+      }
+    } else if (this.currentLevel === 'goteborg-3') {
+      // 1-3: Skansen Kronan & Volvo Factory Ruins (3,600px)
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'golem'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'karolin'));
+      } else if (zoneIndex === 4) {
+        // Climax Mini-Boss: Bastion Steam Troll
+        this.camera.lockAt(this.levelWidth - W);
+        const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'troll');
+        miniBoss.w = 60; miniBoss.h = 76;
+        miniBoss.hp = 680 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 30; miniBoss.speed = 2.0;
+        miniBoss.isMiniBoss = true;
+        miniBoss.name = 'BASTION STEAM TROLL';
+        this.enemies.push(miniBoss);
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'viking'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 580, 420, 'karolin'));
+        hudManager.showBossWarning('BASTION STEAM TROLL');
+        sound.playRoar();
+      }
+    } else if (this.currentLevel === 'goteborg-4') {
+      // 1-4: Älvsborgsbron to Abyssal Kraken (4,000px)
+      if (zoneIndex === 1) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'golem'));
+      } else if (zoneIndex === 2) {
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'karolin'));
+      } else if (zoneIndex === 3) {
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'golem'));
+      } else if (zoneIndex === 4) {
+        // FULL TITAN BOSS: MEKANISK KRAN-KRAKEN
+        this.camera.lockAt(this.levelWidth - W);
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1250 * scale, '🐙'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'troll'));
+        hudManager.showBossWarning('MEKANISK KRAN-KRAKEN');
+        sound.playMusic('boss');
+        sound.playUlt();
+      }
+    } else if (this.currentLevel === 'goteborg') {
       if (zoneIndex === 1) {
         this.enemies.push(new EnemyMob(spawnX + 100, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 260, 420, 'karolin'));
@@ -533,7 +789,6 @@ export class GameManager {
 
   finishLevel(victory) {
     this.isPlaying = false;
-    sound.stopMusic();
     document.getElementById('ui-hud').style.display = 'none';
     const screen = document.getElementById('screen-result');
     const title = document.getElementById('res-title');
@@ -541,6 +796,7 @@ export class GameManager {
     screen.style.display = 'flex';
 
     if (this.gameMode === 'pvp') {
+      sound.playMusic('victory');
       const winner = this.player1.hp > 0 ? 'P1 ' + this.player1.hero.name.toUpperCase() : 'P2 ' + this.player2.hero.name.toUpperCase();
       title.innerHTML = `🏆 ${winner} VICTORIOUS!`;
       title.style.color = '#facc15';
@@ -549,14 +805,41 @@ export class GameManager {
     }
 
     if (victory) {
-      sound.playSynergy();
+      sound.playMusic('victory');
       const earnedShards = Math.floor(this.score / 20) + 15;
       shopManager.addShards(earnedShards);
 
-      title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 PROVINCE LIBERATED!';
-      title.style.color = '#facc15';
-      desc.innerHTML = `Glorious triumph across <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>+${earnedShards} ⭐</b> (Bank: ${shopManager.starShards} ⭐).<br>Visit the Fika Café to upgrade your combat skills!`;
+      const resGoteborgBtn = document.getElementById('btn-res-goteborg-map');
+      const resNextSubBtn = document.getElementById('btn-res-next-sublevel');
+
+      if (this.currentLevel.startsWith('goteborg-')) {
+        cityMapManager.markCleared(this.currentLevel, this.score);
+        if (resGoteborgBtn) resGoteborgBtn.style.display = 'inline-block';
+
+        const nextSubId = cityMapManager.getNextSubLevelId(this.currentLevel);
+        if (resNextSubBtn) {
+          if (nextSubId) {
+            resNextSubBtn.style.display = 'inline-block';
+            const subInfo = GOTEBORG_SUBLEVELS.find(s => s.id === nextSubId);
+            resNextSubBtn.innerHTML = `CONTINUE TO NEXT SUB-LEVEL (${subInfo ? subInfo.code : 'NEXT'}) ⚔️`;
+          } else {
+            resNextSubBtn.style.display = 'none';
+          }
+        }
+
+        title.innerHTML = '🏆 SUB-LEVEL LIBERATED!';
+        title.style.color = '#00f0ff';
+        const lvlConfig = LEVELS[this.currentLevel];
+        desc.innerHTML = `Glorious triumph across <b>${lvlConfig ? lvlConfig.name : this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>+${earnedShards} ⭐</b> (Bank: ${shopManager.starShards} ⭐).<br>Sector cleared and next tactical district unlocked on the Göteborg City Map!`;
+      } else {
+        if (resNextSubBtn) resNextSubBtn.style.display = 'none';
+        if (resGoteborgBtn) resGoteborgBtn.style.display = 'none';
+        title.innerHTML = this.isCoopMode ? '🏆 CO-OP VICTORY!' : '🏆 PROVINCE LIBERATED!';
+        title.style.color = '#facc15';
+        desc.innerHTML = `Glorious triumph across <b>${this.currentLevel.toUpperCase()}</b>!<br>Total Star Shards Collected: <b>+${earnedShards} ⭐</b> (Bank: ${shopManager.starShards} ⭐).<br>Visit the Fika Café to upgrade your combat skills!`;
+      }
     } else {
+      sound.playMusic('title');
       title.innerHTML = '💥 GUARDIANS FALLEN';
       title.style.color = '#ef4444';
       desc.innerHTML = `Our heroes were defeated in ${this.currentLevel.toUpperCase()}.<br>Regroup and try again!`;
@@ -581,43 +864,70 @@ export class GameManager {
       // Update Side-Scrolling Camera
       this.camera.update(this.player1, this.player2, this.isCoopMode, this.screenShake);
 
-      // Check Progressive Stage Zones (8 Sectors across 12,000px: 0, 1500, 3000, 4500, 6000, 7500, 9000, 10500)
+      // Check Progressive Stage Zones
       if (this.gameMode === 'campaign') {
         const focalX = Math.max(this.player1.x, this.isCoopMode && this.player2.hp > 0 ? this.player2.x : 0);
         hudManager.updateProgress(focalX, this.levelWidth);
 
-        if (focalX > 1500 && !this.spawnedZones[2]) {
-          this.spawnedZones[2] = true;
-          this.spawnZoneWave(2, 1500);
-        }
-        if (focalX > 3000 && !this.spawnedZones[3]) {
-          this.spawnedZones[3] = true;
-          this.spawnZoneWave(3, 3000);
-        }
-        if (focalX > 4500 && !this.spawnedZones[4]) {
-          this.spawnedZones[4] = true;
-          this.spawnZoneWave(4, 4500);
-          if (!this.checkpointReached) {
-            this.checkpointReached = true;
-            hudManager.showCheckpoint('SECTOR 4 CHECKPOINT ☕');
-            sound.playSynergy();
+        const isSubLevel = this.currentLevel.startsWith('goteborg-') || this.levelWidth < 6000;
+
+        if (isSubLevel) {
+          const z2 = Math.floor(this.levelWidth * 0.25);
+          const z3 = Math.floor(this.levelWidth * 0.50);
+          const z4 = Math.floor(this.levelWidth * 0.72);
+
+          if (focalX > z2 && !this.spawnedZones[2]) {
+            this.spawnedZones[2] = true;
+            this.spawnZoneWave(2, z2);
           }
-        }
-        if (focalX > 6000 && !this.spawnedZones[5]) {
-          this.spawnedZones[5] = true;
-          this.spawnZoneWave(5, 6000);
-        }
-        if (focalX > 7500 && !this.spawnedZones[6]) {
-          this.spawnedZones[6] = true;
-          this.spawnZoneWave(6, 7500);
-        }
-        if (focalX > 9000 && !this.spawnedZones[7]) {
-          this.spawnedZones[7] = true;
-          this.spawnZoneWave(7, 9000);
-        }
-        if (focalX > 10500 && !this.spawnedZones[8]) {
-          this.spawnedZones[8] = true;
-          this.spawnZoneWave(8, 10500);
+          if (focalX > z3 && !this.spawnedZones[3]) {
+            this.spawnedZones[3] = true;
+            this.spawnZoneWave(3, z3);
+            if (!this.checkpointReached) {
+              this.checkpointReached = true;
+              hudManager.showCheckpoint('DISTRICT CHECKPOINT ☕');
+              sound.playSynergy();
+            }
+          }
+          if (focalX > z4 && !this.spawnedZones[4]) {
+            this.spawnedZones[4] = true;
+            this.spawnZoneWave(4, z4);
+          }
+        } else {
+          // Standard 8 Sectors across 12,000px
+          if (focalX > 1500 && !this.spawnedZones[2]) {
+            this.spawnedZones[2] = true;
+            this.spawnZoneWave(2, 1500);
+          }
+          if (focalX > 3000 && !this.spawnedZones[3]) {
+            this.spawnedZones[3] = true;
+            this.spawnZoneWave(3, 3000);
+          }
+          if (focalX > 4500 && !this.spawnedZones[4]) {
+            this.spawnedZones[4] = true;
+            this.spawnZoneWave(4, 4500);
+            if (!this.checkpointReached) {
+              this.checkpointReached = true;
+              hudManager.showCheckpoint('SECTOR 4 CHECKPOINT ☕');
+              sound.playSynergy();
+            }
+          }
+          if (focalX > 6000 && !this.spawnedZones[5]) {
+            this.spawnedZones[5] = true;
+            this.spawnZoneWave(5, 6000);
+          }
+          if (focalX > 7500 && !this.spawnedZones[6]) {
+            this.spawnedZones[6] = true;
+            this.spawnZoneWave(6, 7500);
+          }
+          if (focalX > 9000 && !this.spawnedZones[7]) {
+            this.spawnedZones[7] = true;
+            this.spawnZoneWave(7, 9000);
+          }
+          if (focalX > 10500 && !this.spawnedZones[8]) {
+            this.spawnedZones[8] = true;
+            this.spawnZoneWave(8, 10500);
+          }
         }
       }
 
@@ -632,17 +942,49 @@ export class GameManager {
         }
       }
 
-      // Update Buffs, Relics, Vehicles, Mini-games, Synergy Ult
+      // Update Buffs, Relics, Vehicles, Interactive Level Props, Mini-games, Synergy Ult
       buffManager.update(this.player1, this.player2);
       relicManager.update(this.player1, this.player2, this.isCoopMode);
       destructibleManager.update(this.enemies, (s) => this.screenShake = s);
-      vehicleManager.update(this.player1, this.player2, this.enemies, (s) => this.screenShake = s);
+      vehicleManager.update(this.player1, this.player2, this.enemies, platforms, movingPlatformManager.platforms, this.keys, (s) => this.screenShake = s, () => this.checkTeamDefeat());
+      levelInteractionsManager.update(this.player1, this.player2, this.isCoopMode, (s) => this.screenShake = s, () => this.checkTeamDefeat(), this.gameTime);
       synergyUltManager.update();
       miniGameManager.update(this.player1, this.player2, this.isCoopMode);
 
       // Projectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
         const p = this.projectiles[i];
+
+        // Unique Hero Projectile Behaviors
+        if (p.isBoomerang) {
+          // Gemini Chakram: flies forward, then curves back to player
+          if (p.life < 38) {
+            p.vx -= p.facing * 0.9;
+          }
+        } else if (p.isHoming && this.enemies.length > 0) {
+          // Pisces Dream Bubble: homing tracking
+          let closest = null;
+          let cDist = 450;
+          for (const en of this.enemies) {
+            const d = Math.hypot((en.x + en.w/2) - p.x, (en.y + en.h/2) - p.y);
+            if (d < cDist) { cDist = d; closest = en; }
+          }
+          if (closest) {
+            const targetY = closest.y + closest.h/2;
+            p.vy += Math.sign(targetY - p.y) * 0.45;
+            p.vy = Math.max(-4, Math.min(4, p.vy));
+          }
+        } else if (p.isVortex) {
+          // Gemini Cyclone Vortex: decelerates and vacuums nearby foes
+          p.vx *= 0.92;
+          for (const en of this.enemies) {
+            const dx = p.x - (en.x + en.w/2);
+            if (Math.hypot(dx, p.y - (en.y + en.h/2)) < 150) {
+              en.x += Math.sign(dx) * 2.2;
+            }
+          }
+        }
+
         p.x += p.vx;
         p.y += p.vy;
         p.life--;
@@ -658,7 +1000,8 @@ export class GameManager {
           }
         }
 
-        // Check Destructible Props Hit
+        // Check Destructible Props & Level Hazards Hit
+        levelInteractionsManager.hitIciclesWithAttack(p);
         for (const prop of destructibleManager.props) {
           if (p.x > prop.x && p.x < prop.x + prop.w && p.y > prop.y && p.y < prop.y + prop.h) {
             destructibleManager.hitProp(prop, p.damage, (s) => this.screenShake = s, this.enemies);
@@ -690,6 +1033,25 @@ export class GameManager {
             const owner = p.owner === 1 ? this.player1 : this.player2;
             owner.ultCharge = Math.min(100, owner.ultCharge + 3 * shopManager.getUltMultiplier());
 
+            // Special Skill Hit Effects
+            if (p.isPullHarpoon) {
+              // Cancer Q: pull harpoon drags target to player
+              en.x += Math.sign(owner.x - en.x) * 120;
+              en.stunTimer = 70;
+            } else if (p.isRooting) {
+              // Virgo Q: roots enemy
+              en.stunTimer = 110;
+              particles.createDamageNumber(en.x + en.w/2, en.y - 12, 'ROOTED! 🌿', '#4ade80');
+            } else if (p.isBubbleTrap) {
+              // Pisces Q: traps enemy in floating bubble
+              en.vy = -6;
+              en.stunTimer = 85;
+              particles.createDamageNumber(en.x + en.w/2, en.y - 12, 'BUBBLE! 🫧', '#2dd4bf');
+            } else if (p.isCosmicExplosion) {
+              // Libra Q: explosion
+              particles.createSparks(p.x, p.y, '#818cf8', 25);
+            }
+
             // Chain Lightning Effect from Mjölnir Powerup
             if (p.chainLightning) {
               sound.playLaser();
@@ -713,7 +1075,13 @@ export class GameManager {
             document.getElementById('combo-count').innerText = this.combo;
             document.getElementById('combo-banner').classList.add('active');
 
-            p.life = 0;
+            if (p.isBoomerang) {
+              // Boomerang pierces through enemies while spinning
+            } else if (p.pierce && p.pierce > 1) {
+              p.pierce--;
+            } else {
+              p.life = 0;
+            }
             break;
           }
         }
@@ -733,7 +1101,8 @@ export class GameManager {
           }
         }
 
-        // Check Destructible Props Hit
+        // Check Destructible Props & Level Hazards Hit
+        levelInteractionsManager.hitIciclesWithAttack(m);
         for (const prop of destructibleManager.props) {
           if (checkRectCollision(m, prop)) {
             destructibleManager.hitProp(prop, m.damage, (s) => this.screenShake = s, this.enemies);
@@ -786,7 +1155,8 @@ export class GameManager {
 
       // Enemies Update
       let activeBoss = null;
-      let hasBossSpawned = !!this.spawnedZones[8] || this.gameMode === 'bossrush';
+      const isSubLevel = this.currentLevel.startsWith('goteborg-') || this.levelWidth < 6000;
+      let hasBossSpawned = isSubLevel ? !!this.spawnedZones[4] : (!!this.spawnedZones[8] || this.gameMode === 'bossrush');
       const isFrozen = buffManager.timeFreezeTimer > 0;
 
       for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -1095,6 +1465,9 @@ export class GameManager {
     // Draw Destructibles (Crates, Barrels, Chests)
     destructibleManager.draw(ctx, this.camera);
 
+    // Draw Interactive Level Elements (Runestones, Fika Bakeries, Steam Vents, Pendulums, Icicles)
+    levelInteractionsManager.draw(ctx, this.camera);
+
     // Draw Vehicles & Mounts (Snowmobile, Tram, Chariot, Drakkar)
     vehicleManager.draw(ctx, this.camera);
 
@@ -1103,22 +1476,130 @@ export class GameManager {
 
     // Projectiles
     for (const p of this.projectiles) {
+      ctx.save();
       ctx.fillStyle = p.color;
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 10;
+
       if (p.type === 'binary') {
         ctx.font = 'bold 16px monospace';
         ctx.fillText(p.char, p.x, p.y);
+      } else if (p.type === 'chakram') {
+        // Rotating spinning wind chakram
+        ctx.translate(p.x, p.y);
+        ctx.rotate(this.gameTime * 0.28);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.isVortex ? 22 : 12, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let b = 0; b < 4; b++) {
+          ctx.rotate(Math.PI / 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(p.isVortex ? 12 : 7, -2, p.isVortex ? 10 : 6, 4);
+        }
+      } else if (p.type === 'arrow') {
+        // Elegant glowing feathered arrow
+        ctx.translate(p.x, p.y);
+        const arrowDir = Math.sign(p.vx) || 1;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(arrowDir > 0 ? -16 : 0, -2, 20, 4);
+        ctx.beginPath();
+        ctx.moveTo(arrowDir > 0 ? 6 : -2, -5);
+        ctx.lineTo(arrowDir > 0 ? 12 : -8, 0);
+        ctx.lineTo(arrowDir > 0 ? 6 : -2, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(arrowDir > 0 ? -16 : 4, -4, 4, 8);
+      } else if (p.type === 'beam') {
+        // Piercing laser beam segment
+        ctx.fillRect(p.x - 14, p.y - 4, 32, 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(p.x - 10, p.y - 2, 24, 4);
+      } else if (p.type === 'boulder') {
+        // Heavy tumbling bronze/copper boulder
+        ctx.translate(p.x, p.y);
+        ctx.rotate(this.gameTime * 0.12);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else if (p.type === 'wave') {
+        // Rising flame / earth ground fissure wave
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.moveTo(p.x - 12, p.y + 12);
+        ctx.lineTo(p.x, p.y - 14);
+        ctx.lineTo(p.x + 12, p.y + 12);
+        ctx.closePath();
+        ctx.fill();
+      } else if (p.type === 'iceSpike') {
+        // Sharp glacial icicle crystal
+        ctx.fillStyle = '#cffafe';
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y - 14);
+        ctx.lineTo(p.x + 7, p.y + 12);
+        ctx.lineTo(p.x - 7, p.y + 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else if (p.type === 'harpoon') {
+        // Titanium barbed harpoon
+        ctx.translate(p.x, p.y);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(-16, -2, 24, 4);
+        ctx.fillStyle = '#0ea5e9';
+        ctx.beginPath();
+        ctx.moveTo(8, -6);
+        ctx.lineTo(16, 0);
+        ctx.lineTo(8, 6);
+        ctx.closePath();
+        ctx.fill();
+      } else if (p.type === 'bubble') {
+        // Iridescent shimmering dream bubble
+        ctx.strokeStyle = p.color;
+        ctx.fillStyle = 'rgba(45, 212, 191, 0.35)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.isBubbleTrap ? 18 : 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x - 3, p.y - 3, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.type === 'meteor') {
+        // Blazing falling meteor
+        ctx.translate(p.x, p.y);
+        ctx.fillStyle = '#ea580c';
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.type === 'orb') {
+        // Pulsing glowing cosmic / solar sphere
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
       } else if (p.type === 'dagger') {
         ctx.fillRect(p.x, p.y, 16, 4);
-      } else if (p.type === 'skillQ') {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
-        ctx.fill();
       } else {
         ctx.fillRect(p.x, p.y, 14, 6);
       }
-      ctx.shadowBlur = 0;
+      ctx.restore();
     }
 
     // Enemy Projectiles & Ground Shockwaves
@@ -1189,8 +1670,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // Unlock AudioContext on first user interaction anywhere
   const unlockAudio = () => {
     sound.init();
-    if (game.isPlaying && !sound.currentTrack) {
-      sound.playMusic(game.gameMode === 'bossrush' ? 'boss' : game.currentLevel);
+    if (!sound.currentTrack) {
+      sound.playMusic(game.isPlaying ? (game.gameMode === 'bossrush' ? 'boss' : game.currentLevel) : 'title');
     }
   };
   window.addEventListener('click', unlockAudio);

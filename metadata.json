@@ -1,0 +1,7 @@
+{
+  "name": "ZODIAC SWEDEN: 12 CONSTELLATIONS",
+  "description": "A retro 16-bit arcade brawler featuring all 12 Zodiac signs battling across iconic Swedish cities.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

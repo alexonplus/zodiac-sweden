@@ -1,5 +1,6 @@
 import { HERO_CONFIGS } from '../config/heroes.js';
 import { getHeroModule } from './heroes/index.js';
+import { getHeroCombat } from './heroes/heroCombat.js';
 import { sound } from '../engine/Audio.js';
 import { particles } from '../engine/Particles.js';
 import { checkRectCollision } from '../engine/Physics.js';
@@ -10,13 +11,14 @@ import { shopManager } from './Shop.js';
 /**
  * PlayerEntity manages hero physics, animations, combat skills,
  * buff statuses, and layered character sprite rendering delegating
- * to dedicated hero modules.
+ * to dedicated hero modules and hero combat systems.
  */
 export class PlayerEntity {
   constructor(pIndex) {
     this.pIndex = pIndex;
     this.hero = HERO_CONFIGS['aquarius'];
     this.heroModule = getHeroModule('aquarius');
+    this.heroCombat = getHeroCombat('aquarius');
     this.x = 100;
     this.y = 420;
     this.w = 38;
@@ -41,6 +43,7 @@ export class PlayerEntity {
     this.drone = { x: 70, y: 390, bob: 0 };
     this.lastSafeX = 100;
     this.lastSafeY = 420;
+    this.isRiding = false;
   }
 
   /**
@@ -49,6 +52,7 @@ export class PlayerEntity {
   init(heroId, startX) {
     this.hero = HERO_CONFIGS[heroId] || HERO_CONFIGS['aquarius'];
     this.heroModule = getHeroModule(heroId);
+    this.heroCombat = getHeroCombat(heroId);
     this.maxHp = this.hero.maxHp + shopManager.getBonusHp();
     this.hp = this.maxHp;
     this.energy = 100;
@@ -57,6 +61,7 @@ export class PlayerEntity {
     this.y = 420;
     this.lastSafeX = startX;
     this.lastSafeY = 420;
+    this.isRiding = false;
     this.vx = 0;
     this.vy = 0;
     this.facing = this.pIndex === 1 ? 1 : -1;
@@ -225,6 +230,11 @@ export class PlayerEntity {
       this.drone.y += (targetDroneY - this.drone.y) * 0.16;
     }
 
+    // Hero Unique Passive Mechanics
+    if (this.heroCombat && this.heroCombat.updatePassive) {
+      this.heroCombat.updatePassive(this, enemies, particles, sound, Math.floor(this.animTimer * 10));
+    }
+
     // Relic & Loot Pickups
     for (let i = relicManager.relicPickups.length - 1; i >= 0; i--) {
       const r = relicManager.relicPickups[i];
@@ -288,180 +298,108 @@ export class PlayerEntity {
   }
 
   /**
-   * Executes primary attack (projectiles or melee swing).
+   * Executes hero-specific primary attack (combos, projectiles, boomerangs, or heavy cleaves).
    */
   attack(projectiles, meleeHits, onShake) {
     if (this.energy < 5) return;
     this.energy -= 5;
     this.attackSwing = 14;
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
-    const hasThorLightning = buffManager.hasBuff(this.pIndex, 'mjolnir');
-
-    const hId = this.hero.id;
-    if (hId === 'aquarius' || hId === 'gemini' || hId === 'pisces' || hId === 'libra') {
-      sound.playLaser();
-      projectiles.push({
-        x: this.x + (this.facing > 0 ? this.w + 6 : -6),
-        y: this.y + 20,
-        vx: this.facing * 12,
-        vy: (Math.random() - 0.5) * 0.8,
-        type: hId === 'aquarius' ? 'binary' : 'crescent',
-        char: Math.random() > 0.5 ? '1' : '0',
-        color: this.hero.color,
-        element: this.hero.element,
-        owner: this.pIndex,
-        damage: Math.floor(22 * damageMult),
-        life: 60,
-        chainLightning: hasThorLightning
-      });
-    } else if (hId === 'sagittarius') {
-      sound.playLaser();
-      projectiles.push({
-        x: this.x + (this.facing > 0 ? this.w + 8 : -8),
-        y: this.y + 18,
-        vx: this.facing * 14,
-        vy: 0,
-        type: 'dagger',
-        color: '#fb923c',
-        element: 'fire',
-        owner: this.pIndex,
-        damage: Math.floor(28 * damageMult),
-        life: 50,
-        chainLightning: hasThorLightning
-      });
-    } else if (hId === 'virgo') {
-      sound.playLaser();
-      projectiles.push({
-        x: this.x + (this.facing > 0 ? this.w + 8 : -8),
-        y: this.y + 18,
-        vx: this.facing * 13,
-        vy: 0,
-        type: 'dagger',
-        color: '#4ade80',
-        element: 'nature',
-        owner: this.pIndex,
-        damage: Math.floor(26 * damageMult),
-        life: 55,
-        chainLightning: hasThorLightning
-      });
-    } else if (hId === 'scorpio') {
-      sound.playPoison();
-      projectiles.push({
-        x: this.x + (this.facing > 0 ? this.w + 6 : -14),
-        y: this.y + 16,
-        vx: this.facing * 12,
-        vy: 0,
-        type: 'dagger',
-        color: '#a855f7',
-        element: 'poison',
-        owner: this.pIndex,
-        damage: Math.floor(24 * damageMult),
-        life: 55,
-        chainLightning: hasThorLightning
-      });
+    if (this.heroCombat && this.heroCombat.attack) {
+      this.heroCombat.attack(this, projectiles, meleeHits, onShake);
     } else {
-      // Melee Swing (Aries, Taurus, Leo, Cancer, Capricorn)
+      // Fallback
       sound.playSword();
       meleeHits.push({
         x: this.x + (this.facing > 0 ? this.w : -36),
         y: this.y + 10,
         w: 38,
         h: 40,
-        damage: Math.floor(28 * damageMult),
+        damage: 28,
         color: this.hero.color,
         element: this.hero.element,
         owner: this.pIndex,
         life: 6
       });
-      particles.createSparks(this.x + (this.facing > 0 ? this.w + 20 : -20), this.y + 25, this.hero.color, 10);
     }
   }
 
+  /**
+   * Casts hero-specific Skill 1 [Q].
+   */
   castQ(projectiles, onShake) {
-    if (this.energy < 25 || this.qCooldown > 0) return;
-    this.energy -= 25;
-    this.qCooldown = 45;
-    sound.playWave();
-    if (onShake) onShake(6);
+    const cost = (this.hero.skills && this.hero.skills.q && this.hero.skills.q.cost) || 25;
+    const cd = (this.hero.skills && this.hero.skills.q && this.hero.skills.q.cd) || 45;
+    if (this.energy < cost || this.qCooldown > 0) return;
+    this.energy -= cost;
+    this.qCooldown = cd;
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
-
-    for (let i = -1; i <= 1; i++) {
-      projectiles.push({
-        x: this.x + (this.facing > 0 ? this.w + 10 : -20),
-        y: this.y + 15 + i * 10,
-        vx: this.facing * 10,
-        vy: i * 1.5,
-        type: 'skillQ',
-        color: this.hero.color,
-        element: this.hero.element,
-        owner: this.pIndex,
-        damage: Math.floor(40 * damageMult),
-        life: 65
-      });
-    }
-    particles.createSparks(this.x + this.w / 2, this.y + 20, this.hero.color, 16);
-  }
-
-  castE(enemies, onSynergyHit, onShake) {
-    if (this.energy < 40 || this.eCooldown > 0) return;
-    this.energy -= 40;
-    this.eCooldown = 75;
-    sound.playLaser();
-    if (onShake) onShake(12);
-
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
-    const radius = 170;
-
-    particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, this.hero.color, 35);
-    for (const en of enemies) {
-      const dist = Math.hypot((en.x + en.w / 2) - (this.x + this.w / 2), (en.y + en.h / 2) - (this.y + this.h / 2));
-      if (dist < radius) {
-        const dmg = Math.floor(55 * damageMult);
-        en.hp -= dmg;
-        en.stunTimer = 60;
-        sound.playHit();
-        particles.createDamageNumber(en.x + en.w / 2, en.y, `AoE -${dmg}!`, this.hero.color);
-        if (onSynergyHit) onSynergyHit(en, this.hero.element, this.pIndex, dmg);
-      }
+    if (this.heroCombat && this.heroCombat.castQ) {
+      this.heroCombat.castQ(this, projectiles, onShake);
     }
   }
 
+  /**
+   * Casts hero-specific Skill 2 [E].
+   */
+  castE(enemies, onSynergyHit, onShake, projectiles) {
+    const cost = (this.hero.skills && this.hero.skills.e && this.hero.skills.e.cost) || 40;
+    const cd = (this.hero.skills && this.hero.skills.e && this.hero.skills.e.cd) || 75;
+    if (this.energy < cost || this.eCooldown > 0) return;
+    this.energy -= cost;
+    this.eCooldown = cd;
+
+    if (this.heroCombat && this.heroCombat.castE) {
+      this.heroCombat.castE(this, enemies, onSynergyHit, onShake, projectiles || []);
+    }
+  }
+
+  /**
+   * Casts hero-specific Dash maneuver.
+   */
   castDash() {
+    const cd = (this.hero.skills && this.hero.skills.dash && this.hero.skills.dash.cd) || 30;
     if (this.energy < 15 || this.dashCooldown > 0) return;
     this.energy -= 15;
-    this.dashCooldown = 30;
-    this.isDashing = 10;
-    this.invulnTime = 14;
-    sound.playLaser();
+    this.dashCooldown = cd;
+
+    if (this.heroCombat && this.heroCombat.castDash) {
+      this.heroCombat.castDash(this);
+    } else {
+      this.isDashing = 10;
+      this.invulnTime = 14;
+      sound.playLaser();
+    }
   }
 
-  castUlt(enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH) {
+  /**
+   * Unleashes hero-specific Superpower / Ultimate.
+   */
+  castUlt(enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles) {
     if (this.ultCharge < 100) return;
     this.ultCharge = 0;
-    sound.playUlt();
-    if (onShake) onShake(24);
 
-    const damageMult = buffManager.getDamageMultiplier(this.pIndex) * shopManager.getDamageMultiplier();
-    const ultDamage = Math.floor(130 * damageMult);
-
-    if (onUltEffect) {
-      onUltEffect({
-        name: this.hero.ultName,
-        color: this.hero.color,
-        timer: 70
-      });
+    if (this.heroCombat && this.heroCombat.castUlt) {
+      this.heroCombat.castUlt(this, enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles);
+    } else {
+      sound.playUlt();
+      if (onShake) onShake(24);
+      if (onUltEffect) {
+        onUltEffect({
+          name: this.hero.ultName || 'ZODIAC SUPERPOWER',
+          color: this.hero.color,
+          timer: 70
+        });
+      }
+      for (const en of enemies) {
+        en.hp -= 130;
+        en.stunTimer = 110;
+        sound.playHit();
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 10, 'ULT -130!', this.hero.color);
+        if (onSynergyHit) onSynergyHit(en, this.hero.element, this.pIndex, 130);
+      }
+      particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, this.hero.color, 60);
     }
-
-    for (const en of enemies) {
-      en.hp -= ultDamage;
-      en.stunTimer = 110;
-      sound.playHit();
-      particles.createDamageNumber(en.x + en.w / 2, en.y - 10, `ULT -${ultDamage}!`, this.hero.color);
-      if (onSynergyHit) onSynergyHit(en, this.hero.element, this.pIndex, ultDamage);
-    }
-    particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, this.hero.color, 60);
   }
 
   /**
@@ -521,6 +459,14 @@ export class PlayerEntity {
       ctx.restore();
     }
 
+    // Ground Drop Shadow
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(this.x + this.w / 2, this.y + this.h - 1, 17, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.save();
     ctx.translate(this.x + this.w / 2, this.y + this.h / 2 + bobY);
     if (this.facing < 0) ctx.scale(-1, 1);
@@ -535,85 +481,358 @@ export class PlayerEntity {
     ctx.fillStyle = this.pIndex === 1 ? '#00f0ff' : '#facc15';
     ctx.font = 'bold 9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(`P${this.pIndex}`, 0, -40);
+    ctx.fillText(`P${this.pIndex}`, 0, -42);
     ctx.textAlign = 'left';
+
+    // 0. Elemental Aura & Ground Pulse from dedicated Hero Module
+    if (this.heroModule && this.heroModule.drawAura) {
+      this.heroModule.drawAura(ctx, this);
+    }
 
     // 1. Back accessories (Cape / Tail / Wings) from dedicated Hero Module
     if (this.heroModule && this.heroModule.drawBackAccessories) {
       this.heroModule.drawBackAccessories(ctx, this, speedRatio, capeFlutter);
     }
 
-    // 2. Articulated Legs & Boots
+    // Dynamic breathing and running parameters
+    const animT = this.animTimer || 0;
+    const breathe = Math.sin(animT * 3) * 0.7;
+
+    // 2. Articulated Anatomical Legs & Armored Greaves
     const legFrontX = this.isGrounded ? legOffset : 4;
     const legBackX = this.isGrounded ? -legOffset : -6;
     const legFrontY = this.isGrounded ? 0 : -3;
     const legBackY = this.isGrounded ? 0 : 4;
 
-    // Back Leg
+    // --- Back Leg ---
+    // Upper Thigh (Cuisse) - Organic curved muscle contour
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-8 + legBackX, 6 + legBackY, 7, 18);
-    ctx.fillStyle = hCol;
-    ctx.fillRect(-8 + legBackX, 18 + legBackY, 8, 8);
-    ctx.fillStyle = '#020617';
-    ctx.fillRect(-8 + legBackX, 24 + legBackY, 9, 3);
+    ctx.beginPath();
+    ctx.moveTo(-9 + legBackX, 5 + legBackY);
+    ctx.quadraticCurveTo(-11 + legBackX, 9 + legBackY, -9 + legBackX, 14 + legBackY);
+    ctx.lineTo(-2 + legBackX, 14 + legBackY);
+    ctx.quadraticCurveTo(-3 + legBackX, 9 + legBackY, -4 + legBackX, 5 + legBackY);
+    ctx.closePath();
+    ctx.fill();
 
-    // Front Leg
+    // Armored Knee Cop (Poleyn) - Rounded joint
+    ctx.fillStyle = hCol;
+    ctx.beginPath();
+    ctx.ellipse(-5.5 + legBackX, 14 + legBackY, 4.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(-6.5 + legBackX, 13 + legBackY, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lower Leg Greave - Contoured calf muscle
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(1 + legFrontX, 6 + legFrontY, 7, 18);
-    ctx.fillStyle = hCol;
-    ctx.fillRect(1 + legFrontX, 18 + legFrontY, 8, 8);
+    ctx.beginPath();
+    ctx.moveTo(-9 + legBackX, 15 + legBackY);
+    ctx.quadraticCurveTo(-11 + legBackX, 19 + legBackY, -8 + legBackX, 23 + legBackY);
+    ctx.lineTo(-2 + legBackX, 23 + legBackY);
+    ctx.quadraticCurveTo(-2 + legBackX, 18 + legBackY, -3 + legBackX, 15 + legBackY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Plated ridge highlight
+    ctx.strokeStyle = hCol;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-5.5 + legBackX, 16 + legBackY);
+    ctx.quadraticCurveTo(-6.5 + legBackX, 19 + legBackY, -5 + legBackX, 22 + legBackY);
+    ctx.stroke();
+
+    // Sculpted Armored Boot / Sabaton - Natural arch, rounded heel, upturned toe
     ctx.fillStyle = '#020617';
-    ctx.fillRect(1 + legFrontX, 24 + legFrontY, 9, 3);
+    ctx.beginPath();
+    ctx.moveTo(-8 + legBackX, 23 + legBackY);
+    ctx.lineTo(-2 + legBackX, 23 + legBackY);
+    ctx.quadraticCurveTo(0 + legBackX, 25 + legBackY, 1.5 + legBackX, 26 + legBackY);
+    ctx.quadraticCurveTo(2.5 + legBackX, 27 + legBackY, 2 + legBackX, 28 + legBackY);
+    ctx.quadraticCurveTo(-4 + legBackX, 28.5 + legBackY, -9 + legBackX, 28 + legBackY);
+    ctx.quadraticCurveTo(-10 + legBackX, 26 + legBackY, -8 + legBackX, 23 + legBackY);
+    ctx.closePath();
+    ctx.fill();
 
-    // 3. Torso & Rune Armor
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-12, -18, 24, 26);
+    // Metal Toe Cap & Sole Tread
     ctx.fillStyle = hCol;
-    ctx.fillRect(-10, -16, 20, 22);
+    ctx.beginPath();
+    ctx.arc(0.8 + legBackX, 26.5 + legBackY, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-9 + legBackX, 28 + legBackY);
+    ctx.lineTo(2 + legBackX, 28 + legBackY);
+    ctx.stroke();
+
+    // --- Off-Hand Arm (in background or defensive guard) ---
+    const offSwingAngle = isMoving ? -Math.sin(this.walkCycle) * 0.45 : Math.sin(animT * 2) * 0.1;
+    ctx.save();
+    ctx.translate(-4, -6 + breathe);
+    ctx.rotate(offSwingAngle);
+
+    // Contoured upper arm (deltoid to elbow)
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-7, -13, 14, 16);
+    ctx.beginPath();
+    ctx.ellipse(-0.5, 4, 2.5, 4.5, 0.1, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Glowing Zodiac Sigil
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(this.hero.symbol, 0, 0);
-    ctx.textAlign = 'left';
+    // Vambrace & Gauntlet (curved forearm)
+    ctx.fillStyle = hCol;
+    ctx.beginPath();
+    ctx.moveTo(-3.5, 6);
+    ctx.quadraticCurveTo(-4.5, 9, -3, 12);
+    ctx.lineTo(1.5, 12);
+    ctx.quadraticCurveTo(2, 9, 1, 6);
+    ctx.closePath();
+    ctx.fill();
 
-    // Belt
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(-11, 4, 22, 4);
-    ctx.fillStyle = '#facc15';
-    ctx.fillRect(-3, 3, 6, 6);
-
-    // 4. Head, Face & Custom Helmet from dedicated Hero Module
+    // Natural curved fist
     ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(-6, -28, 12, 11);
-    if (this.heroModule && this.heroModule.drawHelmet) {
-      this.heroModule.drawHelmet(ctx, this);
+    ctx.beginPath();
+    ctx.ellipse(-0.8, 13, 2.4, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-1.5, 13, 1, 1.5);
+    ctx.fillRect(0, 13, 1, 1.5);
+
+    // Dedicated Hero Off-Hand Item (Shield, Drone, Off-blade, Catalyst, Spirits)
+    if (this.heroModule && this.heroModule.drawOffHand) {
+      this.heroModule.drawOffHand(ctx, this);
+    }
+    ctx.restore();
+
+    // --- Front Leg ---
+    // Upper Thigh (Cuisse) - Organic curved muscle contour
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.moveTo(1 + legFrontX, 5 + legFrontY);
+    ctx.quadraticCurveTo(0 + legFrontX, 9 + legFrontY, 1 + legFrontX, 14 + legFrontY);
+    ctx.lineTo(8 + legFrontX, 14 + legFrontY);
+    ctx.quadraticCurveTo(10 + legFrontX, 9 + legFrontY, 8 + legFrontX, 5 + legFrontY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Armored Knee Cop (Poleyn) - Rounded joint
+    ctx.fillStyle = hCol;
+    ctx.beginPath();
+    ctx.ellipse(4.5 + legFrontX, 14 + legFrontY, 4.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(3.5 + legFrontX, 13 + legFrontY, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lower Leg Greave - Contoured calf muscle
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(1 + legFrontX, 15 + legFrontY);
+    ctx.quadraticCurveTo(0 + legFrontX, 18 + legFrontY, 1.5 + legFrontX, 23 + legFrontY);
+    ctx.lineTo(7.5 + legFrontX, 23 + legFrontY);
+    ctx.quadraticCurveTo(9.5 + legFrontX, 19 + legFrontY, 8 + legFrontX, 15 + legFrontY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Plated ridge highlight
+    ctx.strokeStyle = hCol;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(4.5 + legFrontX, 16 + legFrontY);
+    ctx.quadraticCurveTo(5.5 + legFrontX, 19 + legFrontY, 4 + legFrontX, 22 + legFrontY);
+    ctx.stroke();
+
+    // Sculpted Armored Boot / Sabaton
+    ctx.fillStyle = '#020617';
+    ctx.beginPath();
+    ctx.moveTo(1 + legFrontX, 23 + legFrontY);
+    ctx.lineTo(7 + legFrontX, 23 + legFrontY);
+    ctx.quadraticCurveTo(9 + legFrontX, 25 + legFrontY, 11 + legFrontX, 26 + legFrontY);
+    ctx.quadraticCurveTo(12 + legFrontX, 27 + legFrontY, 11 + legFrontX, 28 + legFrontY);
+    ctx.quadraticCurveTo(5 + legFrontX, 28.5 + legFrontY, 0 + legFrontX, 28 + legFrontY);
+    ctx.quadraticCurveTo(-1 + legFrontX, 26 + legFrontY, 1 + legFrontX, 23 + legFrontY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Metal Toe Cap & Sole Tread
+    ctx.fillStyle = hCol;
+    ctx.beginPath();
+    ctx.arc(10 + legFrontX, 26.5 + legFrontY, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0 + legFrontX, 28 + legFrontY);
+    ctx.lineTo(11 + legFrontX, 28 + legFrontY);
+    ctx.stroke();
+
+    // 3. Torso & Rune Armor (with natural athletic waist taper & curved chest volume)
+    ctx.save();
+    ctx.translate(0, breathe);
+    if (this.heroModule && this.heroModule.drawTorso) {
+      this.heroModule.drawTorso(ctx, this);
+    } else {
+      // Natural athletic torso silhouette (broad shoulders tapering to waist)
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(-11, -17);
+      ctx.quadraticCurveTo(-12, -8, -8, 2);
+      ctx.quadraticCurveTo(-9, 5, -8, 8);
+      ctx.lineTo(8, 8);
+      ctx.quadraticCurveTo(9, 5, 8, 2);
+      ctx.quadraticCurveTo(12, -8, 11, -17);
+      ctx.quadraticCurveTo(0, -15, -11, -17);
+      ctx.closePath();
+      ctx.fill();
+
+      // Cuirass / Breastplate with curved chest volume
+      ctx.fillStyle = hCol;
+      ctx.beginPath();
+      ctx.moveTo(-10, -15);
+      ctx.quadraticCurveTo(-11, -7, -7, 0);
+      ctx.lineTo(7, 0);
+      ctx.quadraticCurveTo(11, -7, 10, -15);
+      ctx.quadraticCurveTo(0, -13, -10, -15);
+      ctx.closePath();
+      ctx.fill();
+
+      // Chest Specular Arc (natural convex volume)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.beginPath();
+      ctx.ellipse(0, -9, 6, 4, 0, 0, Math.PI);
+      ctx.fill();
+
+      // Inner armor plate
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.ellipse(0, -8, 5, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing Zodiac Sigil
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = hCol;
+      ctx.shadowBlur = 6;
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.hero.symbol, 0, -5);
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'left';
+
+      // Curved Belt with rounded buckle
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.moveTo(-9, 2);
+      ctx.quadraticCurveTo(0, 4, 9, 2);
+      ctx.lineTo(9, 7);
+      ctx.quadraticCurveTo(0, 9, -9, 7);
+      ctx.closePath();
+      ctx.fill();
+
+      // Rounded Bronze Belt Buckle
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.ellipse(0, 5, 3.5, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // 5. Weapon & Attack Motion from dedicated Hero Module
-    const swingPhase = this.attackSwing > 0 ? (this.attackSwing / 14) : 0;
-    const swingAngle = swingPhase > 0 ? (Math.sin(swingPhase * Math.PI) * -1.3) : (isMoving ? Math.sin(this.walkCycle) * 0.2 : 0);
+    // 4. Shoulders & Pauldrons (Rounded anatomical epaulets)
+    if (this.heroModule && this.heroModule.drawShoulders) {
+      this.heroModule.drawShoulders(ctx, this);
+    } else {
+      ctx.fillStyle = hCol;
+      ctx.beginPath();
+      ctx.ellipse(-11, -13, 5, 4, -0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(11, -13, 5, 4, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
+    // 5. Head, Facial Features, Hair & Headwear (Contoured human head silhouette)
+    if (this.heroModule && this.heroModule.drawHead) {
+      this.heroModule.drawHead(ctx, this);
+    } else {
+      // Natural contoured human head silhouette
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.moveTo(-6, -28);
+      ctx.quadraticCurveTo(0, -32, 6, -28);
+      ctx.quadraticCurveTo(6.5, -23, 5, -19);
+      ctx.quadraticCurveTo(0, -17, -5, -19);
+      ctx.quadraticCurveTo(-6.5, -23, -6, -28);
+      ctx.closePath();
+      ctx.fill();
+
+      // Neck blending to shoulders
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.moveTo(-3, -19);
+      ctx.lineTo(3, -19);
+      ctx.lineTo(4, -15);
+      ctx.lineTo(-4, -15);
+      ctx.closePath();
+      ctx.fill();
+
+      if (this.heroModule && this.heroModule.drawHelmet) {
+        this.heroModule.drawHelmet(ctx, this);
+      }
+    }
+    ctx.restore(); // Restore breathing offset
+
+    // 6. Articulated Weapon Arm Motion (Natural arm curves)
+    const swingPhase = this.attackSwing > 0 ? (this.attackSwing / 14) : 0;
+    const swingAngle = swingPhase > 0 ? (Math.sin(swingPhase * Math.PI) * -1.3) : (isMoving ? Math.sin(this.walkCycle) * 0.35 : 0);
+
+    // Arm holding weapon
     ctx.save();
-    ctx.translate(10, -2);
+    ctx.translate(3, -6 + breathe);
+    ctx.rotate(swingAngle * 0.6);
+
+    // Contoured upper arm (deltoid/bicep)
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.ellipse(2.5, 4, 2.8, 5, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vambrace & Gauntlet (curved forearm)
+    ctx.fillStyle = hCol;
+    ctx.beginPath();
+    ctx.moveTo(0, 6);
+    ctx.quadraticCurveTo(-1, 9, 0.5, 12);
+    ctx.lineTo(5.5, 12);
+    ctx.quadraticCurveTo(6.5, 9, 5, 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Hand: curved organic gripping hand
+    ctx.fillStyle = '#fed7aa';
+    ctx.beginPath();
+    ctx.ellipse(3, 13, 2.5, 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(2, 13, 1, 1.5);
+    ctx.fillRect(4, 13, 1, 1.5);
+    ctx.restore();
+
+    // Weapon
+    ctx.save();
+    ctx.translate(10, -2 + breathe);
     ctx.rotate(swingAngle);
     if (this.heroModule && this.heroModule.drawWeapon) {
       this.heroModule.drawWeapon(ctx, this);
     }
     ctx.restore();
 
-    // 6. Attack Arc Trail & Flash
+    // 7. Attack Arc Trail & Flash
     if (this.attackSwing > 0) {
       ctx.save();
       ctx.strokeStyle = hCol;
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 4.5;
       ctx.shadowColor = hCol;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 14;
       ctx.beginPath();
-      ctx.arc(10, -2, 32, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.arc(10, -2, 34, -Math.PI * 0.45, Math.PI * 0.45);
       ctx.stroke();
       ctx.restore();
     }
