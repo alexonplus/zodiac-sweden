@@ -33,7 +33,45 @@ export class EnemyMob {
     this.actionTimer = 0;
     this.cooldown = 40 + Math.floor(Math.random() * 50);
 
+    // Elemental Status Effects & Physics
+    this.frozenTimer = 0;
+    this.petrifiedTimer = 0;
+    this.burnTimer = 0;
+    this.rootedTimer = 0;
+    this.bubbleTimer = 0;
+    this.windBlowTimer = 0;
+    this.windBlowVx = 0;
+
     this.initTypeAttributes(type);
+  }
+
+  applyHit(damage, element = null, ownerIndex = 1, isMelee = false, isHeavyEarth = false) {
+    let finalDamage = damage;
+    let didShatter = false;
+
+    // 1. ICE SHATTER MECHANIC:
+    // If enemy is frozen in an ice block and struck by melee, earth, or fire:
+    if (this.frozenTimer > 0 && (isMelee || isHeavyEarth || element === 'earth' || element === 'fire')) {
+      finalDamage = Math.floor(damage * 2.5);
+      this.frozenTimer = 0;
+      this.stunTimer = 25;
+      didShatter = true;
+      sound.playIceShatter();
+      particles.createIceShards(this.x + this.w / 2, this.y + this.h / 2, 26);
+      particles.createDamageNumber(this.x + this.w / 2, this.y - 24, `💥 ICE SHATTER! -${finalDamage} ❄️`, '#00f0ff');
+    }
+
+    // 2. EARTH CRUSH MECHANIC:
+    // If enemy is petrified and struck by earth or heavy weapon:
+    if (this.petrifiedTimer > 0 && (isHeavyEarth || element === 'earth' || isMelee)) {
+      finalDamage = Math.floor(damage * 2.0);
+      sound.playEarthQuake();
+      particles.createEarthDebris(this.x + this.w / 2, this.y + this.h / 2, 18);
+      particles.createDamageNumber(this.x + this.w / 2, this.y - 20, `🪨 CRUSH! -${finalDamage}`, '#d97706');
+    }
+
+    this.hp -= finalDamage;
+    return { finalDamage, didShatter };
   }
 
   initTypeAttributes(type) {
@@ -86,6 +124,83 @@ export class EnemyMob {
     if (this.elementTimer > 0) this.elementTimer--;
     if (this.cooldown > 0) this.cooldown--;
     if (this.actionTimer > 0) this.actionTimer--;
+
+    // 1. BURNING STATUS (Fire / Magma / Solar)
+    if (this.burnTimer > 0) {
+      this.burnTimer--;
+      if (this.burnTimer % 20 === 0) {
+        const bDmg = 7;
+        this.hp -= bDmg;
+        particles.createFlame(this.x + this.w / 2, this.y + this.h / 2, 4);
+        particles.createDamageNumber(this.x + this.w / 2, this.y - 12, `🔥 -${bDmg}`, '#f97316');
+      }
+    }
+
+    // 2. FROZEN STATUS (Water / Frost / Ice)
+    // Completely immobilized in solid crystalline ice block
+    if (this.frozenTimer > 0) {
+      this.frozenTimer--;
+      this.vx = 0;
+      if (Math.random() < 0.25) {
+        particles.createSparks(this.x + Math.random() * this.w, this.y + Math.random() * this.h, '#cffafe', 1);
+      }
+      this.applyPhysics(platforms, movingPlatforms, onShake);
+      return;
+    }
+
+    // 3. PETRIFIED STATUS (Earth / Stone / Granite)
+    // Turned into solid stone; immune to displacement but vulnerable to crush
+    if (this.petrifiedTimer > 0) {
+      this.petrifiedTimer--;
+      this.vx = 0;
+      if (Math.random() < 0.2) {
+        particles.createEarthDebris(this.x + Math.random() * this.w, this.y + this.h, 1);
+      }
+      this.applyPhysics(platforms, movingPlatforms, onShake);
+      return;
+    }
+
+    // 4. ROOTED STATUS (Nature / Yggdrasil Briars)
+    // Entangled by creeping thorny roots to the ground
+    if (this.rootedTimer > 0) {
+      this.rootedTimer--;
+      this.vx = 0;
+      if (this.rootedTimer % 30 === 0) {
+        this.hp -= 5;
+        particles.createLeaves(this.x + this.w / 2, this.y + this.h - 10, 2);
+        particles.createDamageNumber(this.x + this.w / 2, this.y - 10, '🌿 -5', '#4ade80');
+      }
+      this.applyPhysics(platforms, movingPlatforms, onShake);
+      return;
+    }
+
+    // 5. BUBBLE TRAP STATUS (Pisces Dream Bubble)
+    // Drifts helplessly upwards into the air
+    if (this.bubbleTimer > 0) {
+      this.bubbleTimer--;
+      this.vx *= 0.85;
+      this.vy = -1.5;
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.bubbleTimer <= 0) {
+        sound.playWave();
+        particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, '#2dd4bf', 15);
+      }
+      return;
+    }
+
+    // 6. WIND BLOW STATUS (Wind / Tornado / Gale Blast)
+    // Blown away across the battlefield!
+    if (this.windBlowTimer > 0) {
+      this.windBlowTimer--;
+      this.vx = this.windBlowVx;
+      this.windBlowVx *= 0.93;
+      if (Math.random() < 0.4) {
+        particles.createWindGale(this.x + this.w / 2, this.y + this.h / 2, Math.sign(this.vx), 1);
+      }
+      this.applyPhysics(platforms, movingPlatforms, onShake);
+      return;
+    }
 
     if (this.stunTimer > 0) {
       this.stunTimer--;
@@ -441,6 +556,202 @@ export class EnemyMob {
       ctx.fillStyle = '#ef4444';
       ctx.fillRect(this.x, this.y - 12, this.w * hpPct, 4);
     }
+
+    // Elemental Status Visual Overlays in World Space
+    if (this.frozenTimer > 0) {
+      this.drawIceBlock(ctx);
+    } else if (this.petrifiedTimer > 0) {
+      this.drawPetrifiedStone(ctx);
+    }
+
+    if (this.burnTimer > 0) {
+      this.drawFlames(ctx);
+    }
+    if (this.rootedTimer > 0) {
+      this.drawRootedVines(ctx);
+    }
+    if (this.windBlowTimer > 0) {
+      this.drawWindSwirls(ctx);
+    }
+    if (this.bubbleTimer > 0) {
+      this.drawBubble(ctx);
+    }
+  }
+
+  /* --- Elemental Visual Overlays --- */
+
+  drawIceBlock(ctx) {
+    ctx.save();
+    const bx = this.x - 7;
+    const by = this.y - 10;
+    const bw = this.w + 14;
+    const bh = this.h + 14;
+
+    // Translucent Glacier Gradient
+    const iceGrad = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+    iceGrad.addColorStop(0, 'rgba(224, 242, 254, 0.55)');
+    iceGrad.addColorStop(0.4, 'rgba(56, 189, 248, 0.45)');
+    iceGrad.addColorStop(1, 'rgba(2, 132, 199, 0.7)');
+
+    ctx.fillStyle = iceGrad;
+    ctx.strokeStyle = '#cffafe';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 12;
+
+    // Crystalline faceted block
+    ctx.beginPath();
+    ctx.moveTo(bx + 4, by);
+    ctx.lineTo(bx + bw / 2, by - 6); // Sharp ice spike peak
+    ctx.lineTo(bx + bw - 4, by);
+    ctx.lineTo(bx + bw, by + 8);
+    ctx.lineTo(bx + bw, by + bh);
+    ctx.lineTo(bx, by + bh);
+    ctx.lineTo(bx, by + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Internal crystalline fracture cracks
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx + 8, by + 12);
+    ctx.lineTo(bx + bw * 0.45, by + bh * 0.4);
+    ctx.lineTo(bx + bw * 0.35, by + bh * 0.75);
+    ctx.moveTo(bx + bw * 0.45, by + bh * 0.4);
+    ctx.lineTo(bx + bw * 0.8, by + bh * 0.35);
+    ctx.stroke();
+
+    // Frost Glint
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(bx + 8, by + 6, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Status Tag
+    ctx.fillStyle = '#cffafe';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('❄️ FROZEN', this.x + this.w / 2, by - 12);
+
+    ctx.restore();
+  }
+
+  drawPetrifiedStone(ctx) {
+    ctx.save();
+    const bx = this.x - 4;
+    const by = this.y - 4;
+    const bw = this.w + 8;
+    const bh = this.h + 8;
+
+    // Granite Stone Overlay
+    ctx.fillStyle = 'rgba(120, 113, 108, 0.75)';
+    ctx.strokeStyle = '#44403c';
+    ctx.lineWidth = 2;
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeRect(bx, by, bw, bh);
+
+    // Stone Fissures
+    ctx.strokeStyle = '#292524';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx + 6, by + 8);
+    ctx.lineTo(bx + bw * 0.6, by + bh * 0.5);
+    ctx.lineTo(bx + bw * 0.4, by + bh * 0.85);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🪨 STONE', this.x + this.w / 2, by - 8);
+
+    ctx.restore();
+  }
+
+  drawFlames(ctx) {
+    ctx.save();
+    const t = performance.now() * 0.015;
+    const count = 5;
+    for (let i = 0; i < count; i++) {
+      const fx = this.x + (i / (count - 1)) * this.w;
+      const wave = Math.sin(t + i * 1.5) * 4;
+      const fHeight = 16 + Math.cos(t * 1.2 + i) * 6;
+
+      ctx.fillStyle = i % 2 === 0 ? '#ea580c' : '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(fx - 4, this.y + this.h);
+      ctx.quadraticCurveTo(fx + wave, this.y + this.h - fHeight, fx, this.y + this.h - fHeight - 6);
+      ctx.quadraticCurveTo(fx - wave, this.y + this.h - fHeight * 0.5, fx + 4, this.y + this.h);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawRootedVines(ctx) {
+    ctx.save();
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(this.x - 4, this.y + this.h);
+    ctx.quadraticCurveTo(this.x + this.w * 0.5, this.y + this.h - 14, this.x + this.w + 4, this.y + this.h);
+    ctx.moveTo(this.x - 2, this.y + this.h - 6);
+    ctx.quadraticCurveTo(this.x + this.w * 0.3, this.y + this.h - 22, this.x + this.w * 0.8, this.y + this.h - 10);
+    ctx.stroke();
+
+    ctx.fillStyle = '#86efac';
+    ctx.beginPath();
+    ctx.arc(this.x + 4, this.y + this.h - 10, 2.5, 0, Math.PI * 2);
+    ctx.arc(this.x + this.w - 6, this.y + this.h - 8, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawWindSwirls(ctx) {
+    ctx.save();
+    const t = performance.now() * 0.02;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      const angle = t + (i * Math.PI * 2) / 3;
+      const rx = this.x + this.w / 2 + Math.cos(angle) * (this.w * 0.7);
+      const ry = this.y + this.h / 2 + Math.sin(angle) * (this.h * 0.4);
+      ctx.beginPath();
+      ctx.arc(rx, ry, 6, 0, Math.PI * 1.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawBubble(ctx) {
+    ctx.save();
+    const cx = this.x + this.w / 2;
+    const cy = this.y + this.h / 2;
+    const radius = Math.max(this.w, this.h) * 0.68;
+
+    const bubGrad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, 4, cx, cy, radius);
+    bubGrad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+    bubGrad.addColorStop(0.6, 'rgba(45, 212, 191, 0.35)');
+    bubGrad.addColorStop(1, 'rgba(2, 132, 199, 0.55)');
+
+    ctx.fillStyle = bubGrad;
+    ctx.strokeStyle = '#2dd4bf';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Highlight sheen
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx - radius * 0.4, cy - radius * 0.4, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   // 1. Viking Berserker Raider

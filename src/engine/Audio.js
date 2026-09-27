@@ -868,6 +868,115 @@ export class SoundEngine {
       osc.stop(this.ctx.currentTime + 0.8);
     } catch (e) {}
   }
+
+  playFreeze() {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+    try {
+      // Crystalline high-frequency chime
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(2600, this.ctx.currentTime + 0.22);
+      gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  playIceShatter() {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+    try {
+      // Glass/ice crack + high burst
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc1.type = 'triangle';
+      osc2.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(2200, this.ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.28);
+      osc2.frequency.setValueAtTime(1800, this.ctx.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.48, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.32);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.sfxGain);
+      osc1.start();
+      osc2.start();
+      osc1.stop(this.ctx.currentTime + 0.32);
+      osc2.stop(this.ctx.currentTime + 0.32);
+    } catch (e) {}
+  }
+
+  playWindGale() {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+    try {
+      // Howling wind gust using band-passed modulated oscillator
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(320, this.ctx.currentTime + 0.35);
+      osc.frequency.linearRampToValueAtTime(90, this.ctx.currentTime + 0.7);
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(450, this.ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(900, this.ctx.currentTime + 0.3);
+      filter.frequency.linearRampToValueAtTime(250, this.ctx.currentTime + 0.7);
+      gain.gain.setValueAtTime(0.42, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.75);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.75);
+    } catch (e) {}
+  }
+
+  playEarthQuake() {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+    try {
+      // Deep tectonic sub rumble and rock crash
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(65, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.6);
+      gain.gain.setValueAtTime(0.55, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.65);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.65);
+    } catch (e) {}
+  }
+
+  playFireBurst() {
+    this.init();
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(280, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.44, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.45);
+    } catch (e) {}
+  }
 }
 
 export const sound = new SoundEngine();

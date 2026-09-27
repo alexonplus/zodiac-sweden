@@ -2,6 +2,7 @@ import { sound } from '../../engine/Audio.js';
 import { particles } from '../../engine/Particles.js';
 import { buffManager } from '../Powerups.js';
 import { shopManager } from '../Shop.js';
+import { elementalManager } from '../ElementalEffects.js';
 
 /**
  * HERO COMBAT & SUPERPOWERS ENGINE
@@ -58,26 +59,14 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playWave();
-      if (onShake) onShake(10);
+      sound.playFireBurst();
+      if (onShake) onShake(12);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(54 * dmgMult);
 
-      // Flame Shockwave: crawling fissure along the ground
-      for (let i = 0; i < 4; i++) {
-        projectiles.push({
-          x: p.x + (p.facing > 0 ? p.w + 14 + i * 22 : -20 - i * 22),
-          y: p.y + 34,
-          vx: p.facing * (8 + i * 1.5),
-          vy: 0,
-          type: 'wave',
-          color: '#ea580c',
-          element: 'fire',
-          owner: p.pIndex,
-          damage: Math.floor(45 * dmgMult),
-          life: 45
-        });
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + 40, '#f97316', 25);
+      // Flame Fissure: 4 rising volcanic magma geysers tearing along the ground
+      elementalManager.spawnMagmaGeysers(p.x, p.y + p.h, p.facing, 4, 60, dmg, p.pIndex);
+      particles.createFlame(p.x + p.w / 2, p.y + p.h - 10, 15);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
@@ -117,6 +106,7 @@ export const HERO_COMBAT = {
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles) {
       sound.playUlt();
       sound.playRoar();
+      sound.playFireBurst();
       if (onShake) onShake(28);
 
       if (onUltEffect) {
@@ -128,35 +118,18 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(155 * dmgMult);
+      const ultDamage = Math.floor(160 * dmgMult);
 
-      // Spawn volcanic geysers across the surrounding battlefield
-      const baseX = p.x - 350;
-      for (let i = 0; i < 7; i++) {
-        const gx = baseX + i * 110;
-        if (projectiles) {
-          projectiles.push({
-            x: gx,
-            y: 430,
-            vx: 0,
-            vy: -12,
-            type: 'wave',
-            color: '#f97316',
-            element: 'fire',
-            owner: p.pIndex,
-            damage: ultDamage,
-            life: 40
-          });
-        }
-        particles.createSparks(gx, 440, '#ea580c', 30);
-      }
+      // Erupts 8 titanic magma geysers across the arena
+      elementalManager.spawnMagmaGeysers(p.x - 300, p.y + p.h, 1, 8, 85, ultDamage, p.pIndex);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
+        en.burnTimer = 180;
         en.stunTimer = 120;
-        en.vy = -9;
+        en.vy = -12;
         particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `CATACLYSM! -${ultDamage} 🌋`, '#ea580c');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#facc15', 30);
+        particles.createFlame(en.x + en.w / 2, en.y + en.h / 2, 20);
         if (onSynergyHit) onSynergyHit(en, 'fire', p.pIndex, ultDamage);
       }
     },
@@ -199,26 +172,14 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playHammer();
-      if (onShake) onShake(12);
+      sound.playEarthQuake();
+      if (onShake) onShake(16);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(65 * dmgMult);
 
-      // Seismic Stomp: stone pillars erupting from ground
-      for (let i = 0; i < 3; i++) {
-        projectiles.push({
-          x: p.x + (p.facing > 0 ? p.w + 20 + i * 36 : -30 - i * 36),
-          y: p.y + 30,
-          vx: p.facing * 6,
-          vy: -2,
-          type: 'boulder',
-          color: '#b45309',
-          element: 'earth',
-          owner: p.pIndex,
-          damage: Math.floor(48 * dmgMult),
-          life: 40
-        });
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + 45, '#78350f', 30);
+      // Tectonic Seismic Quake: 4 colossal stone monoliths burst out of the ground, launch & petrify!
+      elementalManager.spawnEarthPillars(p.x, p.y + p.h, p.facing, 4, 65, dmg, p.pIndex);
+      particles.createEarthDebris(p.x + p.w / 2, p.y + p.h, 24);
     },
 
     castE(p, enemies, onSynergyHit, onShake, projectiles) {
@@ -268,8 +229,8 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      sound.playHammer();
-      if (onShake) onShake(30);
+      sound.playEarthQuake();
+      if (onShake) onShake(32);
 
       if (onUltEffect) {
         onUltEffect({
@@ -280,14 +241,18 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(160 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
+
+      // Apocalyptic earthquake: 7 stone monoliths burst across arena floor
+      elementalManager.spawnEarthPillars(p.x - 320, p.y + p.h, 1, 7, 95, ultDamage, p.pIndex);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
+        en.petrifiedTimer = 130;
         en.stunTimer = 140;
-        en.vy = -10;
+        en.vy = -14;
         particles.createDamageNumber(en.x + en.w / 2, en.y - 14, `FALUN MONOLITH! -${ultDamage} ⛰️`, '#d97706');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#b45309', 35);
+        particles.createEarthDebris(en.x + en.w / 2, en.y + en.h / 2, 20);
         if (onSynergyHit) onSynergyHit(en, 'earth', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#d97706', 60);
@@ -350,45 +315,39 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playWave();
-      if (onShake) onShake(8);
+      sound.playWindGale();
+      if (onShake) onShake(10);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(52 * dmgMult);
 
-      // Cyclone Slice: giant vortex chakram that hovers and vacuums enemies
-      projectiles.push({
-        x: p.x + (p.facing > 0 ? p.w + 14 : -24),
-        y: p.y + 20,
-        vx: p.facing * 7,
-        vy: 0,
-        type: 'chakram',
-        color: '#0284c7',
-        element: 'wind',
-        owner: p.pIndex,
-        damage: Math.floor(46 * dmgMult),
-        life: 75,
-        isVortex: true
-      });
-      particles.createSparks(p.x + p.w / 2, p.y + 20, '#38bdf8', 20);
+      // Cyclone Tornado: moving swirling vortex that vacuums enemies, spins them, and shreds
+      elementalManager.spawnTornado(p.x + p.facing * 35, p.y + p.h, p.facing, dmg, 130, p.pIndex);
+      particles.createWindGale(p.x + p.w / 2, p.y + 20, p.facing, 16);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
-      sound.playLaser();
-      if (onShake) onShake(10);
+      sound.playWindGale();
+      if (onShake) onShake(14);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
 
-      // Twin Gale Mirage: blink dash leaving supersonic slicing clones
-      p.x += p.facing * 120;
+      // Supersonic Gale Blast: ferocious hurricane wind that BLOWS ALL ENEMIES AWAY!
+      p.x += p.facing * 100;
       p.invulnTime = 18;
-      particles.createTrail(p.x - p.facing * 60, p.y, p.w, p.h, '#38bdf8');
-      particles.createTrail(p.x, p.y, p.w, p.h, '#0284c7');
+      particles.createWindGale(p.x, p.y + 20, p.facing, 24);
 
       for (const en of enemies) {
-        const dist = Math.hypot((en.x + en.w / 2) - (p.x + p.w / 2), (en.y + en.h / 2) - (p.y + p.h / 2));
-        if (dist < 160) {
-          const dmg = Math.floor(58 * dmgMult);
+        const dx = (en.x + en.w / 2) - p.x;
+        // All enemies in facing direction within 360px
+        if (Math.sign(dx) === p.facing && Math.abs(dx) < 360 && Math.abs(en.y - p.y) < 140) {
+          const dmg = Math.floor(62 * dmgMult);
           en.hp -= dmg;
+          // ВЕТРОМ СДУВАЕТ ЧЕРЕЗ ВЕСЬ ЭКРАН!
+          en.windBlowTimer = 55;
+          en.windBlowVx = p.facing * 20;
+          en.vy = -7;
           en.stunTimer = 65;
-          particles.createDamageNumber(en.x + en.w / 2, en.y, `GALE MIRAGE! -${dmg} 🌪️`, '#38bdf8');
+          particles.createDamageNumber(en.x + en.w / 2, en.y, `GALE FORCE! -${dmg} 🌪️`, '#38bdf8');
+          particles.createWindGale(en.x + en.w / 2, en.y + en.h / 2, p.facing, 14);
           if (onSynergyHit) onSynergyHit(en, 'wind', p.pIndex, dmg);
         }
       }
@@ -404,8 +363,8 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles) {
       sound.playUlt();
-      sound.playWave();
-      if (onShake) onShake(26);
+      sound.playWindGale();
+      if (onShake) onShake(28);
 
       if (onUltEffect) {
         onUltEffect({
@@ -416,16 +375,20 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(145 * dmgMult);
+      const ultDamage = Math.floor(155 * dmgMult);
 
-      // Summon twin tornadoes tearing across the arena
+      // Twin colossal tornadoes sweeping from left and right
+      elementalManager.spawnTornado(p.x - 220, p.y + p.h, 1, ultDamage, 150, p.pIndex, true);
+      elementalManager.spawnTornado(p.x + 220, p.y + p.h, -1, ultDamage, 150, p.pIndex, true);
+
       for (const en of enemies) {
         en.hp -= ultDamage;
+        en.windBlowTimer = 75;
+        en.windBlowVx = (Math.random() > 0.5 ? 1 : -1) * 18;
+        en.vy = -14;
         en.stunTimer = 130;
-        en.vy = -12; // Launches into air
-        en.vx = p.facing * 10;
         particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TEMPEST! -${ultDamage} 🌪️`, '#38bdf8');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#38bdf8', 35);
+        particles.createWindGale(en.x + en.w / 2, en.y + en.h / 2, p.facing, 18);
         if (onSynergyHit) onSynergyHit(en, 'wind', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#7dd3fc', 60);
@@ -491,24 +454,27 @@ export const HERO_COMBAT = {
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
+      sound.playFreeze();
       sound.playWave();
-      if (onShake) onShake(12);
+      if (onShake) onShake(14);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
 
-      // Tidal Fortress: crystalline coral dome that heals and reflects
-      p.invulnTime = 45;
-      p.hp = Math.min(p.maxHp, p.hp + 20); // Self healing
-      particles.createDamageNumber(p.x + p.w / 2, p.y - 14, '+20 HP! 🐚', '#38bdf8');
+      // Tidal Coral Fortress & Frost Nova: shields Cancer and FREEZES all surrounding enemies solid!
+      p.invulnTime = 50;
+      p.hp = Math.min(p.maxHp, p.hp + 25);
+      particles.createDamageNumber(p.x + p.w / 2, p.y - 14, '+25 HP! 🐚', '#38bdf8');
 
-      const radius = 180;
+      const radius = 200;
       for (const en of enemies) {
         const dist = Math.hypot((en.x + en.w / 2) - (p.x + p.w / 2), (en.y + en.h / 2) - (p.y + p.h / 2));
         if (dist < radius) {
-          const dmg = Math.floor(52 * dmgMult);
+          const dmg = Math.floor(58 * dmgMult);
           en.hp -= dmg;
-          en.stunTimer = 75;
-          en.vx = Math.sign(en.x - p.x) * 12; // Pushes enemies back hard
-          particles.createDamageNumber(en.x + en.w / 2, en.y, `TIDAL DOME! -${dmg} 🌊`, '#0ea5e9');
+          // FREEZE SOLID IN AN ICE BLOCK!
+          en.frozenTimer = 120;
+          en.stunTimer = 120;
+          particles.createIceShards(en.x + en.w / 2, en.y + en.h / 2, 22);
+          particles.createDamageNumber(en.x + en.w / 2, en.y, `FROST NOVA! -${dmg} ❄️`, '#00f0ff');
           if (onSynergyHit) onSynergyHit(en, 'water', p.pIndex, dmg);
         }
       }
@@ -526,7 +492,8 @@ export const HERO_COMBAT = {
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles) {
       sound.playUlt();
       sound.playWave();
-      if (onShake) onShake(28);
+      sound.playFreeze();
+      if (onShake) onShake(30);
 
       if (onUltEffect) {
         onUltEffect({
@@ -537,14 +504,18 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(150 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
+
+      // Towering Great Kattegat Tsunami that surges across the entire screen!
+      elementalManager.spawnTsunami(p.x - p.facing * 100, p.y + p.h, p.facing, ultDamage, 150, p.pIndex, true);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.stunTimer = 135;
-        en.vx = p.facing * 18; // Swept away by tsunami wave
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TSUNAMI! -${ultDamage} 🌊`, '#0ea5e9');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#0ea5e9', 35);
+        en.frozenTimer = 140; // Glacial frost encasement
+        en.stunTimer = 140;
+        en.vx = p.facing * 20;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TSUNAMI FREEZE! -${ultDamage} 🌊 ❄️`, '#0ea5e9');
+        particles.createIceShards(en.x + en.w / 2, en.y + en.h / 2, 25);
         if (onSynergyHit) onSynergyHit(en, 'water', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#38bdf8', 60);
@@ -602,25 +573,13 @@ export const HERO_COMBAT = {
 
     castQ(p, projectiles, onShake) {
       sound.playLaser();
-      if (onShake) onShake(10);
+      if (onShake) onShake(12);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(65 * dmgMult);
 
-      // Solar Flare Beam: piercing golden laser blast
-      for (let i = 0; i < 4; i++) {
-        projectiles.push({
-          x: p.x + (p.facing > 0 ? p.w + 10 + i * 20 : -20 - i * 20),
-          y: p.y + 20,
-          vx: p.facing * (14 + i * 2),
-          vy: 0,
-          type: 'beam',
-          color: '#facc15',
-          element: 'solar',
-          owner: p.pIndex,
-          damage: Math.floor(48 * dmgMult),
-          life: 45
-        });
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + 20, '#facc15', 25);
+      // Solar Corona Beam: descending heavenly column of blinding solar plasma
+      elementalManager.spawnSolarBeam(p.x + p.facing * 130, p.y + p.h, 75, dmg, 65, p.pIndex);
+      particles.createFlame(p.x + p.facing * 130, p.y + 10, 16);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
@@ -655,7 +614,7 @@ export const HERO_COMBAT = {
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
       sound.playRoar();
-      if (onShake) onShake(28);
+      if (onShake) onShake(30);
 
       if (onUltEffect) {
         onUltEffect({
@@ -666,13 +625,19 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(155 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
+
+      // 3 Royal Solstice Solar Columns descending from the sky
+      elementalManager.spawnSolarBeam(p.x - 140, p.y + p.h, 80, ultDamage, 80, p.pIndex);
+      elementalManager.spawnSolarBeam(p.x, p.y + p.h, 95, ultDamage, 85, p.pIndex);
+      elementalManager.spawnSolarBeam(p.x + 140, p.y + p.h, 80, ultDamage, 80, p.pIndex);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
+        en.burnTimer = 180;
         en.stunTimer = 130;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TRE KRONOR! -${ultDamage} 👑`, '#facc15');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#facc15', 40);
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TRE KRONOR! -${ultDamage} 👑 🔥`, '#facc15');
+        particles.createFlame(en.x + en.w / 2, en.y + en.h / 2, 25);
         if (onSynergyHit) onSynergyHit(en, 'solar', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#fef08a', 70);
@@ -725,23 +690,11 @@ export const HERO_COMBAT = {
       sound.playWave();
       if (onShake) onShake(8);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(48 * dmgMult);
 
-      // Bramble Root Piercer: penetrative arrow that roots enemies in place
-      projectiles.push({
-        x: p.x + (p.facing > 0 ? p.w + 10 : -20),
-        y: p.y + 18,
-        vx: p.facing * 17,
-        vy: 0,
-        type: 'arrow',
-        color: '#16a34a',
-        element: 'nature',
-        owner: p.pIndex,
-        damage: Math.floor(52 * dmgMult),
-        life: 60,
-        isRooting: true,
-        pierce: 5
-      });
-      particles.createSparks(p.x + p.w / 2, p.y + 20, '#4ade80', 20);
+      // Yggdrasil Brambles: sprouts creeping thorny roots from the ground, ROOTING enemies in place
+      elementalManager.spawnBriarPatch(p.x + p.facing * 110, p.y + p.h, dmg, 180, p.pIndex);
+      particles.createLeaves(p.x + p.facing * 110, p.y + p.h - 10, 18);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
@@ -777,7 +730,7 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      sound.playRoar();
+      sound.playWave();
       if (onShake) onShake(28);
 
       if (onUltEffect) {
@@ -789,13 +742,19 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(150 * dmgMult);
+      const ultDamage = Math.floor(155 * dmgMult);
+
+      // Ancient world tree briar patches across the entire floor
+      elementalManager.spawnBriarPatch(p.x - 180, p.y + p.h, ultDamage, 200, p.pIndex);
+      elementalManager.spawnBriarPatch(p.x, p.y + p.h, ultDamage, 200, p.pIndex);
+      elementalManager.spawnBriarPatch(p.x + 180, p.y + p.h, ultDamage, 200, p.pIndex);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.stunTimer = 140; // Heavy roots pin enemies
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `YGGDRASIL! -${ultDamage} 🌳`, '#4ade80');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#16a34a', 35);
+        en.rootedTimer = 160;
+        en.stunTimer = 140;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `YGGDRASIL ROOTS! -${ultDamage} 🌿`, '#4ade80');
+        particles.createLeaves(en.x + en.w / 2, en.y + en.h / 2, 25);
         if (onSynergyHit) onSynergyHit(en, 'nature', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#86efac', 60);
@@ -851,25 +810,14 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playLaser();
-      if (onShake) onShake(8);
+      sound.playWave();
+      if (onShake) onShake(12);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(68 * dmgMult);
 
-      // Equilibrium Blast: binary colliding star that explodes on hit
-      projectiles.push({
-        x: p.x + (p.facing > 0 ? p.w + 10 : -20),
-        y: p.y + 20,
-        vx: p.facing * 11,
-        vy: 0,
-        type: 'orb',
-        color: '#818cf8',
-        element: 'astral',
-        owner: p.pIndex,
-        damage: Math.floor(48 * dmgMult),
-        life: 55,
-        isCosmicExplosion: true
-      });
-      particles.createSparks(p.x + p.w / 2, p.y + 20, '#818cf8', 20);
+      // Gravitational Singularity: cosmic black hole that sucks in all enemies and detonates
+      elementalManager.spawnSingularity(p.x + p.facing * 160, p.y + 10, dmg, 95, p.pIndex);
+      particles.createSparks(p.x + p.facing * 160, p.y + 10, '#c084fc', 25);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
@@ -909,7 +857,7 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      if (onShake) onShake(26);
+      if (onShake) onShake(30);
 
       if (onUltEffect) {
         onUltEffect({
@@ -920,13 +868,18 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(150 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
+
+      // Twin singularities collapsing in a stellar supernova
+      elementalManager.spawnSingularity(p.x - 120, p.y, ultDamage, 80, p.pIndex);
+      elementalManager.spawnSingularity(p.x + 120, p.y, ultDamage, 80, p.pIndex);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.stunTimer = 135;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `EQUILIBRIUM! -${ultDamage} ⚖️`, '#818cf8');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#818cf8', 35);
+        en.stunTimer = 140;
+        en.vy = -12;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `SUPERNOVA! -${ultDamage} 🌌 ⚖️`, '#818cf8');
+        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#c7d2fe', 40);
         if (onSynergyHit) onSynergyHit(en, 'astral', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#c7d2fe', 60);
@@ -1241,47 +1194,40 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playWave();
-      if (onShake) onShake(10);
+      sound.playFreeze();
+      sound.playEarthQuake();
+      if (onShake) onShake(14);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
+      const dmg = Math.floor(60 * dmgMult);
 
-      // Glacial Ice Spikes: line of sharp ice spikes rising from floor
-      for (let i = 0; i < 4; i++) {
-        projectiles.push({
-          x: p.x + (p.facing > 0 ? p.w + 14 + i * 26 : -20 - i * 26),
-          y: p.y + 32,
-          vx: p.facing * 7,
-          vy: 0,
-          type: 'iceSpike',
-          color: '#67e8f9',
-          element: 'ice',
-          owner: p.pIndex,
-          damage: Math.floor(48 * dmgMult),
-          life: 45
-        });
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + 40, '#a5f3fc', 25);
+      // Glacial Permafrost Spikes: row of ice monoliths bursting from the floor
+      elementalManager.spawnEarthPillars(p.x, p.y + p.h, p.facing, 4, 60, dmg, p.pIndex);
+      particles.createIceShards(p.x + p.w / 2, p.y + p.h - 10, 24);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
+      sound.playFreeze();
       sound.playWave();
-      if (onShake) onShake(12);
+      if (onShake) onShake(14);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
 
-      // Blizzard Ring: freezing vortex around Capricorn
-      const radius = 180;
+      // Blizzard Ring: freezing vortex around Capricorn that freezes nearby foes solid in ice blocks
+      const radius = 190;
       for (const en of enemies) {
         const dist = Math.hypot((en.x + en.w / 2) - (p.x + p.w / 2), (en.y + en.h / 2) - (p.y + p.h / 2));
         if (dist < radius) {
-          const dmg = Math.floor(54 * dmgMult);
-          en.hp -= dmg;
-          en.stunTimer = 100; // Freeze stun
+          const dmg = Math.floor(58 * dmgMult);
+          const hitRes = en.applyHit ? en.applyHit(dmg, 'ice', p.pIndex, false, false) : null;
+          if (!hitRes) en.hp -= dmg;
+          en.frozenTimer = 110;
+          en.stunTimer = 110;
+          particles.createIceShards(en.x + en.w / 2, en.y + en.h / 2, 20);
           particles.createDamageNumber(en.x + en.w / 2, en.y, `BLIZZARD FREEZE! -${dmg} ❄️`, '#67e8f9');
           if (onSynergyHit) onSynergyHit(en, 'ice', p.pIndex, dmg);
         }
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#67e8f9', 40);
-      particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#cffafe', 30);
+      particles.createIceShards(p.x + p.w / 2, p.y + p.h / 2, 25);
     },
 
     castDash(p) {
@@ -1294,8 +1240,9 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      sound.playHammer();
-      if (onShake) onShake(28);
+      sound.playFreeze();
+      sound.playIceShatter();
+      if (onShake) onShake(30);
 
       if (onUltEffect) {
         onUltEffect({
@@ -1306,13 +1253,18 @@ export const HERO_COMBAT = {
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(155 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
+
+      // Polar permafrost waves & freezing all enemies solid in crystalline ice blocks
+      elementalManager.spawnTsunami(p.x - p.facing * 80, p.y + p.h, p.facing, ultDamage, 130, p.pIndex, true);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.stunTimer = 150; // Total freeze
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `FROST SHATTER! -${ultDamage} 🧊`, '#67e8f9');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#67e8f9', 35);
+        // FREEZE SOLID IN ICE BLOCKS!
+        en.frozenTimer = 150;
+        en.stunTimer = 150;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 14, `ABSOLUTE ZERO! -${ultDamage} 🧊 ❄️`, '#67e8f9');
+        particles.createIceShards(en.x + en.w / 2, en.y + en.h / 2, 35);
         if (onSynergyHit) onSynergyHit(en, 'ice', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#ecfeff', 65);
@@ -1362,27 +1314,28 @@ export const HERO_COMBAT = {
     },
 
     castQ(p, projectiles, onShake) {
-      sound.playLaser();
+      sound.playWindGale();
+      sound.playFreeze();
       if (onShake) onShake(10);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
 
-      // Ion Mega-Beam: continuous penetrating tech beam
-      for (let i = 0; i < 5; i++) {
-        projectiles.push({
-          x: p.x + (p.facing > 0 ? p.w + 10 + i * 24 : -24 - i * 24),
-          y: p.y + 18,
-          vx: p.facing * (15 + i * 2),
-          vy: 0,
-          type: 'beam',
-          color: '#00f0ff',
-          element: 'tech',
-          owner: p.pIndex,
-          damage: Math.floor(50 * dmgMult),
-          life: 50,
-          pierce: 99
-        });
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + 20, '#00f0ff', 25);
+      // Cryo Gale Jet: blasts a freezing hurricane gale that FREEZES AND BLOWS ENEMIES BACK!
+      projectiles.push({
+        x: p.x + (p.facing > 0 ? p.w + 10 : -24),
+        y: p.y + 18,
+        vx: p.facing * 16,
+        vy: 0,
+        type: 'beam',
+        color: '#00f0ff',
+        element: 'tech',
+        owner: p.pIndex,
+        damage: Math.floor(52 * dmgMult),
+        life: 50,
+        isFreeze: true,
+        isGaleBlast: true
+      });
+      particles.createWindGale(p.x + p.w / 2, p.y + 20, p.facing, 14);
+      particles.createIceShards(p.x + p.w / 2, p.y + 20, 12);
     },
 
     castE(p, enemies, onSynergyHit, onShake) {
@@ -1495,7 +1448,7 @@ export const HERO_COMBAT = {
       if (onShake) onShake(8);
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
 
-      // Aurora Dream Wave: lifting tidal wave that traps enemies in levitating bubbles
+      // Abyssal Dream Bubble: fires homing iridescent bubbles that TRAP ENEMIES IN FLOATING SPHERES!
       for (let i = 0; i < 3; i++) {
         projectiles.push({
           x: p.x + (p.facing > 0 ? p.w + 10 + i * 20 : -20 - i * 20),
@@ -1506,7 +1459,7 @@ export const HERO_COMBAT = {
           color: '#2dd4bf',
           element: 'water',
           owner: p.pIndex,
-          damage: Math.floor(44 * dmgMult),
+          damage: Math.floor(48 * dmgMult),
           life: 55,
           isBubbleTrap: true
         });

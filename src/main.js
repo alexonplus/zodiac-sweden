@@ -22,6 +22,7 @@ import { BossEntity, createBoss, BaseBoss } from './entities/Bosses.js';
 import { hudManager } from './ui/hud.js';
 import { populateZodiacGrid, refreshSelectionUI } from './ui/screens.js';
 import { cityMapManager, GOTEBORG_SUBLEVELS } from './ui/cityMap.js';
+import { elementalManager } from './entities/ElementalEffects.js';
 
 /* ================= CANVAS SETUP ================= */
 const canvas = document.getElementById('gameCanvas');
@@ -392,6 +393,7 @@ export class GameManager {
     particles.clear();
     relicManager.clear();
     buffManager.clear();
+    elementalManager.clear();
     movingPlatformManager.populateForLevel(lvlData);
     destructibleManager.populateForLevel(levelId, this.levelWidth, lvlData ? lvlData.platforms : []);
     vehicleManager.populateForLevel(levelId, this.levelWidth);
@@ -950,6 +952,7 @@ export class GameManager {
       levelInteractionsManager.update(this.player1, this.player2, this.isCoopMode, (s) => this.screenShake = s, () => this.checkTeamDefeat(), this.gameTime);
       synergyUltManager.update();
       miniGameManager.update(this.player1, this.player2, this.isCoopMode);
+      elementalManager.update(this.enemies, (s) => this.screenShake = s, (en, el, p, d) => this.applyElementalHit(en, el, p, d), this.player1, this.player2, this.gameMode === 'pvp');
 
       // Projectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -1025,7 +1028,12 @@ export class GameManager {
               sound.playHit();
             }
 
-            en.hp -= finalDmg;
+            if (en.applyHit) {
+              const res = en.applyHit(finalDmg, p.element, p.owner, false, p.type === 'boulder');
+              finalDmg = res.finalDamage;
+            } else {
+              en.hp -= finalDmg;
+            }
             sound.playHit();
             particles.createSparks(p.x, p.y, p.color, 6);
             particles.createDamageNumber(en.x + en.w/2, en.y, `-${finalDmg}`);
@@ -1040,13 +1048,28 @@ export class GameManager {
               en.stunTimer = 70;
             } else if (p.isRooting) {
               // Virgo Q: roots enemy
+              en.rootedTimer = 130;
               en.stunTimer = 110;
               particles.createDamageNumber(en.x + en.w/2, en.y - 12, 'ROOTED! 🌿', '#4ade80');
             } else if (p.isBubbleTrap) {
               // Pisces Q: traps enemy in floating bubble
+              en.bubbleTimer = 90;
               en.vy = -6;
               en.stunTimer = 85;
               particles.createDamageNumber(en.x + en.w/2, en.y - 12, 'BUBBLE! 🫧', '#2dd4bf');
+            } else if (p.isFreeze) {
+              en.frozenTimer = 110;
+              en.stunTimer = 110;
+              sound.playFreeze();
+              particles.createIceShards(en.x + en.w/2, en.y + en.h/2, 16);
+            } else if (p.isGaleBlast) {
+              en.windBlowTimer = 50;
+              en.windBlowVx = p.vx * 1.5;
+              sound.playWindGale();
+              particles.createWindGale(en.x + en.w/2, en.y + en.h/2, Math.sign(p.vx), 6);
+            } else if (p.isBurn) {
+              en.burnTimer = 150;
+              particles.createFlame(en.x + en.w/2, en.y + en.h/2, 6);
             } else if (p.isCosmicExplosion) {
               // Libra Q: explosion
               particles.createSparks(p.x, p.y, '#818cf8', 25);
@@ -1119,7 +1142,12 @@ export class GameManager {
               particles.createSparks(en.x + en.w/2, en.y + en.h/2, '#facc15', 12);
             }
 
-            en.hp -= finalDmg;
+            if (en.applyHit) {
+              const res = en.applyHit(finalDmg, m.element, m.owner, true, m.element === 'earth');
+              finalDmg = res.finalDamage;
+            } else {
+              en.hp -= finalDmg;
+            }
             sound.playHit();
             particles.createDamageNumber(en.x + en.w/2, en.y, `CRIT! -${finalDmg}`, m.color);
             
@@ -1623,6 +1651,9 @@ export class GameManager {
         en.draw(ctx);
       }
     }
+
+    // Dynamic World-Space Elemental Effects (Earth Pillars, Tornadoes, Waves, Magma)
+    elementalManager.draw(ctx);
 
     // Draw Players
     if (this.player1.hp > 0) this.player1.draw(ctx);

@@ -24,6 +24,11 @@ export class BaseBoss {
     this.elementTimer = 0;
     this.telegraphTimer = 0;
     this.telegraphType = null;
+    this.frozenTimer = 0;
+    this.petrifiedTimer = 0;
+    this.burnTimer = 0;
+    this.windBlowTimer = 0;
+    this.windBlowVx = 0;
   }
 
   takeDamage(amount, element = null, ownerIndex = null) {
@@ -32,9 +37,39 @@ export class BaseBoss {
     if (this.hp < 0) this.hp = 0;
   }
 
+  applyHit(amount, element = null, ownerIndex = null, isMelee = false, isHeavyEarth = false) {
+    let finalDamage = amount;
+    if (this.frozenTimer > 0 && (isMelee || isHeavyEarth || element === 'earth' || element === 'fire')) {
+      finalDamage = Math.floor(amount * 1.8);
+      this.frozenTimer = 0;
+      sound.playIceShatter();
+      particles.createIceShards(this.x + this.w / 2, this.y + this.h / 2, 25);
+      particles.createDamageNumber(this.x + this.w / 2, this.y - 25, `💥 SHATTER! -${finalDamage} ❄️`, '#00f0ff');
+    }
+    this.takeDamage(finalDamage, element, ownerIndex);
+    return { finalDamage };
+  }
+
   updateBase(enemyProjectiles, onShake) {
     this.animTimer += 0.08;
     if (this.elementTimer > 0) this.elementTimer--;
+
+    // Burning tick
+    if (this.burnTimer > 0) {
+      this.burnTimer--;
+      if (this.burnTimer % 20 === 0) {
+        this.hp -= 10;
+        particles.createFlame(this.x + this.w / 2, this.y + this.h / 2, 4);
+        particles.createDamageNumber(this.x + this.w / 2, this.y - 15, '🔥 -10', '#f97316');
+      }
+    }
+
+    // Frozen slowdown / stagger
+    if (this.frozenTimer > 0) {
+      this.frozenTimer--;
+      if (this.frozenTimer % 2 === 0) return false; // 50% slow
+    }
+
     if (this.stunTimer > 0) {
       this.stunTimer--;
       return false; // Skip attack execution if stunned

@@ -13,10 +13,10 @@ export const HERO_CONFIGS = {
     maxHp: 140, speed: 4.4, jumpForce: -12.0,
     stats: { atk: 92, def: 78, spd: 65, rng: 35, syn: 88 },
     skills: {
-      q: { name: 'Flame Shockwave', cost: 25, cd: 45, desc: 'Crawling volcanic fissure tearing along the ground' },
-      e: { name: 'Magma Eruption', cost: 40, cd: 75, desc: 'Horn ram charge launching enemies into an explosive eruption' },
+      q: { name: 'Volcanic Fissure', cost: 25, cd: 45, desc: 'Erupts 4 rising volcanic magma geysers that ignite & launch foes' },
+      e: { name: 'Molten Ram Charge', cost: 40, cd: 75, desc: 'Horn ram charge detonating into an explosive volcanic burst' },
       dash: { name: 'Blazing Ram Dash', cd: 30, desc: 'Fiery charge leaving a burning trail' },
-      ult: { name: 'Subterranean Magma Cataclysm', desc: 'Superpower: Erupts geothermal magma geysers' }
+      ult: { name: 'Subterranean Magma Cataclysm', desc: 'Superpower: 8 titanic magma geysers incinerate the arena' }
     }
   },
   taurus: {
@@ -31,10 +31,10 @@ export const HERO_CONFIGS = {
     maxHp: 160, speed: 4.0, jumpForce: -11.2,
     stats: { atk: 88, def: 98, spd: 45, rng: 30, syn: 75 },
     skills: {
-      q: { name: 'Seismic Stomp', cost: 25, cd: 45, desc: 'Uproots jagged stone pillars from the earth' },
-      e: { name: 'Bronze Boulder Smash', cost: 40, cd: 75, desc: 'Whirlwind maul swing launching 4 crushing boulders' },
+      q: { name: 'Tectonic Seismic Quake', cost: 25, cd: 45, desc: 'Erupts 4 jagged stone monoliths, launching sky-high & petrifying foes' },
+      e: { name: 'Granite Tremor Smash', cost: 40, cd: 75, desc: 'Whirlwind maul swing launching 4 crushing boulders' },
       dash: { name: 'Tectonic Bull Charge', cd: 35, desc: 'Unstoppable charge plowing through all enemies' },
-      ult: { name: 'Wrath of Falun Mountain', desc: 'Superpower: Great Copper Mountain monoliths pulverize the arena' }
+      ult: { name: 'Wrath of Falun Mountain', desc: 'Superpower: Apocalyptic earthquake crushing all foes in stone' }
     }
   },
   gemini: {
@@ -49,10 +49,10 @@ export const HERO_CONFIGS = {
     maxHp: 105, speed: 5.3, jumpForce: -12.4,
     stats: { atk: 84, def: 55, spd: 98, rng: 70, syn: 90 },
     skills: {
-      q: { name: 'Cyclone Vortex', cost: 25, cd: 45, desc: 'Hovering vortex chakram pulling enemies into its center' },
-      e: { name: 'Twin Gale Mirage', cost: 40, cd: 75, desc: 'Supersonic blink strike leaving cutting gale mirages' },
+      q: { name: 'Cyclone Tornado', cost: 25, cd: 45, desc: 'Summons an animated moving tornado vacuuming and shredding foes' },
+      e: { name: 'Supersonic Gale Blast', cost: 40, cd: 75, desc: 'Ferocious hurricane wind blowing all enemies across the battlefield!' },
       dash: { name: 'Öresund Aero Rush', cd: 25, desc: 'Rapid aerial dash slicing through opponents' },
-      ult: { name: 'Supersonic Tempest Cataclysm', desc: 'Superpower: Dual cyclones lift and shred enemies' }
+      ult: { name: 'Supersonic Tempest Cataclysm', desc: 'Superpower: Twin colossal tornadoes toss and shred enemies' }
     }
   },
   cancer: {
@@ -68,9 +68,9 @@ export const HERO_CONFIGS = {
     stats: { atk: 72, def: 94, spd: 60, rng: 65, syn: 82 },
     skills: {
       q: { name: 'Ocean Harpoon Pull', cost: 25, cd: 45, desc: 'Chain harpoon pulling enemies directly into point-blank range' },
-      e: { name: 'Tidal Coral Fortress', cost: 40, cd: 75, desc: 'Coral sanctuary: grants shield, heals, and repels foes' },
+      e: { name: 'Glacial Coral Nova', cost: 40, cd: 75, desc: 'Shields, heals +25 HP, and FREEZES all surrounding foes in ice blocks!' },
       dash: { name: 'Carapace Scuttle', cd: 30, desc: 'Armored carapace lunge deflecting incoming projectiles' },
-      ult: { name: 'Great Kattegat Tsunami', desc: 'Superpower: Giant Kattegat tsunami submerges enemies' }
+      ult: { name: 'Great Kattegat Tsunami', desc: 'Superpower: Giant Kattegat tsunami sweeps & freezes all enemies solid' }
     }
   },
   leo: {
