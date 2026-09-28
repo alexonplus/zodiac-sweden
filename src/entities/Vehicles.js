@@ -573,8 +573,9 @@ export class VehicleManager {
     else if (levelId === 'visby') vType = 'war_boar';
 
     if (levelId === 'goteborg-2') {
-      // Sub-level 1-2 Lindholmen Tech Port hover bike
+      // Sub-level 1-2 Lindholmen Tech Port hover bikes
       this.vehicles.push(new VehicleEntity(700, groundY - 52, 'hover_bike'));
+      this.vehicles.push(new VehicleEntity(4400, groundY - 52, 'hover_bike'));
     } else if (levelWidth > 5000) {
       // Full campaign 12,000px level
       this.vehicles.push(new VehicleEntity(1800, groundY - 52, vType));

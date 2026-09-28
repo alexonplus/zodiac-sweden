@@ -387,12 +387,19 @@ export function populateZodiacGrid(p1HeroId, p2HeroId, isCoopMode, onSelect) {
       updateHeroPreview(hero.id);
     });
 
-    card.addEventListener('click', () => {
+    card.addEventListener('mouseleave', () => {
+      const activeP1 = window.currentGameManager ? window.currentGameManager.p1HeroId : p1HeroId;
+      updateHeroPreview(activeP1);
+    });
+
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
       onSelect(hero.id);
       updateHeroPreview(hero.id);
     });
 
-    card.addEventListener('dblclick', () => {
+    card.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
       onSelect(hero.id);
       updateHeroPreview(hero.id);
       const confirmBtn = document.getElementById('btn-confirm-char');
@@ -501,5 +508,6 @@ export function refreshSelectionUI(p1HeroId, p2HeroId, isCoopMode) {
     if (isCoopMode && hid === p2HeroId) card.classList.add('p2-sel');
   });
 
-  updateHeroPreview(p1HeroId);
+  const previewTarget = (isCoopMode && window.currentGameManager && window.currentGameManager.selectingForPlayer === 2) ? p2HeroId : p1HeroId;
+  updateHeroPreview(previewTarget);
 }

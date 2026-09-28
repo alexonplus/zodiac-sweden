@@ -27,6 +27,7 @@
   border-radius: 12px;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  pointer-events: auto;
 }
 .p2-card { border-color: rgba(250, 204, 21, 0.5); }
 .hero-avatar {
@@ -118,6 +119,18 @@
   padding: 6px 16px;
   border-radius: 10px;
   backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.hud-btn-action {
+  transition: all 0.18s ease;
+  user-select: none;
+}
+.hud-btn-action:hover {
+  transform: translateY(-1px) scale(1.04);
+  filter: brightness(1.2);
+}
+.hud-btn-action:active {
+  transform: translateY(1px) scale(0.98);
 }
 .location-city {
   font-size: 13px;

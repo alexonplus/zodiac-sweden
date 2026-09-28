@@ -42,6 +42,10 @@ export class GameManager {
     this.shopReturnScreen = 'screen-title';
     this.levelWidth = 8000;
     this.selectingForPlayer = 1;
+    this.charSelectSource = 'title';
+    this.wasPlaying = false;
+    this.isPaused = false;
+    window.currentGameManager = this;
 
     this.score = 0;
     this.combo = 0;
@@ -97,16 +101,73 @@ export class GameManager {
   }
 
   initInput() {
+    const heroKeys = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
+
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+
+      const charSelect = document.getElementById('screen-char-select');
+      const isCharSelectOpen = charSelect && charSelect.style.display !== 'none';
+
       if (e.code === 'Enter') {
-        const charSelect = document.getElementById('screen-char-select');
-        if (charSelect && charSelect.style.display !== 'none') {
-          const btn = document.getElementById('btn-confirm-char');
-          if (btn) btn.click();
+        if (isCharSelectOpen) {
+          e.preventDefault();
+          this.confirmAndDeployHero();
+          return;
         }
       }
+
+      if (e.code === 'Escape' || e.code === 'KeyP') {
+        const pauseScreen = document.getElementById('screen-pause');
+        if (isCharSelectOpen) {
+          e.preventDefault();
+          this.backFromCharSelect();
+          return;
+        } else if (pauseScreen && pauseScreen.style.display !== 'none') {
+          e.preventDefault();
+          this.togglePause();
+          return;
+        } else if (this.isPlaying) {
+          e.preventDefault();
+          this.togglePause();
+          return;
+        }
+      }
+
+      // Quick number key selection when character select screen is open
+      if (isCharSelectOpen) {
+        let heroIdx = -1;
+        if (e.code.startsWith('Digit')) {
+          const num = parseInt(e.code.replace('Digit', ''), 10);
+          if (num >= 1 && num <= 9) heroIdx = num - 1;
+          else if (num === 0) heroIdx = 9; // 10th hero: Capricorn
+        } else if (e.code === 'Minus') {
+          heroIdx = 10; // 11th hero: Aquarius
+        } else if (e.code === 'Equal') {
+          heroIdx = 11; // 12th hero: Pisces
+        }
+
+        if (heroIdx >= 0 && heroIdx < heroKeys.length) {
+          e.preventDefault();
+          this.onHeroSelected(heroKeys[heroIdx]);
+          return;
+        }
+
+        // Arrow navigation in 12 grid (6 cols x 2 rows)
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
+          e.preventDefault();
+          const currIdx = heroKeys.indexOf(this.p1HeroId);
+          let nextIdx = currIdx >= 0 ? currIdx : 0;
+          if (e.code === 'ArrowRight') nextIdx = (nextIdx + 1) % heroKeys.length;
+          else if (e.code === 'ArrowLeft') nextIdx = (nextIdx - 1 + heroKeys.length) % heroKeys.length;
+          else if (e.code === 'ArrowDown') nextIdx = (nextIdx + 6) % heroKeys.length;
+          else if (e.code === 'ArrowUp') nextIdx = (nextIdx - 6 + heroKeys.length) % heroKeys.length;
+          this.onHeroSelected(heroKeys[nextIdx]);
+          return;
+        }
+      }
+
       if (this.isPlaying) this.handleGameKeys(e.code);
     });
     window.addEventListener('keyup', (e) => this.keys[e.code] = false);
@@ -144,57 +205,33 @@ export class GameManager {
   initUI() {
     // Solo Campaign Mode
     document.getElementById('btn-mode-solo').addEventListener('click', () => {
-      sound.init();
-      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'campaign';
       this.isCoopMode = false;
-      document.getElementById('screen-title').style.display = 'none';
-      document.getElementById('char-select-sub').innerText = 'Solo Campaign (1P Solo). Select your Zodiac hero:';
-      populateZodiacGrid(this.p1HeroId, this.p2HeroId, this.isCoopMode, (id) => this.onHeroSelected(id));
-      refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode);
-      document.getElementById('screen-char-select').style.display = 'flex';
+      this.openCharSelect('title');
     });
 
     // 2P Co-Op Arcade Mode
     document.getElementById('btn-mode-coop').addEventListener('click', () => {
-      sound.init();
-      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'campaign';
       this.isCoopMode = true;
       this.selectingForPlayer = 1;
-      document.getElementById('screen-title').style.display = 'none';
-      document.getElementById('char-select-sub').innerText = 'Co-Op Mode (2P Arcade). Click cards to choose P1 (Cyan) and P2 (Gold):';
-      populateZodiacGrid(this.p1HeroId, this.p2HeroId, this.isCoopMode, (id) => this.onHeroSelected(id));
-      refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode);
-      document.getElementById('screen-char-select').style.display = 'flex';
+      this.openCharSelect('title');
     });
 
     // 1v1 PvP Duel Mode
     document.getElementById('btn-mode-pvp').addEventListener('click', () => {
-      sound.init();
-      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'pvp';
       this.isCoopMode = false;
       this.selectingForPlayer = 1;
-      document.getElementById('screen-title').style.display = 'none';
-      document.getElementById('char-select-sub').innerText = '⚔️ 1 vs 1 PvP Arena! Select P1 (Cyan) and P2 (Gold):';
-      populateZodiacGrid(this.p1HeroId, this.p2HeroId, true, (id) => this.onHeroSelected(id));
-      refreshSelectionUI(this.p1HeroId, this.p2HeroId, true);
-      document.getElementById('screen-char-select').style.display = 'flex';
+      this.openCharSelect('title');
     });
 
     // Boss Rush Mode
     document.getElementById('btn-mode-bossrush').addEventListener('click', () => {
-      sound.init();
-      if (!sound.currentTrack) sound.playMusic('title');
       this.gameMode = 'bossrush';
       this.isCoopMode = false;
       this.bossRushIndex = 0;
-      document.getElementById('screen-title').style.display = 'none';
-      document.getElementById('char-select-sub').innerText = '🏆 BOSS RUSH GAUNTLET: Defeat all 4 Swedish bosses!';
-      populateZodiacGrid(this.p1HeroId, this.p2HeroId, this.isCoopMode, (id) => this.onHeroSelected(id));
-      refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode);
-      document.getElementById('screen-char-select').style.display = 'flex';
+      this.openCharSelect('title');
     });
 
     // Open Fika Café Shop
@@ -234,13 +271,110 @@ export class GameManager {
       document.getElementById('screen-map').style.display = 'flex';
     });
     document.getElementById('btn-back-from-char').addEventListener('click', () => {
-      document.getElementById('screen-char-select').style.display = 'none';
-      document.getElementById('screen-title').style.display = 'flex';
+      this.backFromCharSelect();
     });
     document.getElementById('btn-back-from-map').addEventListener('click', () => {
       document.getElementById('screen-map').style.display = 'none';
       document.getElementById('screen-title').style.display = 'flex';
     });
+
+    const mapToCharBtn = document.getElementById('btn-map-to-char');
+    if (mapToCharBtn) {
+      mapToCharBtn.addEventListener('click', () => {
+        this.openCharSelect('screen-map');
+      });
+    }
+
+    const hudCharBtn = document.getElementById('btn-hud-char-select');
+    if (hudCharBtn) {
+      hudCharBtn.addEventListener('click', () => {
+        this.openCharSelect('game');
+      });
+    }
+
+    const p1Hud = document.getElementById('p1-hud');
+    if (p1Hud) {
+      p1Hud.addEventListener('click', () => {
+        this.openCharSelect('game');
+      });
+    }
+
+    const p2Hud = document.getElementById('p2-hud');
+    if (p2Hud) {
+      p2Hud.addEventListener('click', () => {
+        this.selectingForPlayer = 2;
+        this.openCharSelect('game');
+      });
+    }
+
+    const hudPauseBtn = document.getElementById('btn-hud-pause');
+    if (hudPauseBtn) {
+      hudPauseBtn.addEventListener('click', () => {
+        this.togglePause();
+      });
+    }
+
+    const cityCharBtn = document.getElementById('btn-city-to-char');
+    if (cityCharBtn) {
+      cityCharBtn.addEventListener('click', () => {
+        this.openCharSelect('screen-goteborg-map');
+      });
+    }
+
+    const goteborgActiveHeroBtn = document.getElementById('btn-goteborg-active-hero');
+    if (goteborgActiveHeroBtn) {
+      goteborgActiveHeroBtn.addEventListener('click', () => {
+        this.openCharSelect('screen-goteborg-map');
+      });
+    }
+
+    // Pause Menu Buttons
+    const pauseResumeBtn = document.getElementById('btn-pause-resume');
+    if (pauseResumeBtn) pauseResumeBtn.addEventListener('click', () => this.togglePause());
+
+    const pauseCharBtn = document.getElementById('btn-pause-char-select');
+    if (pauseCharBtn) pauseCharBtn.addEventListener('click', () => this.openCharSelect('game'));
+
+    const pauseHeroBadge = document.getElementById('pause-hero-badge');
+    if (pauseHeroBadge) {
+      pauseHeroBadge.style.cursor = 'pointer';
+      pauseHeroBadge.addEventListener('click', () => this.openCharSelect('game'));
+    }
+
+    const pauseRestartBtn = document.getElementById('btn-pause-restart');
+    if (pauseRestartBtn) {
+      pauseRestartBtn.addEventListener('click', () => {
+        this.togglePause();
+        this.startLevel(this.currentLevel);
+      });
+    }
+
+    const pauseCityMapBtn = document.getElementById('btn-pause-city-map');
+    if (pauseCityMapBtn) {
+      pauseCityMapBtn.addEventListener('click', () => {
+        this.isPaused = false;
+        this.isPlaying = false;
+        ['ui-hud', 'screen-pause'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        cityMapManager.show();
+      });
+    }
+
+    const pauseMainMenuBtn = document.getElementById('btn-pause-main-menu');
+    if (pauseMainMenuBtn) {
+      pauseMainMenuBtn.addEventListener('click', () => {
+        this.isPaused = false;
+        this.isPlaying = false;
+        ['ui-hud', 'screen-pause'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        document.getElementById('screen-title').style.display = 'flex';
+        sound.playMusic('title');
+      });
+    }
 
     // Initialize City Map Manager for Gothenburg
     cityMapManager.init(
@@ -251,20 +385,32 @@ export class GameManager {
       () => {
         document.getElementById('screen-goteborg-map').style.display = 'none';
         document.getElementById('screen-map').style.display = 'flex';
+      },
+      () => {
+        this.openCharSelect('screen-goteborg-map');
       }
     );
 
     document.getElementById('btn-confirm-char').addEventListener('click', () => {
-      const heroLevel = HERO_CONFIGS[this.p1HeroId].levelId;
-      this.currentLevel = heroLevel;
-      if (this.gameMode === 'campaign') {
-        // Direct player to Gothenburg tactical city map with 4 sub-levels
+      this.confirmAndDeployHero();
+    });
+
+    const charRestartBtn = document.getElementById('btn-char-restart-level');
+    if (charRestartBtn) {
+      charRestartBtn.addEventListener('click', () => {
+        this.restartLevelWithHero();
+      });
+    }
+
+    const charGoteborgBtn = document.getElementById('btn-char-explore-goteborg');
+    if (charGoteborgBtn) {
+      charGoteborgBtn.addEventListener('click', () => {
+        sound.init();
+        sound.playSelect();
         document.getElementById('screen-char-select').style.display = 'none';
         cityMapManager.show();
-      } else {
-        this.startLevel(this.currentLevel);
-      }
-    });
+      });
+    }
 
     document.querySelectorAll('.map-node').forEach(node => {
       node.addEventListener('click', () => {
@@ -329,6 +475,13 @@ export class GameManager {
       this.startLevel(this.currentLevel);
     });
 
+    const resCharSelectBtn = document.getElementById('btn-res-char-select');
+    if (resCharSelectBtn) {
+      resCharSelectBtn.addEventListener('click', () => {
+        this.openCharSelect('screen-result');
+      });
+    }
+
     const updateSoundButtons = () => {
       const isMuted = sound.isMuted;
       const sndBtn = document.getElementById('btn-sound-toggle');
@@ -351,12 +504,214 @@ export class GameManager {
     if (menuSndBtn) menuSndBtn.addEventListener('click', handleSoundToggle);
   }
 
+  togglePause() {
+    const pauseScreen = document.getElementById('screen-pause');
+    if (this.isPaused) {
+      // Resume
+      this.isPaused = false;
+      this.isPlaying = true;
+      if (pauseScreen) pauseScreen.style.display = 'none';
+      document.getElementById('ui-hud').style.display = 'flex';
+      sound.playSelect();
+    } else if (this.isPlaying) {
+      // Pause
+      this.isPaused = true;
+      this.isPlaying = false;
+      sound.playSelect();
+      const h = HERO_CONFIGS[this.p1HeroId];
+      if (h) {
+        const pName = document.getElementById('pause-hero-name');
+        if (pName) {
+          pName.innerText = h.name.toUpperCase();
+          pName.style.color = h.color;
+        }
+        const pIcon = document.getElementById('pause-hero-icon');
+        if (pIcon) pIcon.innerText = h.symbol;
+        const pCity = document.getElementById('pause-hero-city');
+        if (pCity) pCity.innerText = `${h.city} • ${h.title || h.archetype}`;
+      }
+      const lvl = LEVELS[this.currentLevel];
+      const pLvl = document.getElementById('pause-level-name');
+      if (pLvl && lvl) pLvl.innerText = lvl.name;
+      if (pauseScreen) pauseScreen.style.display = 'flex';
+    }
+  }
+
+  openCharSelect(source = 'title') {
+    sound.init();
+    sound.playSelect();
+    if (!sound.currentTrack) sound.playMusic('title');
+    this.charSelectSource = source;
+    this.wasPlaying = this.isPlaying;
+    this.isPlaying = false;
+    this.isPaused = false;
+
+    // Hide any gameplay/map overlays and HUD
+    ['screen-title', 'screen-map', 'screen-goteborg-map', 'screen-result', 'screen-shop', 'screen-pause', 'ui-hud', 'boss-hud-container'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    const sub = document.getElementById('char-select-sub');
+    if (sub) {
+      if (this.wasPlaying || source === 'game') {
+        sub.innerText = 'SWITCH HERO: Click any of the 12 Zodiacs to switch instantly, or double-click to deploy:';
+      } else if (this.isCoopMode) {
+        sub.innerText = '2P Co-Op Arcade: Select Player 1 [Cyan], then Player 2 [Gold]:';
+      } else if (this.gameMode === 'pvp') {
+        sub.innerText = '⚔️ 1 vs 1 PvP Arena: Select Player 1 [Cyan], then Player 2 [Gold]:';
+      } else if (this.gameMode === 'bossrush') {
+        sub.innerText = '🏆 BOSS RUSH GAUNTLET: Choose your Guardian to challenge all Swedish Titans:';
+      } else {
+        sub.innerText = 'Solo Campaign: Choose your Zodiac Guardian [All 12 signs unlocked]:';
+      }
+    }
+
+    populateZodiacGrid(this.p1HeroId, this.p2HeroId, this.isCoopMode || this.gameMode === 'pvp', (id) => this.onHeroSelected(id));
+    refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode || this.gameMode === 'pvp');
+    this.updateCharSelectButtons(this.p1HeroId);
+
+    document.getElementById('screen-char-select').style.display = 'flex';
+  }
+
+  updateCharSelectButtons(heroId) {
+    const h = HERO_CONFIGS[heroId] || HERO_CONFIGS[this.p1HeroId];
+    if (!h) return;
+
+    const deployBtn = document.getElementById('btn-confirm-char');
+    const restartBtn = document.getElementById('btn-char-restart-level');
+    const cityMapBtn = document.getElementById('btn-char-explore-goteborg');
+    const backBtn = document.getElementById('btn-back-from-char');
+
+    if (deployBtn) {
+      if (this.wasPlaying || this.charSelectSource === 'game') {
+        deployBtn.innerHTML = `⚡ SWITCH TO ${h.name.toUpperCase()} & RESUME [ENTER] ⚡`;
+      } else if (this.charSelectSource === 'screen-goteborg-map') {
+        deployBtn.innerHTML = `⚔️ CONFIRM ${h.name.toUpperCase()} & OPEN GÖTEBORG MAP [ENTER] ⚔️`;
+      } else if (this.charSelectSource === 'screen-map') {
+        deployBtn.innerHTML = `⚔️ CONFIRM ${h.name.toUpperCase()} & VIEW REALM MAP [ENTER] ⚔️`;
+      } else {
+        deployBtn.innerHTML = `⚔️ PLAY NOW AS ${h.name.toUpperCase()} [ENTER] ⚔️`;
+      }
+      deployBtn.style.borderColor = h.color;
+    }
+
+    if (restartBtn) {
+      if (this.wasPlaying || this.charSelectSource === 'game') {
+        restartBtn.style.display = 'inline-flex';
+        restartBtn.innerHTML = `🔄 RESTART SECTOR AS ${h.name.toUpperCase()}`;
+      } else {
+        restartBtn.style.display = 'none';
+      }
+    }
+
+    if (cityMapBtn) {
+      if (!this.wasPlaying && this.charSelectSource !== 'game') {
+        cityMapBtn.style.display = 'inline-flex';
+      } else {
+        cityMapBtn.style.display = 'none';
+      }
+    }
+
+    if (backBtn) {
+      if (this.wasPlaying || this.charSelectSource === 'game') {
+        backBtn.innerText = '← RETURN TO BATTLE';
+      } else if (this.charSelectSource === 'screen-goteborg-map') {
+        backBtn.innerText = '← BACK TO GÖTEBORG MAP';
+      } else if (this.charSelectSource === 'screen-map') {
+        backBtn.innerText = '← BACK TO REALM MAP';
+      } else {
+        backBtn.innerText = '← BACK TO MENU';
+      }
+    }
+  }
+
+  confirmAndDeployHero() {
+    sound.init();
+    sound.playSelect();
+    document.getElementById('screen-char-select').style.display = 'none';
+
+    if (this.wasPlaying || this.charSelectSource === 'game') {
+      // Live switch hero during active battle
+      this.player1.init(this.p1HeroId, this.player1.x);
+      
+      document.getElementById('p1-name').innerText = this.player1.hero.name.toUpperCase();
+      document.getElementById('p1-energy-name').innerText = this.player1.hero.energyName;
+      hudManager.initPlayerAvatars(this.player1.hero, this.player2.hero, this.isCoopMode || this.gameMode === 'pvp');
+
+      const p1H = this.player1.hero;
+      const p1Guide = document.getElementById('p1-controls-guide');
+      if (p1Guide && p1H) {
+        const qName = (p1H.skills && p1H.skills.q && p1H.skills.q.name) || 'Skill 1';
+        const eName = (p1H.skills && p1H.skills.e && p1H.skills.e.name) || 'Skill 2';
+        const ultName = p1H.ultName || (p1H.skills && p1H.skills.ult && p1H.skills.ult.name) || 'Superpower';
+        p1Guide.innerHTML = `<b>P1 [${p1H.name.toUpperCase()}]:</b> <kbd>WASD</kbd> | <kbd>F</kbd> Attack | <kbd>G</kbd> ${qName} | <kbd>H</kbd> ${eName} | <kbd>Space</kbd> Dash | <kbd>T</kbd> ⚡ ${ultName}`;
+      }
+
+      this.isPlaying = true;
+      this.isPaused = false;
+      document.getElementById('ui-hud').style.display = 'flex';
+      particles.createDamageNumber(this.player1.x + this.player1.w / 2, this.player1.y - 20, `HERO: ${this.player1.hero.name.toUpperCase()}! ⚡`, this.player1.hero.color);
+      particles.createSparks(this.player1.x + this.player1.w / 2, this.player1.y + 20, this.player1.hero.color, 30);
+    } else if (this.charSelectSource === 'screen-goteborg-map') {
+      cityMapManager.show();
+    } else if (this.charSelectSource === 'screen-map') {
+      document.getElementById('screen-map').style.display = 'flex';
+    } else {
+      // Start chosen hero level immediately
+      this.startLevel(this.currentLevel);
+    }
+  }
+
+  restartLevelWithHero() {
+    sound.init();
+    sound.playSelect();
+    document.getElementById('screen-char-select').style.display = 'none';
+    this.startLevel(this.currentLevel);
+  }
+
+  backFromCharSelect() {
+    sound.init();
+    sound.playSelect();
+    document.getElementById('screen-char-select').style.display = 'none';
+
+    if (this.wasPlaying || this.charSelectSource === 'game') {
+      // Apply the chosen hero if changed
+      if (this.player1 && this.player1.hero && this.player1.hero.id !== this.p1HeroId) {
+        this.player1.init(this.p1HeroId, this.player1.x);
+        document.getElementById('p1-name').innerText = this.player1.hero.name.toUpperCase();
+        document.getElementById('p1-energy-name').innerText = this.player1.hero.energyName;
+        hudManager.initPlayerAvatars(this.player1.hero, this.player2.hero, this.isCoopMode || this.gameMode === 'pvp');
+      }
+      this.isPlaying = true;
+      this.isPaused = false;
+      document.getElementById('ui-hud').style.display = 'flex';
+    } else if (this.charSelectSource === 'screen-goteborg-map') {
+      cityMapManager.show();
+    } else if (this.charSelectSource === 'screen-map') {
+      document.getElementById('screen-map').style.display = 'flex';
+    } else {
+      document.getElementById('screen-title').style.display = 'flex';
+      sound.playMusic('title');
+    }
+  }
+
   onHeroSelected(heroId) {
     if (!this.isCoopMode && this.gameMode !== 'pvp') {
       this.p1HeroId = heroId;
-      this.currentLevel = HERO_CONFIGS[heroId].levelId;
+      // If not currently playing in a sector, set starting level to hero's realm
+      if (!this.wasPlaying && this.charSelectSource !== 'game') {
+        const homeLvl = HERO_CONFIGS[heroId].levelId;
+        this.currentLevel = homeLvl === 'goteborg' ? 'goteborg-1' : homeLvl;
+      }
       const sub = document.getElementById('char-select-sub');
-      if (sub) sub.innerText = `Selected ${HERO_CONFIGS[heroId].name.toUpperCase()}! Press ENTER or click CONFIRM HERO & DEPLOY below:`;
+      if (sub) {
+        if (this.wasPlaying || this.charSelectSource === 'game') {
+          sub.innerText = `Selected ${HERO_CONFIGS[heroId].name.toUpperCase()}! Click "SWITCH HERO" or press ENTER:`;
+        } else {
+          sub.innerText = `Selected ${HERO_CONFIGS[heroId].name.toUpperCase()}! Press ENTER or click PLAY NOW to start:`;
+        }
+      }
     } else {
       if (this.selectingForPlayer === 1) {
         this.p1HeroId = heroId;
@@ -367,10 +722,11 @@ export class GameManager {
         this.p2HeroId = heroId;
         this.selectingForPlayer = 1;
         const sub = document.getElementById('char-select-sub');
-        if (sub) sub.innerText = `Both heroes selected! Press ENTER or click CONFIRM HERO & DEPLOY to start!`;
+        if (sub) sub.innerText = `Both heroes selected! Press ENTER or click PLAY NOW to start!`;
       }
     }
     refreshSelectionUI(this.p1HeroId, this.p2HeroId, this.isCoopMode || this.gameMode === 'pvp');
+    this.updateCharSelectButtons(heroId);
   }
 
   startLevel(levelId) {
@@ -469,7 +825,7 @@ export class GameManager {
     const spawnX = spawnOriginX + 650;
 
     if (this.currentLevel === 'goteborg-1') {
-      // 1-1: Eriksberg Shipyards & Marina (3,200px)
+      // 1-1: Eriksberg Shipyards & Marina (7,500px)
       if (zoneIndex === 1) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'karolin'));
@@ -482,24 +838,37 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 180, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
-        this.enemies.push(new EnemyMob(spawnX + 400, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 420, 420, 'troll'));
       } else if (zoneIndex === 4) {
-        // Climax Mini-Boss: Shipyard Syndicate Captain
+        // Sector 2 Checkpoint Reinforcements
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'viking'));
+        this.enemies.push(new EnemyMob(spawnX + 460, 420, 'troll'));
+      } else if (zoneIndex === 5) {
+        // Heavy Drydock Barricade
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 300, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 440, 420, 'golem'));
+      } else if (zoneIndex === 6) {
+        // Climax Mini-Boss: Shipyard Syndicate Captain (7,500px Climax)
         this.camera.lockAt(this.levelWidth - W);
         const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'viking');
-        miniBoss.w = 50; miniBoss.h = 66;
-        miniBoss.hp = 480 * scale; miniBoss.maxHp = miniBoss.hp;
-        miniBoss.dmg = 24; miniBoss.speed = 2.4;
+        miniBoss.w = 54; miniBoss.h = 70;
+        miniBoss.hp = 580 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 26; miniBoss.speed = 2.4;
         miniBoss.isMiniBoss = true;
         miniBoss.name = 'SHIPYARD SYNDICATE CAPTAIN';
         this.enemies.push(miniBoss);
-        this.enemies.push(new EnemyMob(this.levelWidth - 450, 420, 'karolin'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'golem'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 580, 420, 'golem'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 700, 420, 'troll'));
         hudManager.showBossWarning('SHIPYARD SYNDICATE CAPTAIN');
         sound.playRoar();
       }
     } else if (this.currentLevel === 'goteborg-2') {
-      // 1-2: Blue Tramway & Lindholmen Tech Port (3,500px)
+      // 1-2: Blue Tramway & Lindholmen Tech Port (8,000px)
       if (zoneIndex === 1) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'golem'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'karolin'));
@@ -513,22 +882,35 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'karolin'));
         this.enemies.push(new EnemyMob(spawnX + 420, 420, 'golem'));
       } else if (zoneIndex === 4) {
-        // Climax Mini-Boss: Cyber-Golem Vanguard
+        // High-Tech Viaduct Security (Checkpoint at 4000)
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 480, 420, 'troll'));
+      } else if (zoneIndex === 5) {
+        // Kuggen Innovation Cyber-Siege
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 460, 420, 'karolin'));
+      } else if (zoneIndex === 6) {
+        // Climax Mini-Boss: Cyber-Golem Vanguard (8,000px Climax)
         this.camera.lockAt(this.levelWidth - W);
         const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'golem');
-        miniBoss.w = 58; miniBoss.h = 76;
-        miniBoss.hp = 580 * scale; miniBoss.maxHp = miniBoss.hp;
-        miniBoss.dmg = 26; miniBoss.speed = 1.9;
+        miniBoss.w = 60; miniBoss.h = 80;
+        miniBoss.hp = 680 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 28; miniBoss.speed = 2.0;
         miniBoss.isMiniBoss = true;
         miniBoss.name = 'CYBER-GOLEM VANGUARD';
         this.enemies.push(miniBoss);
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'skogsra'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 580, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 700, 420, 'troll'));
         hudManager.showBossWarning('CYBER-GOLEM VANGUARD');
         sound.playRoar();
       }
     } else if (this.currentLevel === 'goteborg-3') {
-      // 1-3: Skansen Kronan & Volvo Factory Ruins (3,600px)
+      // 1-3: Skansen Kronan & Volvo Factory Ruins (8,200px)
       if (zoneIndex === 1) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
@@ -542,22 +924,35 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'skogsra'));
         this.enemies.push(new EnemyMob(spawnX + 420, 420, 'karolin'));
       } else if (zoneIndex === 4) {
-        // Climax Mini-Boss: Bastion Steam Troll
+        // Skansen Kronan Golden Crown Ramparts (Checkpoint at 4100)
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 480, 420, 'viking'));
+      } else if (zoneIndex === 5) {
+        // Volvo Factory Scrap Conveyor Onslaught
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 200, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 340, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 460, 420, 'karolin'));
+      } else if (zoneIndex === 6) {
+        // Climax Mini-Boss: Bastion Steam Troll Berserker (8,200px Climax)
         this.camera.lockAt(this.levelWidth - W);
         const miniBoss = new EnemyMob(this.levelWidth - 280, 420, 'troll');
-        miniBoss.w = 60; miniBoss.h = 76;
-        miniBoss.hp = 680 * scale; miniBoss.maxHp = miniBoss.hp;
-        miniBoss.dmg = 30; miniBoss.speed = 2.0;
+        miniBoss.w = 64; miniBoss.h = 82;
+        miniBoss.hp = 780 * scale; miniBoss.maxHp = miniBoss.hp;
+        miniBoss.dmg = 32; miniBoss.speed = 2.1;
         miniBoss.isMiniBoss = true;
         miniBoss.name = 'BASTION STEAM TROLL';
         this.enemies.push(miniBoss);
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'viking'));
         this.enemies.push(new EnemyMob(this.levelWidth - 580, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 700, 420, 'golem'));
         hudManager.showBossWarning('BASTION STEAM TROLL');
         sound.playRoar();
       }
     } else if (this.currentLevel === 'goteborg-4') {
-      // 1-4: Älvsborgsbron to Abyssal Kraken (4,000px)
+      // 1-4: Älvsborgsbron to Abyssal Kraken (9,000px Epic Titan Stage)
       if (zoneIndex === 1) {
         this.enemies.push(new EnemyMob(spawnX + 80, 420, 'karolin'));
         this.enemies.push(new EnemyMob(spawnX + 200, 420, 'viking'));
@@ -572,12 +967,24 @@ export class GameManager {
         this.enemies.push(new EnemyMob(spawnX + 300, 420, 'viking'));
         this.enemies.push(new EnemyMob(spawnX + 420, 420, 'golem'));
       } else if (zoneIndex === 4) {
-        // FULL TITAN BOSS: MEKANISK KRAN-KRAKEN
+        // High Suspension Cable Apex (Checkpoint at 4500)
+        this.enemies.push(new EnemyMob(spawnX + 80, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 220, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 360, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(spawnX + 480, 420, 'golem'));
+      } else if (zoneIndex === 5) {
+        // Abyssal Outer Trench Storm Wave
+        this.enemies.push(new EnemyMob(spawnX + 60, 420, 'golem'));
+        this.enemies.push(new EnemyMob(spawnX + 180, 420, 'troll'));
+        this.enemies.push(new EnemyMob(spawnX + 320, 420, 'skogsra'));
+        this.enemies.push(new EnemyMob(spawnX + 460, 420, 'karolin'));
+      } else if (zoneIndex === 6) {
+        // FULL TITAN BOSS: MEKANISK KRAN-KRAKEN (9,000px Epic Finale)
         this.camera.lockAt(this.levelWidth - W);
-        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1250 * scale, '🐙'));
+        this.enemies.push(createBoss(this.levelWidth - 280, 310, 'MEKANISK KRAN-KRAKEN', 1350 * scale, '🐙'));
         this.enemies.push(new EnemyMob(this.levelWidth - 460, 420, 'golem'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 560, 420, 'karolin'));
-        this.enemies.push(new EnemyMob(this.levelWidth - 660, 420, 'troll'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 580, 420, 'karolin'));
+        this.enemies.push(new EnemyMob(this.levelWidth - 700, 420, 'troll'));
         hudManager.showBossWarning('MEKANISK KRAN-KRAKEN');
         sound.playMusic('boss');
         sound.playUlt();
@@ -871,12 +1278,14 @@ export class GameManager {
         const focalX = Math.max(this.player1.x, this.isCoopMode && this.player2.hp > 0 ? this.player2.x : 0);
         hudManager.updateProgress(focalX, this.levelWidth);
 
-        const isSubLevel = this.currentLevel.startsWith('goteborg-') || this.levelWidth < 6000;
+        const isSubLevel = this.currentLevel.startsWith('goteborg-');
 
         if (isSubLevel) {
-          const z2 = Math.floor(this.levelWidth * 0.25);
-          const z3 = Math.floor(this.levelWidth * 0.50);
-          const z4 = Math.floor(this.levelWidth * 0.72);
+          const z2 = Math.floor(this.levelWidth * 0.18);
+          const z3 = Math.floor(this.levelWidth * 0.36);
+          const z4 = Math.floor(this.levelWidth * 0.50);
+          const z5 = Math.floor(this.levelWidth * 0.70);
+          const z6 = Math.floor(this.levelWidth * 0.88);
 
           if (focalX > z2 && !this.spawnedZones[2]) {
             this.spawnedZones[2] = true;
@@ -885,15 +1294,23 @@ export class GameManager {
           if (focalX > z3 && !this.spawnedZones[3]) {
             this.spawnedZones[3] = true;
             this.spawnZoneWave(3, z3);
+          }
+          if (focalX > z4 && !this.spawnedZones[4]) {
+            this.spawnedZones[4] = true;
+            this.spawnZoneWave(4, z4);
             if (!this.checkpointReached) {
               this.checkpointReached = true;
               hudManager.showCheckpoint('DISTRICT CHECKPOINT ☕');
               sound.playSynergy();
             }
           }
-          if (focalX > z4 && !this.spawnedZones[4]) {
-            this.spawnedZones[4] = true;
-            this.spawnZoneWave(4, z4);
+          if (focalX > z5 && !this.spawnedZones[5]) {
+            this.spawnedZones[5] = true;
+            this.spawnZoneWave(5, z5);
+          }
+          if (focalX > z6 && !this.spawnedZones[6]) {
+            this.spawnedZones[6] = true;
+            this.spawnZoneWave(6, z6);
           }
         } else {
           // Standard 8 Sectors across 12,000px
@@ -1183,8 +1600,8 @@ export class GameManager {
 
       // Enemies Update
       let activeBoss = null;
-      const isSubLevel = this.currentLevel.startsWith('goteborg-') || this.levelWidth < 6000;
-      let hasBossSpawned = isSubLevel ? !!this.spawnedZones[4] : (!!this.spawnedZones[8] || this.gameMode === 'bossrush');
+      const isSubLevel = this.currentLevel.startsWith('goteborg-');
+      let hasBossSpawned = isSubLevel ? !!this.spawnedZones[6] : (!!this.spawnedZones[8] || this.gameMode === 'bossrush');
       const isFrozen = buffManager.timeFreezeTimer > 0;
 
       for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -1788,7 +2205,9 @@ export class GameManager {
 }
 
 // Instantiate and start game loop
-window.addEventListener('DOMContentLoaded', () => {
+function initGame() {
+  if (window.__gameInitialized) return;
+  window.__gameInitialized = true;
   const game = new GameManager();
   game.loop();
 
@@ -1802,4 +2221,10 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('click', unlockAudio);
   window.addEventListener('keydown', unlockAudio);
   window.addEventListener('touchstart', unlockAudio);
-});
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initGame);
+} else {
+  initGame();
+}

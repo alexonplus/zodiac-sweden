@@ -20,10 +20,10 @@
     <div id="ui-hud">
       <div class="hud-top">
         <!-- PLAYER 1 HUD -->
-        <div class="player-hud-card" id="p1-hud">
-          <div id="p1-avatar" class="hero-avatar">♒</div>
+        <div class="player-hud-card" id="p1-hud" title="Click to Switch Hero" style="cursor: pointer;">
+          <div id="p1-avatar" class="hero-avatar" style="cursor: pointer;">♒</div>
           <div>
-            <div><span class="player-tag p1-tag">P1 [WASD]</span> <span id="p1-name" class="hero-name-text">AQUARIUS</span></div>
+            <div><span class="player-tag p1-tag">P1 [WASD]</span> <span id="p1-name" class="hero-name-text">AQUARIUS</span> <span style="font-size: 8px; color: #a855f7; font-weight: 800; margin-left: 4px;">[CHANGE]</span></div>
             <div class="bars-container">
               <div class="bar-wrapper">
                 <div id="p1-hp-bar" class="bar-fill-hp"></div>
@@ -45,6 +45,8 @@
         <div class="center-hud">
           <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
             <div id="hud-city" class="location-city">🇸🇪 GÖTEBORG DOCKS</div>
+            <button id="btn-hud-char-select" title="Change Hero" class="hud-btn-action" style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid #a855f7; color: #e9d5ff; border-radius: 6px; padding: 2px 9px; cursor: pointer; font-size: 11px; font-weight: 800; pointer-events: auto; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);">👤 SELECT HERO</button>
+            <button id="btn-hud-pause" title="Pause Game [ESC / P]" class="hud-btn-action" style="background: rgba(15, 23, 42, 0.9); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: 800; pointer-events: auto; display: inline-flex; align-items: center; gap: 4px;">⏸️ PAUSE</button>
             <button id="btn-sound-toggle" style="background: rgba(15, 23, 42, 0.8); border: 1px solid #00f0ff; color: #fff; border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 12px; pointer-events: auto;">🔊</button>
           </div>
           <div class="score-badge">TEAM SHARDS: <span id="score-val">0</span> ⭐</div>
@@ -184,7 +186,9 @@
       </div>
 
       <div class="char-select-actions">
-        <button id="btn-confirm-char" class="btn-main btn-confirm-deploy">⚔️ CONFIRM HERO & DEPLOY TO BATTLE [ENTER] ⚔️</button>
+        <button id="btn-confirm-char" class="btn-main btn-confirm-deploy">⚔️ PLAY AS AQUARIUS NOW [ENTER] ⚔️</button>
+        <button id="btn-char-restart-level" class="btn-secondary" style="border-color: #f59e0b; color: #fde047; display: none; padding: 9px 20px; font-weight: 800;">🔄 RESTART SECTOR</button>
+        <button id="btn-char-explore-goteborg" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff; display: none; padding: 9px 20px; font-weight: 800;">🗺️ GÖTEBORG CITY MAP [4 SECTORS]</button>
         <button id="btn-back-from-char" class="btn-secondary">← BACK TO MENU</button>
       </div>
     </div>
@@ -230,9 +234,10 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
+      <div style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;">
         <button id="btn-start-level" class="btn-main">DEPLOY TO SELECTED REALM [ENTER]</button>
         <button id="btn-open-goteborg-direct" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff;">🇸🇪 EXPLORE GÖTEBORG MAP [4 SUB-LEVELS]</button>
+        <button id="btn-map-to-char" class="btn-secondary" style="border-color: #a855f7; color: #e9d5ff;">👤 SELECT HERO</button>
         <button id="btn-back-from-map" class="btn-secondary">BACK TO MENU</button>
       </div>
     </div>
@@ -242,8 +247,13 @@
       <div class="screen-title" style="color: #00f0ff; text-shadow: 0 0 14px rgba(0, 240, 255, 0.7);">🇸🇪 GÖTEBORG: TACTICAL CITY MAP</div>
       <div class="screen-subtitle">Select a harbor sector to infiltrate and liberate the West Coast</div>
       
-      <div id="goteborg-liberation-progress" class="city-progress-badge">
-        🇸🇪 GÖTEBORG LIBERATION: <b>0 / 4 SUB-LEVELS CLEARED (0%)</b>
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 4px;">
+        <div id="goteborg-liberation-progress" class="city-progress-badge" style="margin-bottom: 0;">
+          🇸🇪 GÖTEBORG LIBERATION: <b>0 / 4 SUB-LEVELS CLEARED (0%)</b>
+        </div>
+        <button id="btn-goteborg-active-hero" title="Click to Change Hero" style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid #a855f7; border-radius: 12px; padding: 3px 12px; cursor: pointer; color: #e9d5ff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);">
+          <span>HERO:</span> <b id="goteborg-hero-label" style="color: #00f0ff;">♒ AQUARIUS</b> <span style="font-size: 9.5px; color: #c084fc;">[CHANGE]</span>
+        </button>
       </div>
 
       <div class="city-map-layout">
@@ -321,6 +331,7 @@
 
       <div class="city-map-actions">
         <button id="btn-deploy-sublevel" class="btn-main btn-confirm-deploy">⚔️ DEPLOY TO SUB-LEVEL [ENTER] ⚔️</button>
+        <button id="btn-city-to-char" class="btn-secondary" style="border-color: #a855f7; color: #e9d5ff;">👤 SELECT HERO</button>
         <button id="btn-back-to-world-map" class="btn-secondary">← WORLD MAP OF SWEDEN</button>
         <button id="btn-open-shop-from-city" class="btn-secondary" style="border-color: #fb923c; color: #fdba74;">☕ FIKA SHOP</button>
       </div>
@@ -334,6 +345,7 @@
         <button id="btn-res-next-sublevel" class="btn-main btn-confirm-deploy" style="display: none;">CONTINUE TO NEXT SUB-LEVEL ⚔️</button>
         <button id="btn-res-goteborg-map" class="btn-main" style="background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);">🇸🇪 GÖTEBORG CITY MAP [SUB-LEVELS]</button>
         <button id="btn-res-replay" class="btn-secondary">REPLAY SUB-LEVEL</button>
+        <button id="btn-res-char-select" class="btn-secondary" style="border-color: #a855f7; color: #e9d5ff;">👤 SELECT HERO</button>
         <button id="btn-res-next" class="btn-secondary">SWEDEN REALM MAP</button>
       </div>
     </div>
@@ -350,13 +362,35 @@
 
       <button id="btn-close-shop" class="btn-main" style="margin-top: 16px;">RETURN TO TITLE MENU</button>
     </div>
+
+    <!-- SCREEN 6: IN-GAME PAUSE MENU -->
+    <div id="screen-pause" class="screen-overlay" style="display: none;">
+      <div class="screen-title" style="color: #00f0ff; text-shadow: 0 0 20px rgba(0,240,255,0.7);">⏸️ GAME PAUSED</div>
+      <div id="pause-level-name" class="screen-subtitle" style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">GÖTEBORG: ERIKSBERG SHIPYARDS</div>
+
+      <div class="pause-hero-badge" id="pause-hero-badge">
+        <span id="pause-hero-icon" style="font-size: 24px;">♒</span>
+        <div style="text-align: left;">
+          <div style="font-size: 13px; font-weight: 900; color: #00f0ff;" id="pause-hero-name">AQUARIUS</div>
+          <div style="font-size: 9.5px; color: #94a3b8;" id="pause-hero-city">Gothenburg • Cyber Wave Hacker</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; width: 320px;">
+        <button id="btn-pause-resume" class="btn-main" style="padding: 10px 20px;">▶️ RESUME BATTLE [ESC]</button>
+        <button id="btn-pause-char-select" class="btn-secondary" style="border-color: #a855f7; color: #e9d5ff; padding: 9px 20px; font-weight: 800;">👤 SELECT HERO</button>
+        <button id="btn-pause-restart" class="btn-secondary" style="padding: 8px 20px;">🔄 RESTART SECTOR</button>
+        <button id="btn-pause-city-map" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff; padding: 8px 20px;">🇸🇪 GÖTEBORG CITY MAP</button>
+        <button id="btn-pause-main-menu" class="btn-secondary" style="padding: 8px 20px;">🏠 MAIN MENU</button>
+      </div>
+    </div>
   </div>
 
   <div class="controls-hint">
     <span><b>P1:</b> <kbd>WASD</kbd> + <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>Space</kbd> <kbd>T</kbd></span>
     <span><b>P2:</b> <kbd>Arrows</kbd> + <kbd>1</kbd>/<kbd>K</kbd> <kbd>2</kbd>/<kbd>L</kbd> <kbd>3</kbd>/<kbd>O</kbd> <kbd>0</kbd>/<kbd>Shift</kbd> <kbd>4</kbd>/<kbd>P</kbd></span>
     <span><b>Relics:</b> 🧆 Köttbullar (+HP) | 🐟 Surströmming | ☕ Fika</span>
-    <button id="btn-toggle-fullscreen" style="background: rgba(15,23,42,0.9); border: 1.5px solid #00f0ff; color: #00f0ff; border-radius: 5px; padding: 2px 10px; font-size: 11px; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4);">⛶ ВО ВЕСЬ ЭКРАН / FULLSCREEN</button>
+    <button id="btn-toggle-fullscreen" style="background: rgba(15,23,42,0.9); border: 1.5px solid #00f0ff; color: #00f0ff; border-radius: 5px; padding: 2px 10px; font-size: 11px; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4);">⛶ FULLSCREEN</button>
   </div>
 
   <script>

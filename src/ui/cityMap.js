@@ -1,5 +1,6 @@
 import { sound } from '../engine/Audio.js';
 import { LEVELS } from '../config/levels.js';
+import { HERO_CONFIGS } from '../config/heroes.js';
 
 export const GOTEBORG_SUBLEVELS = [
   {
@@ -12,18 +13,18 @@ export const GOTEBORG_SUBLEVELS = [
     color: '#00f0ff',
     xPct: 18,
     yPct: 62,
-    length: '3,200px',
+    length: '7,500px (Full Sector)',
     difficulty: 'NORMAL',
     difficultyStars: '★☆☆☆',
     threat: 'Shipyard Syndicate Shock Guards',
     hazard: 'Electric Harbor Water & Canal Drops',
     vehicle: 'None (Docks Foot Infiltration)',
     bossName: 'Shipyard Syndicate Captain (Mini-Boss)',
-    shardsReward: 25,
-    lore: 'Infiltrate the historic Eriksberg drydocks where cyber-patrols guard the harbor canals. Navigate motorized ferry barges across hazardous electric waterways to secure the industrial perimeter.',
+    shardsReward: 35,
+    lore: 'Infiltrate the historic Eriksberg drydocks where cyber-patrols guard the harbor canals across an expansive 7,500px shoreline. Navigate motorized ferry barges across hazardous electric waterways to secure the industrial perimeter.',
     objectives: [
-      'Navigate ferry barges across electric harbor canals',
-      'Neutralize 12 Syndicate shock troopers',
+      'Navigate ferry barges across 3 electric harbor canals',
+      'Neutralize 24 Syndicate shock troopers across 3 sectors',
       'Defeat the Shipyard Syndicate Captain'
     ]
   },
@@ -37,18 +38,18 @@ export const GOTEBORG_SUBLEVELS = [
     color: '#38bdf8',
     xPct: 44,
     yPct: 38,
-    length: '3,500px',
+    length: '8,000px (Full Sector)',
     difficulty: 'CHALLENGING',
     difficultyStars: '★★☆☆',
     threat: 'Cyber-Golems & EMP Shock Troopers',
     hazard: 'High-Voltage Tramway Rails & Steam Vents',
-    vehicle: '🛵 Lindholmen Hover-Trike Available!',
+    vehicle: '🛵 Dual Lindholmen Hover-Trikes Available!',
     bossName: 'Cyber-Golem Vanguard (Mini-Boss)',
-    shardsReward: 35,
-    lore: 'Battle across the elevated Gothenburg Blue Tramway catenary beams into the neon-lit Lindholmen Science Park. Commandeer a high-tech Hover-Trike to smash through cyber-golem barricades.',
+    shardsReward: 45,
+    lore: 'Battle across 8,000px of elevated Gothenburg Blue Tramway catenary beams into the neon-lit Lindholmen Science Park. Commandeer high-tech Hover-Trikes to smash through cyber-golem barricades.',
     objectives: [
       'Ride the Lindholmen Hover-Trike through enemy lines',
-      'Disarm high-pressure steam updraft vents',
+      'Disarm high-pressure steam updraft vents across viaducts',
       'Defeat the Cyber-Golem Vanguard & EMP mystics'
     ]
   },
@@ -62,18 +63,18 @@ export const GOTEBORG_SUBLEVELS = [
     color: '#818cf8',
     xPct: 68,
     yPct: 58,
-    length: '3,600px',
+    length: '8,200px (Full Sector)',
     difficulty: 'HARD',
     difficultyStars: '★★★☆',
     threat: 'Steam Juggernauts & Bastion Defenders',
     hazard: 'Granite Bastion Traps & Conveyor Saws',
     vehicle: 'None (Vertical Climbing)',
     bossName: 'Bastion Steam Troll Berserker (Mini-Boss)',
-    shardsReward: 45,
-    lore: 'Ascend the steep cobblestone hillside toward the granite ramparts of Skansen Kronan fortress, then breach the abandoned Volvo heavy industrial factory where steam trolls have fortified the assembly floor.',
+    shardsReward: 55,
+    lore: 'Ascend the steep cobblestone hillside toward the granite ramparts of Skansen Kronan fortress, then breach the abandoned Volvo heavy industrial factory across 8,200px of scrap conveyors and steam forges.',
     objectives: [
-      'Ascend the Skansen Kronan watchtowers',
-      'Navigate active industrial scrap conveyors',
+      'Ascend the Skansen Kronan watchtowers to the Golden Crown',
+      'Navigate active industrial scrap conveyors and gear lifts',
       'Neutralize the Bastion Steam Troll Berserker'
     ]
   },
@@ -87,18 +88,18 @@ export const GOTEBORG_SUBLEVELS = [
     color: '#ef4444',
     xPct: 86,
     yPct: 30,
-    length: '4,000px',
+    length: '9,000px (Epic Titan Level)',
     difficulty: 'EXTREME (BOSS)',
     difficultyStars: '★★★★',
     threat: 'TITAN BOSS: MEKANISK KRAN-KRAKEN',
     hazard: 'Torrential Storm Waves & Abyssal Trenches',
     vehicle: 'None (True Heroic Duel)',
-    bossName: '🐙 MEKANISK KRAN-KRAKEN (1,250 HP)',
-    shardsReward: 75,
-    lore: 'Traverse the towering suspension cables of the Älvsborg Bridge amidst a ferocious storm. Descend into the deep sea arena for the ultimate battle against the Mekanisk Kran-Kraken!',
+    bossName: '🐙 MEKANISK KRAN-KRAKEN (1,350 HP)',
+    shardsReward: 100,
+    lore: 'Traverse the 9,000px towering suspension cables of the Älvsborg Bridge amidst a ferocious storm. Descend into the deep sea arena for the ultimate battle against the Mekanisk Kran-Kraken!',
     objectives: [
       'Cross the suspension bridge towers in heavy storm',
-      'Survive the abyssal trench platforming',
+      'Survive the abyssal trench platforming and sky-gondolas',
       'DEFEAT MEKANISK KRAN-KRAKEN & LIBERATE GÖTEBORG!'
     ]
   }
@@ -191,9 +192,10 @@ class CityMapManager {
     return null;
   }
 
-  init(onDeploy, onBack) {
+  init(onDeploy, onBack, onCharSelect = null) {
     this.onDeployCallback = onDeploy;
     this.onBackCallback = onBack;
+    this.onCharSelectCallback = onCharSelect;
 
     const deployBtn = document.getElementById('btn-deploy-sublevel');
     if (deployBtn) {
@@ -203,6 +205,24 @@ class CityMapManager {
         if (this.onDeployCallback) {
           this.onDeployCallback(this.selectedSubLevelId);
         }
+      });
+    }
+
+    const charBtn = document.getElementById('btn-city-to-char');
+    if (charBtn) {
+      charBtn.addEventListener('click', () => {
+        sound.init();
+        sound.playSelect();
+        if (this.onCharSelectCallback) this.onCharSelectCallback();
+      });
+    }
+
+    const activeHeroBtn = document.getElementById('btn-goteborg-active-hero');
+    if (activeHeroBtn) {
+      activeHeroBtn.addEventListener('click', () => {
+        sound.init();
+        sound.playSelect();
+        if (this.onCharSelectCallback) this.onCharSelectCallback();
       });
     }
 
@@ -422,6 +442,15 @@ class CityMapManager {
       const clearedCount = GOTEBORG_SUBLEVELS.filter(s => this.isCleared(s.id)).length;
       const pct = Math.round((clearedCount / GOTEBORG_SUBLEVELS.length) * 100);
       badge.innerHTML = `🇸🇪 GÖTEBORG LIBERATION: <b>${clearedCount} / ${GOTEBORG_SUBLEVELS.length} SUB-LEVELS CLEARED (${pct}%)</b>`;
+    }
+
+    const heroLabel = document.getElementById('goteborg-hero-label');
+    if (heroLabel && window.currentGameManager) {
+      const h = HERO_CONFIGS[window.currentGameManager.p1HeroId];
+      if (h) {
+        heroLabel.innerText = `${h.symbol} ${h.name.toUpperCase()}`;
+        heroLabel.style.color = h.color;
+      }
     }
   }
 }

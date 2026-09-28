@@ -75,37 +75,38 @@
 
 /* 12 ZODIAC SELECTION SCREEN */
 #screen-char-select {
-  padding: 8px 16px 6px 16px;
+  padding: 6px 14px;
   justify-content: flex-start;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 #screen-char-select .screen-title {
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 2px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 #screen-char-select .screen-subtitle {
-  font-size: 11px;
-  margin-bottom: 4px;
+  font-size: 10.5px;
+  margin-bottom: 2px;
 }
 #screen-char-select .selector-status-bar {
-  margin-bottom: 5px;
-  font-size: 11px;
+  margin-bottom: 4px;
+  font-size: 10.5px;
 }
 
 .zodiac-12-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 5px;
+  gap: 4px;
   width: 100%;
-  max-width: 1020px;
-  margin-bottom: 6px;
+  max-width: 1040px;
+  margin-bottom: 4px;
 }
 .zodiac-card {
   background: #091124;
   border: 1.5px solid #1e293b;
   border-radius: 8px;
-  padding: 4px 3px;
+  padding: 3px 2px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -176,14 +177,14 @@
 .char-preview-panel {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  max-width: 1020px;
+  max-width: 1040px;
   background: rgba(15, 23, 42, 0.94);
   border: 1.5px solid rgba(56, 189, 248, 0.45);
   border-radius: 10px;
-  padding: 6px 12px;
-  margin-bottom: 6px;
+  padding: 4px 10px;
+  margin-bottom: 4px;
   backdrop-filter: blur(10px);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(56, 189, 248, 0.08);
 }
@@ -194,8 +195,8 @@
   flex-shrink: 0;
 }
 .char-preview-avatar {
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 2px solid #00f0ff;
   display: flex;
@@ -215,8 +216,8 @@
   border: 1px solid rgba(56, 189, 248, 0.3);
   border-radius: 8px;
   padding: 2px;
-  width: 58px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
 }
 .preview-sprite-label {
   font-size: 6.5px;
@@ -325,11 +326,12 @@
 }
 .char-select-actions {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 4px;
+  flex-wrap: wrap;
 }
 .btn-confirm-deploy {
   background: linear-gradient(135deg, #00f0ff 0%, #0284c7 60%, #38bdf8 100%);
@@ -756,4 +758,29 @@
   width: 100%;
   margin-top: 3px;
 }
+
+/* ================= SCREEN: IN-GAME PAUSE MENU ================= */
+#screen-pause {
+  z-index: 60;
+  background: rgba(3, 7, 20, 0.96);
+  backdrop-filter: blur(14px);
+  padding: 24px;
+}
+#screen-pause .screen-title {
+  font-size: 26px;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+.pause-hero-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid #00f0ff;
+  border-radius: 12px;
+  padding: 8px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+}
+
 

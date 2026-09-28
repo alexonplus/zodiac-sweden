@@ -341,7 +341,7 @@ export const HERO_COMBAT = {
         if (Math.sign(dx) === p.facing && Math.abs(dx) < 360 && Math.abs(en.y - p.y) < 140) {
           const dmg = Math.floor(62 * dmgMult);
           en.hp -= dmg;
-          // ВЕТРОМ СДУВАЕТ ЧЕРЕЗ ВЕСЬ ЭКРАН!
+          // Gale force winds blow enemy across the screen!
           en.windBlowTimer = 55;
           en.windBlowVx = p.facing * 20;
           en.vy = -7;
