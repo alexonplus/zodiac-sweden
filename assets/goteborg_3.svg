@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1376" height="768" viewBox="0 0 1376 768">
+  <defs>
+    <!-- Thunderstorm Sky Gradient -->
+    <linearGradient id="g3Sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#050814" />
+      <stop offset="35%" stop-color="#150e29" />
+      <stop offset="65%" stop-color="#2c174d" />
+      <stop offset="85%" stop-color="#4c1d95" />
+      <stop offset="100%" stop-color="#6d28d9" />
+    </linearGradient>
+
+    <!-- Golden Crown Gradient -->
+    <linearGradient id="goldCrown" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="45%" stop-color="#facc15" />
+      <stop offset="80%" stop-color="#ca8a04" />
+      <stop offset="100%" stop-color="#854d0e" />
+    </linearGradient>
+
+    <!-- Granite Stone Bastion Gradient -->
+    <linearGradient id="graniteStone" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="40%" stop-color="#475569" />
+      <stop offset="70%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+
+    <!-- Industrial Brick Factory Gradient -->
+    <linearGradient id="factoryBrick" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7f1d1d" />
+      <stop offset="50%" stop-color="#991b1b" />
+      <stop offset="100%" stop-color="#450a0a" />
+    </linearGradient>
+
+    <!-- Factory Ground Gradient -->
+    <linearGradient id="g3Ground" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="40%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+  </defs>
+
+  <!-- Sky Base -->
+  <rect width="1376" height="520" fill="url(#g3Sky)" />
+
+  <!-- Storm Cloud Formations & Distant Lightning Glow -->
+  <g opacity="0.6">
+    <ellipse cx="400" cy="180" rx="350" ry="110" fill="#1e1035" />
+    <ellipse cx="850" cy="140" rx="420" ry="120" fill="#241242" />
+    <ellipse cx="1200" cy="190" rx="300" ry="90" fill="#1b0d33" />
+    <!-- Distant Lightning Flash behind the Fortress -->
+    <polygon points="410,40 400,120 425,125 390,210 440,115 415,110 435,40" fill="#e9d5ff" opacity="0.85" />
+    <circle cx="410" cy="140" r="140" fill="#c084fc" opacity="0.15" />
+  </g>
+
+  <!-- Smoke Plumes from Factory Ruins (Right) -->
+  <g fill="#312e81" opacity="0.35">
+    <circle cx="980" cy="220" r="50" />
+    <circle cx="960" cy="160" r="70" />
+    <circle cx="990" cy="100" r="95" />
+    <circle cx="1180" cy="200" r="45" />
+    <circle cx="1200" cy="140" r="65" />
+    <circle cx="1170" cy="80" r="85" />
+  </g>
+
+  <!-- ================= LEFT: RISÅSBERGET HILL & SKANSEN KRONAN FORTRESS ================= -->
+  <!-- Rocky Granite Hill (Risåsberget) -->
+  <path d="M0,520 L0,320 Q120,290 220,260 Q340,240 420,240 Q550,250 640,340 Q720,420 780,520 Z" 
+        fill="#1e293b" stroke="#0f172a" stroke-width="3" />
+  <!-- Rugged Rock Cliffs on Hillside -->
+  <g stroke="#0f172a" stroke-width="3" fill="#182232">
+    <polygon points="120,400 180,360 210,420 150,440" />
+    <polygon points="260,370 330,340 370,390 300,420" />
+    <polygon points="460,360 520,330 570,380 500,410" />
+    <polygon points="380,430 450,400 480,450 410,470" />
+  </g>
+
+  <!-- Skansen Kronan Octagonal Granite Tower Base (Sitting on Hill Summit) -->
+  <g id="skansen-kronan-tower">
+    <!-- Granite Foundation Bastion Walls -->
+    <polygon points="280,240 310,130 520,130 550,240" fill="url(#graniteStone)" stroke="#0f172a" stroke-width="4" />
+    
+    <!-- Stone Course Quoins & Masonry Details -->
+    <line x1="295" y1="185" x2="535" y2="185" stroke="#1e293b" stroke-width="3" />
+    <line x1="380" y1="130" x2="380" y2="240" stroke="#1e293b" stroke-width="2" />
+    <line x1="450" y1="130" x2="450" y2="240" stroke="#1e293b" stroke-width="2" />
+
+    <!-- Fortress Gun Embrasures / Cannon Ports (Arched Stone Windows) -->
+    <rect x="335" y="155" width="22" height="30" rx="10" fill="#090d16" stroke="#0f172a" stroke-width="2" />
+    <rect x="405" y="155" width="22" height="30" rx="10" fill="#090d16" stroke="#0f172a" stroke-width="2" />
+    <rect x="475" y="155" width="22" height="30" rx="10" fill="#090d16" stroke="#0f172a" stroke-width="2" />
+
+    <!-- Cannon Barrels Protruding from Fortress -->
+    <rect x="325" y="168" width="22" height="7" fill="#0f172a" />
+    <rect x="395" y="168" width="22" height="7" fill="#0f172a" />
+    <rect x="465" y="168" width="22" height="7" fill="#0f172a" />
+
+    <!-- Fortress Wooden Mansard Roof -->
+    <polygon points="295,130 340,75 490,75 535,130" fill="#451a03" stroke="#1c0a00" stroke-width="3" />
+    <!-- Roof Weathered Copper Lantern Base -->
+    <rect x="390" y="55" width="50" height="20" fill="#047857" stroke="#064e3b" stroke-width="2" />
+
+    <!-- ================= THE FAMOUS GOLDEN CROWN (GYLLENE KRONAN) ================= -->
+    <!-- Giant Gleaming Swedish Royal Crown on top of Skansen Kronan -->
+    <g id="swedish-golden-crown">
+      <!-- Crown Base Circlet Band with Jewels -->
+      <rect x="382" y="44" width="66" height="12" rx="2" fill="url(#goldCrown)" stroke="#78350f" stroke-width="2" />
+      <!-- Jewels on Band -->
+      <circle cx="392" cy="50" r="3" fill="#dc2626" />
+      <circle cx="405" cy="50" r="3" fill="#2563eb" />
+      <circle cx="415" cy="50" r="3.5" fill="#ffffff" />
+      <circle cx="425" cy="50" r="3" fill="#2563eb" />
+      <circle cx="438" cy="50" r="3" fill="#dc2626" />
+
+      <!-- Five Crown Spikes / Fleur-de-lis Peaks -->
+      <polygon points="382,44 386,22 396,34 390,44" fill="url(#goldCrown)" stroke="#78350f" stroke-width="1.5" />
+      <polygon points="394,44 402,15 410,34 404,44" fill="url(#goldCrown)" stroke="#78350f" stroke-width="1.5" />
+      <!-- Center Grand Sovereign Peak -->
+      <polygon points="408,44 415,8 422,44" fill="url(#goldCrown)" stroke="#78350f" stroke-width="2" />
+      <polygon points="420,44 428,15 436,34 430,44" fill="url(#goldCrown)" stroke="#78350f" stroke-width="1.5" />
+      <polygon points="434,44 444,22 448,44" fill="url(#goldCrown)" stroke="#78350f" stroke-width="1.5" />
+
+      <!-- Pearls atop each Peak -->
+      <circle cx="386" cy="20" r="2.5" fill="#fef08a" />
+      <circle cx="402" cy="13" r="3" fill="#fef08a" />
+      <circle cx="415" cy="6" r="4.5" fill="#fef08a" />
+      <circle cx="428" cy="13" r="3" fill="#fef08a" />
+      <circle cx="444" cy="20" r="2.5" fill="#fef08a" />
+
+      <!-- Crown Divine Radiance / Shimmer Halo -->
+      <circle cx="415" cy="25" r="45" fill="#fef08a" opacity="0.2" />
+    </g>
+  </g>
+
+  <!-- Foot of Hill: Historic Wooden Haga Houses (Landshövdingehus) -->
+  <g fill="#7c2d12" stroke="#451a03" stroke-width="2">
+    <!-- House 1 -->
+    <rect x="60" y="430" width="70" height="60" fill="#991b1b" />
+    <polygon points="55,430 95,395 135,430" fill="#451a03" />
+    <!-- House 2 -->
+    <rect x="145" y="440" width="80" height="50" fill="#b45309" />
+    <polygon points="140,440 185,405 230,440" fill="#451a03" />
+  </g>
+
+  <!-- ================= RIGHT: ABANDONED VOLVO FACTORY RUINS ================= -->
+  <!-- Distant Factory Skyline -->
+  <g fill="url(#factoryBrick)" stroke="#450a0a" stroke-width="3">
+    <!-- Heavy Industrial Assembly Hall 1 -->
+    <rect x="760" y="320" width="220" height="170" />
+    <!-- Sawtooth Roof (Industrial Skylights) -->
+    <polygon points="760,320 810,270 810,320" fill="#450a0a" />
+    <polygon points="810,320 860,270 860,320" fill="#450a0a" />
+    <polygon points="860,320 910,270 910,320" fill="#450a0a" />
+    <polygon points="910,320 960,270 960,320" fill="#450a0a" />
+
+    <!-- Tall Brick Industrial Smokestack 1 -->
+    <polygon points="965,490 975,180 1000,180 1010,490" fill="url(#factoryBrick)" />
+    <rect x="970" y="175" width="35" height="10" fill="#1c1917" />
+
+    <!-- Assembly Hall 2 (Ruined / Collapsed Trusses) -->
+    <rect x="1030" y="280" width="180" height="210" fill="#581c1c" />
+    <polygon points="1030,280 1120,220 1210,280" fill="#3b0707" />
+
+    <!-- Smokestack 2 (Shorter, with iron bracing bands) -->
+    <polygon points="1165,490 1172,210 1195,210 1202,490" fill="url(#factoryBrick)" />
+    <!-- Iron bands around chimney -->
+    <line x1="1173" y1="260" x2="1194" y2="260" stroke="#000000" stroke-width="3" />
+    <line x1="1171" y1="320" x2="1196" y2="320" stroke="#000000" stroke-width="3" />
+    <line x1="1169" y1="380" x2="1198" y2="380" stroke="#000000" stroke-width="3" />
+  </g>
+
+  <!-- Overhead Heavy Conveyor Gallery (Linking Assembly Halls) -->
+  <g stroke="#334155" stroke-width="3">
+    <!-- Elevated enclosed conveyor bridge -->
+    <rect x="910" y="340" width="150" height="26" fill="#1e293b" stroke="#0f172a" stroke-width="2" />
+    <line x1="910" y1="353" x2="1060" y2="353" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="8 6" />
+    <!-- Support Trestle Legs -->
+    <line x1="940" y1="366" x2="940" y2="490" stroke-width="4" />
+    <line x1="1030" y1="366" x2="1030" y2="490" stroke-width="4" />
+    <line x1="940" y1="420" x2="1030" y2="470" stroke-width="2" />
+    <line x1="1030" y1="420" x2="940" y2="470" stroke-width="2" />
+  </g>
+
+  <!-- Broken Industrial Paned Windows & Steam Vents -->
+  <g fill="#020617">
+    <rect x="780" y="360" width="45" height="55" stroke="#334155" stroke-width="2" />
+    <line x1="802" y1="360" x2="802" y2="415" stroke="#334155" stroke-width="1" />
+    <line x1="780" y1="387" x2="825" y2="387" stroke="#334155" stroke-width="1" />
+
+    <rect x="850" y="360" width="45" height="55" stroke="#334155" stroke-width="2" />
+    <line x1="872" y1="360" x2="872" y2="415" stroke="#334155" stroke-width="1" />
+    <line x1="850" y1="387" x2="895" y2="387" stroke="#334155" stroke-width="1" />
+  </g>
+
+  <!-- Ground Layer: Factory Cobblestone & Debris -->
+  <rect y="490" width="1376" height="278" fill="url(#g3Ground)" />
+  <line x1="0" y1="490" x2="1376" y2="490" stroke="#6366f1" stroke-width="2" />
+
+  <!-- Sector Watermark Badge -->
+  <g opacity="0.6">
+    <rect x="30" y="30" width="410" height="48" rx="6" fill="#0f172a" opacity="0.8" stroke="#818cf8" stroke-width="1.5" />
+    <text x="45" y="52" font-family="'Orbitron', sans-serif" font-size="13" font-weight="900" fill="#c084fc" letter-spacing="1">SUB-LEVEL 1-3: SKANSEN KRONAN</text>
+    <text x="45" y="68" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">Haga Fortified Bastion • Volvo Industrial Ruins</text>
+  </g>
+</svg>

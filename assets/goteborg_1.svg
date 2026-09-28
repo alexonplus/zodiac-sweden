@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1376" height="768" viewBox="0 0 1376 768">
+  <defs>
+    <!-- Sky Sunset Gradient -->
+    <linearGradient id="g1Sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f" />
+      <stop offset="35%" stop-color="#1e294b" />
+      <stop offset="55%" stop-color="#3b1d4a" />
+      <stop offset="72%" stop-color="#831843" />
+      <stop offset="85%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+
+    <!-- Water Reflection Gradient -->
+    <linearGradient id="g1Water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c" stop-opacity="0.9" />
+      <stop offset="15%" stop-color="#9a3412" stop-opacity="0.8" />
+      <stop offset="40%" stop-color="#1e293b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+
+    <!-- Sun Glow -->
+    <radialGradient id="sunGlow" cx="65%" cy="80%" r="45%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.85" />
+      <stop offset="30%" stop-color="#f97316" stop-opacity="0.5" />
+      <stop offset="65%" stop-color="#be185d" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#0a192f" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Distant City Silhouette Gradient -->
+    <linearGradient id="cityDistant" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2d1339" />
+      <stop offset="100%" stop-color="#150a24" />
+    </linearGradient>
+
+    <!-- Midground Docks Gradient -->
+    <linearGradient id="docksMid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#182338" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+
+    <!-- Crane Orange Metal Gradient -->
+    <linearGradient id="craneMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c2410c" />
+      <stop offset="50%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#9a3412" />
+    </linearGradient>
+  </defs>
+
+  <!-- Sky Base -->
+  <rect width="1376" height="520" fill="url(#g1Sky)" />
+
+  <!-- Sun Glow on Horizon -->
+  <rect width="1376" height="520" fill="url(#sunGlow)" />
+
+  <!-- Sunset Cirrus & Cloud Layers -->
+  <path d="M0,260 Q300,240 650,270 T1376,250 L1376,320 Q1050,340 700,310 T0,330 Z" fill="#9d174d" opacity="0.35" />
+  <path d="M0,320 Q400,290 850,330 T1376,310 L1376,370 Q950,400 500,360 T0,380 Z" fill="#c2410c" opacity="0.4" />
+  <path d="M0,380 Q350,360 750,390 T1376,370 L1376,430 Q1050,450 600,420 T0,440 Z" fill="#f97316" opacity="0.45" />
+
+  <!-- Sun Disk partially dipping into harbor horizon -->
+  <circle cx="890" cy="460" r="48" fill="#fef08a" opacity="0.9" />
+
+  <!-- Distant Gothenburg City & Church Silhouette (Masthugget & City Center) -->
+  <path d="M0,480 L40,470 L70,470 L80,450 L95,450 L105,480 L180,480 L190,440 L210,440 L220,480 L310,480 
+           L330,430 L345,390 L355,390 L370,430 L390,480 L450,480 L460,460 L490,460 L500,480 L580,480
+           L600,435 L620,435 L630,480 L720,480 L735,450 L755,450 L770,480 L880,480 L900,465 L930,465
+           L940,480 L1020,480 L1040,420 L1060,420 L1070,480 L1180,480 L1200,450 L1230,450 L1245,480 L1376,480 L1376,520 L0,520 Z" 
+        fill="url(#cityDistant)" opacity="0.85" />
+
+  <!-- Göta Älv River Waters -->
+  <rect y="490" width="1376" height="278" fill="url(#g1Water)" />
+
+  <!-- Water Surface Horizon Golden Shimmer -->
+  <rect x="760" y="490" width="260" height="15" fill="#fde047" opacity="0.6" />
+  <ellipse cx="890" cy="515" rx="140" ry="8" fill="#f97316" opacity="0.75" />
+  <ellipse cx="890" cy="535" rx="190" ry="7" fill="#ea580c" opacity="0.6" />
+  <ellipse cx="890" cy="560" rx="130" ry="6" fill="#f59e0b" opacity="0.5" />
+  <ellipse cx="890" cy="590" rx="170" ry="5" fill="#f97316" opacity="0.4" />
+  <ellipse cx="890" cy="630" rx="220" ry="4" fill="#c2410c" opacity="0.3" />
+
+  <!-- Distant Port Cranes & Shipping Lattice Frameworks (Left & Center) -->
+  <g stroke="#1a2536" stroke-width="2" opacity="0.75">
+    <!-- Small Left Harbor Crane -->
+    <line x1="120" y1="480" x2="150" y2="380" />
+    <line x1="170" y1="480" x2="150" y2="380" />
+    <line x1="150" y1="380" x2="230" y2="340" />
+    <line x1="150" y1="380" x2="110" y2="370" />
+    <line x1="220" y1="345" x2="220" y2="440" stroke-dasharray="2 2" />
+
+    <!-- Tall Ship Rigging Silhouette (East Indiaman Götheborg) -->
+    <line x1="450" y1="490" x2="450" y2="350" stroke-width="3" stroke="#111827" />
+    <line x1="480" y1="490" x2="480" y2="330" stroke-width="3.5" stroke="#111827" />
+    <line x1="510" y1="490" x2="510" y2="360" stroke-width="3" stroke="#111827" />
+    <!-- Yards / Crossbeams -->
+    <line x1="420" y1="380" x2="480" y2="380" stroke="#111827" />
+    <line x1="430" y1="415" x2="470" y2="415" stroke="#111827" />
+    <line x1="450" y1="365" x2="510" y2="365" stroke="#111827" />
+    <line x1="455" y1="400" x2="505" y2="400" stroke="#111827" />
+    <line x1="485" y1="390" x2="535" y2="390" stroke="#111827" />
+    <!-- Ship Hull Silhouette -->
+    <path d="M400,490 Q470,510 550,490 L560,470 L390,470 Z" fill="#0f172a" stroke="none" />
+  </g>
+
+  <!-- ================= ICONIC ERIKSBERG RED-ORANGE 450T CRANE ================= -->
+  <g id="eriksberg-crane">
+    <!-- Left Gantry Leg -->
+    <polygon points="980,490 1020,490 1055,140 1025,140" fill="url(#craneMetal)" />
+    <!-- Right Gantry Leg -->
+    <polygon points="1280,490 1240,490 1195,140 1225,140" fill="url(#craneMetal)" />
+
+    <!-- Cross Truss Bracing (X-lattice) -->
+    <g stroke="#7c2d12" stroke-width="4">
+      <line x1="1030" y1="420" x2="1250" y2="420" />
+      <line x1="1035" y1="350" x2="1240" y2="350" />
+      <line x1="1040" y1="270" x2="1230" y2="270" />
+      <line x1="1045" y1="190" x2="1220" y2="190" />
+      <!-- Diagonal bracing -->
+      <line x1="1030" y1="420" x2="1240" y2="350" stroke-width="3" />
+      <line x1="1250" y1="420" x2="1035" y2="350" stroke-width="3" />
+      <line x1="1035" y1="350" x2="1230" y2="270" stroke-width="3" />
+      <line x1="1240" y1="350" x2="1040" y2="270" stroke-width="3" />
+      <line x1="1040" y1="270" x2="1220" y2="190" stroke-width="3" />
+      <line x1="1230" y1="270" x2="1045" y2="190" stroke-width="3" />
+    </g>
+
+    <!-- Top Horizontal Heavy Box Gantry Beam -->
+    <rect x="940" y="110" width="370" height="36" fill="url(#craneMetal)" stroke="#7c2d12" stroke-width="3" />
+    <rect x="940" y="146" width="370" height="8" fill="#431407" />
+
+    <!-- Upper Hoist Trolley House -->
+    <rect x="1080" y="85" width="80" height="25" fill="#ea580c" stroke="#7c2d12" stroke-width="2" />
+    <!-- Hoist Cables hanging down -->
+    <line x1="1105" y1="110" x2="1105" y2="320" stroke="#0f172a" stroke-width="2" />
+    <line x1="1135" y1="110" x2="1135" y2="320" stroke="#0f172a" stroke-width="2" />
+    <!-- Spreader Bar & Hook -->
+    <rect x="1095" y="320" width="50" height="12" fill="#facc15" stroke="#78350f" stroke-width="2" />
+    <path d="M1120,332 L1120,350 Q1120,365 1110,360 Q1100,355 1105,345" fill="none" stroke="#facc15" stroke-width="4" />
+
+    <!-- "ERIKSBERG" Lettering on Gantry Beam -->
+    <text x="965" y="134" font-family="'Impact', 'Arial Black', sans-serif" font-size="20" font-weight="900" fill="#ffffff" letter-spacing="4">ERIKSBERG</text>
+    <text x="1230" y="133" font-family="'Impact', 'Arial Black', sans-serif" font-size="14" font-weight="900" fill="#fef08a">450T</text>
+
+    <!-- Top Aviation Warning Beacon Light (Red Glow) -->
+    <circle cx="1120" cy="80" r="14" fill="#ef4444" opacity="0.3" />
+    <circle cx="1120" cy="80" r="6" fill="#f87171" />
+    <circle cx="1120" cy="80" r="2.5" fill="#ffffff" />
+  </g>
+
+  <!-- Marina Pier Pilings & Moored Yachts (Foreground / Water Level) -->
+  <g fill="#0b1322">
+    <!-- Drydock Wall & Pier (Right) -->
+    <rect x="1000" y="475" width="376" height="35" fill="url(#docksMid)" />
+    <line x1="1000" y1="475" x2="1376" y2="475" stroke="#f59e0b" stroke-width="3" stroke-dasharray="25 15" />
+    <!-- Bollards -->
+    <rect x="1040" y="465" width="10" height="10" fill="#334155" rx="2" />
+    <rect x="1150" y="465" width="10" height="10" fill="#334155" rx="2" />
+    <rect x="1260" y="465" width="10" height="10" fill="#334155" rx="2" />
+    <rect x="1350" y="465" width="10" height="10" fill="#334155" rx="2" />
+
+    <!-- Pier (Left: Lilla Bommen Marina) -->
+    <rect x="0" y="475" width="360" height="35" fill="url(#docksMid)" />
+    <line x1="0" y1="475" x2="360" y2="475" stroke="#00f0ff" stroke-width="2" />
+    <!-- Marina Lamp posts -->
+    <line x1="60" y1="475" x2="60" y2="430" stroke="#475569" stroke-width="3" />
+    <circle cx="60" cy="428" r="8" fill="#fde047" opacity="0.4" />
+    <circle cx="60" cy="428" r="3" fill="#ffffff" />
+
+    <line x1="200" y1="475" x2="200" y2="430" stroke="#475569" stroke-width="3" />
+    <circle cx="200" cy="428" r="8" fill="#fde047" opacity="0.4" />
+    <circle cx="200" cy="428" r="3" fill="#ffffff" />
+  </g>
+
+  <!-- Level Sector Title Plate (Watermark in top-left) -->
+  <g opacity="0.55">
+    <rect x="30" y="30" width="340" height="48" rx="6" fill="#0f172a" opacity="0.7" stroke="#ea580c" stroke-width="1.5" />
+    <text x="45" y="52" font-family="'Orbitron', sans-serif" font-size="13" font-weight="900" fill="#fb923c" letter-spacing="1">SUB-LEVEL 1-1: ERIKSBERG SHIPYARD</text>
+    <text x="45" y="68" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">Lilla Bommen Marina • 450T Drydock Cranes</text>
+  </g>
+</svg>

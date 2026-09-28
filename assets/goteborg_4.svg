@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1376" height="768" viewBox="0 0 1376 768">
+  <defs>
+    <!-- Tempest Abyss Sky Gradient -->
+    <linearGradient id="g4Sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#01040a" />
+      <stop offset="35%" stop-color="#041224" />
+      <stop offset="65%" stop-color="#08223d" />
+      <stop offset="85%" stop-color="#0e3a5a" />
+      <stop offset="100%" stop-color="#155e75" />
+    </linearGradient>
+
+    <!-- Älvsborgsbron Green Steel Gradient -->
+    <linearGradient id="alvsborgGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="30%" stop-color="#047857" />
+      <stop offset="70%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+
+    <!-- Abyssal Trench Ocean Gradient -->
+    <linearGradient id="g4Water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#083344" />
+      <stop offset="20%" stop-color="#041e2e" />
+      <stop offset="60%" stop-color="#020d18" />
+      <stop offset="100%" stop-color="#01060d" />
+    </linearGradient>
+
+    <!-- Kraken Biomechanical Armor Gradient -->
+    <linearGradient id="krakenArmor" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Red Menace Boss Glow -->
+    <radialGradient id="bossEyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="40%" stop-color="#b91c1c" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#7f1d1d" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Sky Base -->
+  <rect width="1376" height="520" fill="url(#g4Sky)" />
+
+  <!-- Tempest Rain Torrent Streaks across sky -->
+  <g stroke="#38bdf8" stroke-width="1.2" opacity="0.25">
+    <line x1="80" y1="0" x2="20" y2="400" />
+    <line x1="220" y1="0" x2="160" y2="450" />
+    <line x1="390" y1="0" x2="330" y2="420" />
+    <line x1="560" y1="0" x2="500" y2="460" />
+    <line x1="740" y1="0" x2="680" y2="430" />
+    <line x1="910" y1="0" x2="850" y2="440" />
+    <line x1="1100" y1="0" x2="1040" y2="470" />
+    <line x1="1280" y1="0" x2="1220" y2="410" />
+  </g>
+
+  <!-- Violent Thunderstorm Clouds & Lightning Flash -->
+  <g>
+    <!-- Lightning Bolt 1: striking behind suspension tower -->
+    <polygon points="460,20 445,110 470,115 435,210 480,105 455,100 480,20" fill="#a5f3fc" opacity="0.9" />
+    <circle cx="455" cy="115" r="160" fill="#0891b2" opacity="0.2" />
+
+    <!-- Lightning Bolt 2: striking right ocean abyss -->
+    <polygon points="1080,40 1065,130 1090,135 1050,250 1100,125 1075,120 1100,40" fill="#a5f3fc" opacity="0.85" />
+    <circle cx="1075" cy="135" r="140" fill="#06b6d4" opacity="0.15" />
+  </g>
+
+  <!-- ================= ÄLVSBORGSBRON (THE ICONIC SUSPENSION BRIDGE) ================= -->
+  <!-- Distant Bridge Deck Crossing the Harbor Fjord -->
+  <g id="alvsborg-bridge">
+    <!-- Road Deck Truss Girder (Stretching whole horizon) -->
+    <rect x="0" y="330" width="1376" height="18" fill="#064e3b" stroke="#022c22" stroke-width="2" />
+    <!-- Road Deck Safety Barrier -->
+    <line x1="0" y1="324" x2="1376" y2="324" stroke="#10b981" stroke-width="2" />
+    <line x1="0" y1="339" x2="1376" y2="339" stroke="#facc15" stroke-width="1.5" stroke-dasharray="16 12" />
+
+    <!-- Tower 1: South Pylon (Left-Center) -->
+    <g id="pylon-south">
+      <!-- Left Column of South Pylon -->
+      <polygon points="340,490 355,50 375,50 380,490" fill="url(#alvsborgGreen)" stroke="#022c22" stroke-width="3" />
+      <!-- Right Column of South Pylon -->
+      <polygon points="420,490 425,50 445,50 460,490" fill="url(#alvsborgGreen)" stroke="#022c22" stroke-width="3" />
+      <!-- Horizontal Cross Struts between Pylon Columns -->
+      <rect x="365" y="80" width="70" height="16" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <rect x="360" y="170" width="80" height="18" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <rect x="355" y="270" width="90" height="20" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <!-- X-Bracing Truss -->
+      <line x1="365" y1="96" x2="435" y2="170" stroke="#022c22" stroke-width="3" />
+      <line x1="435" y1="96" x2="365" y2="170" stroke="#022c22" stroke-width="3" />
+      <line x1="360" y1="188" x2="440" y2="270" stroke="#022c22" stroke-width="3" />
+      <line x1="440" y1="188" x2="360" y2="270" stroke="#022c22" stroke-width="3" />
+      <!-- Concrete Pier Base in Water -->
+      <polygon points="325,510 340,470 460,470 475,510" fill="#334155" stroke="#1e293b" stroke-width="3" />
+      <!-- Aviation Warning Beacon Light (Red Flash) -->
+      <circle cx="400" cy="45" r="14" fill="#ef4444" opacity="0.4" />
+      <circle cx="400" cy="45" r="6" fill="#f87171" />
+      <circle cx="400" cy="45" r="2.5" fill="#ffffff" />
+    </g>
+
+    <!-- Tower 2: North Pylon (Right-Center) -->
+    <g id="pylon-north">
+      <polygon points="880,490 895,50 915,50 920,490" fill="url(#alvsborgGreen)" stroke="#022c22" stroke-width="3" />
+      <polygon points="960,490 965,50 985,50 1000,490" fill="url(#alvsborgGreen)" stroke="#022c22" stroke-width="3" />
+      <rect x="905" y="80" width="70" height="16" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <rect x="900" y="170" width="80" height="18" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <rect x="895" y="270" width="90" height="20" fill="#047857" stroke="#022c22" stroke-width="2" />
+      <line x1="905" y1="96" x2="975" y2="170" stroke="#022c22" stroke-width="3" />
+      <line x1="975" y1="96" x2="905" y2="170" stroke="#022c22" stroke-width="3" />
+      <line x1="900" y1="188" x2="980" y2="270" stroke="#022c22" stroke-width="3" />
+      <line x1="980" y1="188" x2="900" y2="270" stroke="#022c22" stroke-width="3" />
+      <polygon points="865,510 880,470 1000,470 1015,510" fill="#334155" stroke="#1e293b" stroke-width="3" />
+      <circle cx="940" cy="45" r="14" fill="#ef4444" opacity="0.4" />
+      <circle cx="940" cy="45" r="6" fill="#f87171" />
+      <circle cx="940" cy="45" r="2.5" fill="#ffffff" />
+    </g>
+
+    <!-- Main Suspension Cables (Graceful Catenary Curves) -->
+    <g fill="none" stroke="#022c22" stroke-width="6">
+      <!-- Backstay Left -->
+      <path d="M0,210 Q200,120 365,50" />
+      <!-- Main Center Span -->
+      <path d="M435,50 Q670,300 905,50" stroke="#034d3a" stroke-width="7" />
+      <path d="M435,50 Q670,300 905,50" stroke="#10b981" stroke-width="3" />
+      <!-- Backstay Right -->
+      <path d="M975,50 Q1140,120 1376,210" />
+    </g>
+
+    <!-- Vertical Suspender Wires (Ropes holding the road deck) -->
+    <g stroke="#047857" stroke-width="1.8" opacity="0.75">
+      <!-- Center span suspenders -->
+      <line x1="470" y1="100" x2="470" y2="330" />
+      <line x1="510" y1="150" x2="510" y2="330" />
+      <line x1="550" y1="190" x2="550" y2="330" />
+      <line x1="590" y1="225" x2="590" y2="330" />
+      <line x1="630" y1="245" x2="630" y2="330" />
+      <line x1="670" y1="255" x2="670" y2="330" />
+      <line x1="710" y1="250" x2="710" y2="330" />
+      <line x1="750" y1="230" x2="750" y2="330" />
+      <line x1="790" y1="200" x2="790" y2="330" />
+      <line x1="830" y1="155" x2="830" y2="330" />
+      <line x1="870" y1="105" x2="870" y2="330" />
+    </g>
+  </g>
+
+  <!-- ================= THE ABYSSAL SEA & MEKANISK KRAN-KRAKEN ================= -->
+  <!-- Ocean Trench Water -->
+  <rect y="480" width="1376" height="288" fill="url(#g4Water)" />
+
+  <!-- Violent Surging Sea Waves -->
+  <path d="M0,490 Q90,470 180,490 T360,490 T540,490 T720,490 T900,490 T1080,490 T1260,490 T1376,490 L1376,540 L0,540 Z" fill="#083344" />
+  <path d="M0,520 Q120,500 240,520 T480,520 T720,520 T960,520 T1200,520 T1376,520 L1376,560 L0,560 Z" fill="#041e2e" />
+
+  <!-- ================= MEKANISK KRAN-KRAKEN SILHOUETTE ================= -->
+  <!-- Colossal Bio-Mechanical Sea Monster rising from the Harbor Abyss -->
+  <g id="mekanisk-kraken-backdrop">
+    <!-- Tentacle 1 (Far Left, Curling Skyward) -->
+    <path d="M220,510 Q180,360 130,280 Q90,220 120,180 Q150,150 170,210 Q190,270 260,370 Q300,450 310,510 Z" 
+          fill="url(#krakenArmor)" stroke="#ef4444" stroke-width="2" />
+    <!-- Crane Pincer / Grapple Claws on Tentacle Tip -->
+    <polygon points="120,180 90,150 115,140 135,170" fill="#dc2626" />
+    <polygon points="120,180 145,145 165,155 135,170" fill="#dc2626" />
+
+    <!-- Tentacle 2 (Center Left, Writhing behind bridge) -->
+    <path d="M500,510 Q530,380 520,290 Q510,220 480,240 Q450,260 480,340 Q500,410 520,510 Z" 
+          fill="url(#krakenArmor)" stroke="#0891b2" stroke-width="1.5" />
+
+    <!-- Kraken Main Armored Head / Mantle Hull (Center Climax) -->
+    <g transform="translate(670, 420)">
+      <!-- Massive Armored Bio-Mechanical Dome / Carapace -->
+      <path d="M-90,90 Q-100,-20 -50,-80 Q0,-120 50,-80 Q100,-20 90,90 Z" fill="url(#krakenArmor)" stroke="#334155" stroke-width="4" />
+      <!-- Riveted Armor Plates -->
+      <path d="M-60,50 Q0,30 60,50" stroke="#475569" stroke-width="3" fill="none" />
+      <path d="M-50,-10 Q0,-30 50,-10" stroke="#475569" stroke-width="3" fill="none" />
+      <path d="M-30,-60 Q0,-75 30,-60" stroke="#475569" stroke-width="2.5" fill="none" />
+
+      <!-- Massive Central Ocular Sensor / Glowing Red Cyclops Eye -->
+      <circle cx="0" cy="10" r="32" fill="#450a0a" stroke="#dc2626" stroke-width="3" />
+      <circle cx="0" cy="10" r="45" fill="url(#bossEyeGlow)" opacity="0.8" />
+      <circle cx="0" cy="10" r="18" fill="#ef4444" />
+      <ellipse cx="0" cy="10" rx="6" ry="16" fill="#fef08a" />
+      <circle cx="3" cy="7" r="4" fill="#ffffff" />
+
+      <!-- Flanking Secondary Sensors -->
+      <circle cx="-50" cy="15" r="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="2" />
+      <circle cx="50" cy="15" r="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="2" />
+    </g>
+
+    <!-- Tentacle 3 (Center Right, Smashing down with hydraulic cylinders) -->
+    <path d="M780,510 Q820,360 850,280 Q880,200 840,160 Q810,130 800,190 Q800,260 760,380 Q740,460 750,510 Z" 
+          fill="url(#krakenArmor)" stroke="#ef4444" stroke-width="2" />
+    <polygon points="840,160 870,130 845,120 825,150" fill="#dc2626" />
+    <polygon points="840,160 815,125 795,135 825,150" fill="#dc2626" />
+
+    <!-- Tentacle 4 (Far Right, Immense Siphon Arm curling over horizon) -->
+    <path d="M1120,510 Q1180,340 1240,250 Q1300,160 1260,110 Q1220,70 1210,130 Q1200,220 1150,340 Q1110,440 1090,510 Z" 
+          fill="url(#krakenArmor)" stroke="#0891b2" stroke-width="2" />
+  </g>
+
+  <!-- Crashing Seafoam & Froth around the Kraken -->
+  <g fill="#a5f3fc" opacity="0.6">
+    <ellipse cx="670" cy="495" rx="140" ry="16" />
+    <ellipse cx="270" cy="505" rx="80" ry="12" />
+    <ellipse cx="780" cy="500" rx="90" ry="12" />
+    <ellipse cx="1120" cy="505" rx="110" ry="14" />
+  </g>
+
+  <!-- Sector Watermark Badge -->
+  <g opacity="0.65">
+    <rect x="30" y="30" width="460" height="48" rx="6" fill="#0f172a" opacity="0.85" stroke="#ef4444" stroke-width="1.5" />
+    <text x="45" y="52" font-family="'Orbitron', sans-serif" font-size="13" font-weight="900" fill="#f87171" letter-spacing="1">SUB-LEVEL 1-4: ÄLVSBORGSBRON</text>
+    <text x="45" y="68" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">Suspension Pylon Crossing • Abyssal Kran-Kraken Arena</text>
+  </g>
+</svg>

@@ -355,6 +355,15 @@ class CityMapManager {
         <div class="dossier-sub">${sub.subtitle}</div>
       </div>
 
+      <!-- Tactical Background Environment Preview -->
+      <div style="position: relative; width: 100%; height: 95px; border-radius: 6px; overflow: hidden; margin: 8px 0 10px 0; border: 1.5px solid ${sub.color}88; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        <img src="assets/goteborg_${sub.code.split('-')[1]}.svg" style="width: 100%; height: 100%; object-fit: cover;" alt="${sub.title}" />
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 4px 8px; background: linear-gradient(transparent, rgba(15, 23, 42, 0.95)); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 9px; font-weight: 800; color: ${sub.color}; letter-spacing: 0.5px;">📸 SECTOR BACKDROP: ${sub.district.toUpperCase()}</span>
+          <span style="font-size: 8.5px; color: #94a3b8;">16:9 VECTOR ART</span>
+        </div>
+      </div>
+
       <div class="dossier-lore">${sub.lore}</div>
 
       <div class="dossier-grid">

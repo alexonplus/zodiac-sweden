@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1376" height="768" viewBox="0 0 1376 768">
+  <defs>
+    <!-- Midnight Cyber Sky Gradient -->
+    <linearGradient id="g2Sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="40%" stop-color="#06122c" />
+      <stop offset="70%" stop-color="#0c234a" />
+      <stop offset="90%" stop-color="#0369a1" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Cyber City Horizon Glow -->
+    <radialGradient id="cyberGlow" cx="50%" cy="85%" r="60%">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.45" />
+      <stop offset="35%" stop-color="#3b82f6" stop-opacity="0.25" />
+      <stop offset="70%" stop-color="#6366f1" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- High-Tech Water Basin Gradient -->
+    <linearGradient id="g2Water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.8" />
+      <stop offset="15%" stop-color="#0c234a" stop-opacity="0.9" />
+      <stop offset="45%" stop-color="#050e1f" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- Neon Tram Blue -->
+    <linearGradient id="tramBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="60%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#034870" />
+    </linearGradient>
+  </defs>
+
+  <!-- Sky Base -->
+  <rect width="1376" height="520" fill="url(#g2Sky)" />
+  <rect width="1376" height="520" fill="url(#cyberGlow)" />
+
+  <!-- Distant Stars & Data Satellites -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="120" cy="60" r="1.5" />
+    <circle cx="280" cy="40" r="1" />
+    <circle cx="450" cy="80" r="2" />
+    <circle cx="680" cy="50" r="1" />
+    <circle cx="890" cy="70" r="1.5" />
+    <circle cx="1120" cy="45" r="2" />
+    <circle cx="1290" cy="90" r="1" />
+  </g>
+
+  <!-- Distant Lindholmen High-Tech Skyline (Glass Towers & Geometric Rooftops) -->
+  <g fill="#071731" opacity="0.9">
+    <!-- Building 1: Ericsson / Volvo Tech Tower -->
+    <rect x="50" y="240" width="110" height="260" />
+    <polygon points="50,240 105,190 160,240" fill="#0c2854" />
+    <!-- Building 2: Kuggen (Cylinder Building) -->
+    <path d="M190,300 L290,280 L310,480 L180,480 Z" fill="#081c3c" />
+    <!-- Building 3: Highrise Glass Skyway -->
+    <rect x="340" y="160" width="130" height="340" fill="#061936" />
+    <!-- Building 4: Science Center Complex -->
+    <rect x="500" y="220" width="160" height="280" fill="#081d3e" />
+    <polygon points="500,220 580,170 660,220" fill="#0c2957" />
+    <!-- Building 5: Karlatornet (Gothenburg's Supertall Spire) -->
+    <polygon points="760,80 775,80 810,500 730,500" fill="#0a254d" />
+    <!-- Building 6: Lindholmen Dock Towers -->
+    <rect x="850" y="200" width="140" height="300" fill="#061a38" />
+    <rect x="1030" y="250" width="120" height="250" fill="#081d3d" />
+    <rect x="1180" y="180" width="150" height="320" fill="#051630" />
+  </g>
+
+  <!-- Illuminated Cyan & Gold Window Grids on Tech Buildings -->
+  <g fill="#38bdf8" opacity="0.65">
+    <!-- Karlatornet Spire Lights -->
+    <circle cx="767" cy="85" r="3" fill="#ef4444" />
+    <line x1="755" y1="120" x2="775" y2="120" stroke="#00f0ff" stroke-width="2" />
+    <line x1="752" y1="180" x2="780" y2="180" stroke="#00f0ff" stroke-width="2" />
+    <line x1="748" y1="260" x2="785" y2="260" stroke="#00f0ff" stroke-width="2" />
+    <line x1="742" y1="340" x2="792" y2="340" stroke="#00f0ff" stroke-width="2" />
+
+    <!-- Window Clusters -->
+    <rect x="360" y="190" width="8" height="4" />
+    <rect x="380" y="190" width="8" height="4" fill="#facc15" />
+    <rect x="420" y="190" width="8" height="4" />
+    <rect x="360" y="220" width="8" height="4" />
+    <rect x="400" y="220" width="8" height="4" />
+    <rect x="380" y="250" width="8" height="4" />
+    <rect x="420" y="250" width="8" height="4" fill="#facc15" />
+
+    <rect x="870" y="230" width="12" height="4" />
+    <rect x="910" y="230" width="12" height="4" />
+    <rect x="950" y="230" width="12" height="4" fill="#facc15" />
+    <rect x="870" y="270" width="12" height="4" fill="#facc15" />
+    <rect x="930" y="270" width="12" height="4" />
+    <rect x="890" y="310" width="12" height="4" />
+    <rect x="950" y="310" width="12" height="4" />
+  </g>
+
+  <!-- Holographic Floating Billboard Displays -->
+  <g>
+    <!-- Billboard 1: "LINDHOLMEN INNOVATION" -->
+    <rect x="180" y="210" width="130" height="35" rx="4" fill="#0f172a" stroke="#00f0ff" stroke-width="1.5" opacity="0.85" />
+    <text x="190" y="228" font-family="'Orbitron', sans-serif" font-size="9" font-weight="900" fill="#00f0ff" letter-spacing="1">LINDHOLMEN</text>
+    <text x="190" y="239" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" fill="#38bdf8">SCIENCE PARK 2088</text>
+
+    <!-- Billboard 2: "VÄSTTRAFIK TRAMWAY" -->
+    <rect x="520" y="160" width="120" height="32" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" opacity="0.85" />
+    <text x="530" y="177" font-family="'Orbitron', sans-serif" font-size="9" font-weight="900" fill="#38bdf8" letter-spacing="1">⚡ VÄSTTRAFIK</text>
+    <text x="530" y="187" font-family="'Inter', sans-serif" font-size="7" font-weight="700" fill="#facc15">LINE 16 RAPID TRANSIT</text>
+  </g>
+
+  <!-- ================= ELEVATED TRAMWAY BRIDGE VIADUCT & BLUE TRAM ================= -->
+  <!-- Concrete Support Pillars -->
+  <g fill="#1e293b" stroke="#0f172a" stroke-width="2">
+    <rect x="160" y="380" width="40" height="115" />
+    <rect x="420" y="380" width="40" height="115" />
+    <rect x="680" y="380" width="40" height="115" />
+    <rect x="940" y="380" width="40" height="115" />
+    <rect x="1200" y="380" width="40" height="115" />
+  </g>
+
+  <!-- Viaduct Horizontal Deck & Cyan Safety Railing -->
+  <rect x="0" y="375" width="1376" height="24" fill="#0f172a" stroke="#1e293b" stroke-width="2" />
+  <line x1="0" y1="375" x2="1376" y2="375" stroke="#00f0ff" stroke-width="3" />
+  <line x1="0" y1="365" x2="1376" y2="365" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="8 6" />
+
+  <!-- The Iconic Gothenburg Modern Blue Tram (Crossing Viaduct at Center) -->
+  <g id="gothenburg-blue-tram">
+    <!-- Tram Car 1 (Front) -->
+    <rect x="620" y="318" width="130" height="56" rx="6" fill="url(#tramBlue)" stroke="#0284c7" stroke-width="2" />
+    <!-- White Stripe & Blue Accent Line -->
+    <rect x="620" y="352" width="130" height="6" fill="#ffffff" />
+    <rect x="620" y="358" width="130" height="14" fill="#0369a1" />
+    <!-- Tram Large Panoramic Windows (Illuminated Yellow Interior) -->
+    <rect x="630" y="326" width="30" height="22" rx="2" fill="#fef08a" opacity="0.9" />
+    <rect x="668" y="326" width="32" height="22" rx="2" fill="#fef08a" opacity="0.9" />
+    <rect x="708" y="326" width="32" height="22" rx="2" fill="#fef08a" opacity="0.9" />
+    <!-- Passenger Silhouettes -->
+    <circle cx="645" cy="336" r="4" fill="#1e293b" />
+    <circle cx="684" cy="336" r="4" fill="#1e293b" />
+    <!-- Tram Headlights (Bright Glowing White Beams) -->
+    <circle cx="746" cy="362" r="5" fill="#ffffff" />
+    <polygon points="750,362 880,345 880,380" fill="#ffffff" opacity="0.18" />
+
+    <!-- Tram Car 2 (Trailer Connected with Bellows) -->
+    <rect x="535" y="318" width="80" height="56" rx="4" fill="url(#tramBlue)" stroke="#0284c7" stroke-width="2" />
+    <rect x="535" y="352" width="80" height="6" fill="#ffffff" />
+    <rect x="545" y="326" width="30" height="22" rx="2" fill="#fef08a" opacity="0.9" />
+    <rect x="582" y="326" width="26" height="22" rx="2" fill="#fef08a" opacity="0.9" />
+    <!-- Accordion Bellows Connection -->
+    <rect x="615" y="322" width="7" height="48" fill="#1e293b" />
+
+    <!-- Tram Pantograph (Power Collector reaching catenary wire) -->
+    <line x1="685" y1="318" x2="675" y2="292" stroke="#e2e8f0" stroke-width="3" />
+    <line x1="675" y1="292" x2="695" y2="268" stroke="#e2e8f0" stroke-width="3" />
+    <line x1="685" y1="268" x2="715" y2="268" stroke="#38bdf8" stroke-width="4" />
+    <!-- Pantograph Electric Blue Spark -->
+    <circle cx="700" cy="268" r="8" fill="#00f0ff" opacity="0.75" />
+    <circle cx="700" cy="268" r="3" fill="#ffffff" />
+  </g>
+
+  <!-- ================= OVERHEAD CATENARY WIRE NETWORK ================= -->
+  <!-- Heavy Overhead Gantry Poles & Crossbeams -->
+  <g stroke="#334155" stroke-width="4">
+    <!-- Gantry 1 -->
+    <line x1="280" y1="375" x2="280" y2="240" />
+    <line x1="260" y1="240" x2="330" y2="240" />
+    <!-- Gantry 2 -->
+    <line x1="700" y1="375" x2="700" y2="240" />
+    <line x1="670" y1="240" x2="750" y2="240" />
+    <!-- Gantry 3 -->
+    <line x1="1100" y1="375" x2="1100" y2="240" />
+    <line x1="1070" y1="240" x2="1140" y2="240" />
+  </g>
+
+  <!-- Glowing Overhead Catenary Power Cables (Suspension Arcs & Contact Wire) -->
+  <g stroke="#00f0ff" fill="none">
+    <!-- Messenger Wire (Drooping Catenary Curve) -->
+    <path d="M0,240 Q140,255 280,245 Q490,260 700,245 Q900,260 1100,245 Q1238,260 1376,245" stroke-width="1.8" opacity="0.7" />
+    <!-- Contact Wire (Flat Tension Wire where pantograph touches) -->
+    <line x1="0" y1="268" x2="1376" y2="268" stroke-width="2.5" stroke="#38bdf8" opacity="0.9" />
+    <!-- Vertical Droppers / Spacers -->
+    <line x1="140" y1="255" x2="140" y2="268" stroke-width="1" opacity="0.6" />
+    <line x1="490" y1="258" x2="490" y2="268" stroke-width="1" opacity="0.6" />
+    <line x1="900" y1="258" x2="900" y2="268" stroke-width="1" opacity="0.6" />
+    <line x1="1240" y1="258" x2="1240" y2="268" stroke-width="1" opacity="0.6" />
+  </g>
+
+  <!-- High-Tech Canal Water / Wet Ground Surface -->
+  <rect y="490" width="1376" height="278" fill="url(#g2Water)" />
+
+  <!-- Neon Reflections on Water -->
+  <ellipse cx="680" cy="530" rx="180" ry="12" fill="#0284c7" opacity="0.55" />
+  <ellipse cx="680" cy="570" rx="140" ry="8" fill="#00f0ff" opacity="0.45" />
+  <ellipse cx="680" cy="620" rx="200" ry="6" fill="#3b82f6" opacity="0.3" />
+  <ellipse cx="240" cy="540" rx="90" ry="8" fill="#00f0ff" opacity="0.35" />
+  <ellipse cx="1000" cy="550" rx="110" ry="8" fill="#38bdf8" opacity="0.3" />
+
+  <!-- Neon Ground Platform Edge -->
+  <rect x="0" y="488" width="1376" height="6" fill="#00f0ff" opacity="0.85" />
+  <rect x="0" y="494" width="1376" height="15" fill="#0f172a" />
+
+  <!-- Sector Watermark Badge -->
+  <g opacity="0.6">
+    <rect x="30" y="30" width="370" height="48" rx="6" fill="#0f172a" opacity="0.8" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="45" y="52" font-family="'Orbitron', sans-serif" font-size="13" font-weight="900" fill="#38bdf8" letter-spacing="1">SUB-LEVEL 1-2: BLUE TRAMWAY</text>
+    <text x="45" y="68" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">Lindholmen Tech Park • Västtrafik Cyber Viaduct</text>
+  </g>
+</svg>
