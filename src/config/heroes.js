@@ -44,15 +44,15 @@ export const HERO_CONFIGS = {
     combatStyle: 'Acrobatic Chakram Skirmisher: Dual boomerangs that return to hands and aerial gliding maneuvers',
     lore: 'Harnesses the supersonic coastal gales of the Öresund strait with twin silver aerial chakrams.',
     passive: 'Zephyr Velocity: Acrobatic gliding double jump leaving razor-sharp wind trails.',
-    superpower: 'Supersonic Tempest Cataclysm: Summons two colossal Öresund tornadoes tearing across the arena!',
-    ultName: 'SUPERSONIC TEMPEST CATACLYSM',
+    superpower: 'Twin Astral Mirror Clones: Summons autonomous twin combat clones (Castor & Pollux) that aggressively hunt down, slash, and overwhelm foes!',
+    ultName: 'TWIN ASTRAL MIRROR CLONES',
     maxHp: 105, speed: 5.3, jumpForce: -12.4,
     stats: { atk: 84, def: 55, spd: 98, rng: 70, syn: 90 },
     skills: {
       q: { name: 'Cyclone Tornado', cost: 25, cd: 45, desc: 'Summons an animated moving tornado vacuuming and shredding foes' },
       e: { name: 'Supersonic Gale Blast', cost: 40, cd: 75, desc: 'Ferocious hurricane wind blowing all enemies across the battlefield!' },
       dash: { name: 'Öresund Aero Rush', cd: 25, desc: 'Rapid aerial dash slicing through opponents' },
-      ult: { name: 'Supersonic Tempest Cataclysm', desc: 'Superpower: Twin colossal tornadoes toss and shred enemies' }
+      ult: { name: 'Twin Astral Mirror Clones', desc: 'Superpower: Summons twin combat mirror clones to fight by your side' }
     }
   },
   cancer: {
@@ -116,15 +116,15 @@ export const HERO_CONFIGS = {
     combatStyle: 'Cosmic Gravity Arbiter: Binary light & dark spheres, gravitational black holes, and phase shifts',
     lore: 'Cosmic scholar from Lund Observatory who maintains the gravitational balance of northern constellations.',
     passive: 'Cosmic Equilibrium: Alternating skills accelerates cooldowns and amplifies astral damage.',
-    superpower: 'Lund Supernova Equilibrium: Collapses cosmic gravity scales to trigger a massive galactic supernova!',
-    ultName: 'LUND SUPERNOVA EQUILIBRIUM',
+    superpower: 'Chrono Stasis Equilibrium: Completely freezes time across the cosmos! All enemies and projectiles halt in place while Libra moves freely to strike!',
+    ultName: 'CHRONO STASIS: TIME STOP',
     maxHp: 115, speed: 5.0, jumpForce: -12.0,
     stats: { atk: 82, def: 68, spd: 75, rng: 88, syn: 98 },
     skills: {
       q: { name: 'Equilibrium Blast', cost: 25, cd: 45, desc: 'Binary orbiting star that detonates on impact' },
       e: { name: 'Gravity Singularity', cost: 40, cd: 75, desc: 'Miniature black hole pulling all enemies toward its event horizon' },
       dash: { name: 'Astral Warp', cd: 26, desc: 'Instant quantum phase shift through space' },
-      ult: { name: 'Lund Supernova Equilibrium', desc: 'Superpower: Lund Observatory cosmic supernova blast' }
+      ult: { name: 'Chrono Stasis: Time Stop', desc: 'Superpower: Complete time freeze across the entire battlefield' }
     }
   },
   scorpio: {
@@ -134,15 +134,15 @@ export const HERO_CONFIGS = {
     combatStyle: 'Toxic Shadow Infiltrator: Rapid dagger flurries, venom needle sprays, and shadow backstabs',
     lore: 'Operates in the foggy cobblestone shadows behind the medieval limestone ramparts of Visby.',
     passive: 'Noxious Sting: Attacks inflict stacking lethal venom that increases team synergy.',
-    superpower: 'Gothic Plague Miasma: Dense toxic smog blankets the arena, poisoning and slowing all foes!',
-    ultName: 'GOTHIC PLAGUE MIASMA',
+    superpower: 'Cosmic Meteor Shower: Rains down a cataclysmic barrage of flaming celestial meteors across the battlefield, devastating all enemies!',
+    ultName: 'COSMIC METEOR SHOWER',
     maxHp: 110, speed: 5.2, jumpForce: -12.2,
     stats: { atk: 94, def: 58, spd: 92, rng: 40, syn: 96 },
     skills: {
       q: { name: 'Venom Needle Volley', cost: 25, cd: 45, desc: 'Fan of 5 toxic needles fired in a lethal arc' },
       e: { name: 'Shadow Stinger Ambush', cost: 40, cd: 75, desc: 'Shadow teleports behind the nearest enemy for a guaranteed critical strike' },
       dash: { name: 'Phantom Shadow Stride', cd: 26, desc: 'Invisible smoke dash leaving a decoy behind' },
-      ult: { name: 'Gothic Plague Miasma', desc: 'Superpower: Visby medieval plague miasma envelops foes' }
+      ult: { name: 'Cosmic Meteor Shower', desc: 'Superpower: Cataclysmic flaming meteor shower rains down from the heavens' }
     }
   },
   sagittarius: {
@@ -188,15 +188,15 @@ export const HERO_CONFIGS = {
     combatStyle: 'Cyber Gunslinger: Ion blaster matrix fire, autonomous tactical drone, and EMP shocks',
     lore: 'Pioneered at Eriksberg shipyard drydocks, combining Nordic maritime steel with cyber wave overclocking.',
     passive: 'Overclock Battery: Autonomous companion drone follows and automatically zaps nearby foes with lightning.',
-    superpower: 'Eriksberg Orbital Ion Cannon: Calibrates an Eriksberg satellite strike that scorches the ground!',
-    ultName: 'ERIKSBERG ORBITAL ION CANNON',
+    superpower: 'Quicksand Maelstrom: Erupts a colossal swirling quicksand abyss that traps, submerges, and crushes all enemies!',
+    ultName: 'QUICKSAND MAELSTROM',
     maxHp: 100, speed: 4.8, jumpForce: -11.5,
     stats: { atk: 88, def: 66, spd: 80, rng: 85, syn: 99 },
     skills: {
       q: { name: 'Ion Mega-Beam', cost: 25, cd: 45, desc: 'Continuous ion laser beam piercing through enemy ranks' },
       e: { name: 'Overclock EMP Pulse', cost: 40, cd: 75, desc: 'Drone detonates a high-yield EMP shockwave, stunning all targets' },
       dash: { name: 'Cyber Glide Thruster', cd: 28, desc: 'Thruster-boosted cyber glide leaving neon particle trails' },
-      ult: { name: 'Eriksberg Orbital Ion Cannon', desc: 'Superpower: Satellite ion beam strike incinerates the zone' }
+      ult: { name: 'Quicksand Maelstrom', desc: 'Superpower: Swirling quicksand abyss traps, submerges & crushes all foes' }
     }
   },
   pisces: {

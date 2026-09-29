@@ -120,6 +120,24 @@ export class ParticleSystem {
     }
   }
 
+  createSand(x, y, count = 12) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = 1.5 + Math.random() * 4.5;
+      this.particles.push({
+        x: x + (Math.random() - 0.5) * 20,
+        y: y + (Math.random() - 0.5) * 10,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - 1.2,
+        radius: 1.5 + Math.random() * 2.5,
+        color: Math.random() < 0.4 ? '#f59e0b' : (Math.random() < 0.7 ? '#d97706' : '#38bdf8'),
+        life: 20 + Math.random() * 25,
+        maxLife: 45,
+        type: 'sand'
+      });
+    }
+  }
+
   createDamageNumber(x, y, text, color) {
     this.damageNumbers.push({
       x: x + (Math.random() - 0.5) * 10,
@@ -222,6 +240,14 @@ export class ParticleSystem {
         ctx.fillStyle = pt.color;
         ctx.beginPath();
         ctx.ellipse(0, 0, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (pt.type === 'sand') {
+        ctx.globalAlpha = alpha * 0.9;
+        ctx.fillStyle = pt.color;
+        ctx.shadowColor = pt.color;
+        ctx.shadowBlur = 4;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.radius || 2, 0, Math.PI * 2);
         ctx.fill();
       }
 

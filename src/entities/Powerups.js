@@ -19,6 +19,12 @@ export class BuffManager {
       p2: {}
     };
     this.timeFreezeTimer = 0;
+    this.maxTimeFreeze = 0;
+  }
+
+  activateTimeFreeze(duration = 240) {
+    this.timeFreezeTimer = duration;
+    this.maxTimeFreeze = duration;
   }
 
   applyBuff(playerIndex, buffType) {

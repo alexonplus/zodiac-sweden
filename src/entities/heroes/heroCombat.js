@@ -364,31 +364,58 @@ export const HERO_COMBAT = {
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake, levelW, screenH, projectiles) {
       sound.playUlt();
       sound.playWindGale();
+      sound.playLaser();
       if (onShake) onShake(28);
 
       if (onUltEffect) {
         onUltEffect({
-          name: 'SUPERSONIC TEMPEST CATACLYSM',
+          name: 'TWIN ASTRAL MIRROR CLONES',
           color: '#38bdf8',
-          timer: 85
+          timer: 95
         });
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(155 * dmgMult);
+      const ultDamage = Math.floor(165 * dmgMult);
 
-      // Twin colossal tornadoes sweeping from left and right
-      elementalManager.spawnTornado(p.x - 220, p.y + p.h, 1, ultDamage, 150, p.pIndex, true);
-      elementalManager.spawnTornado(p.x + 220, p.y + p.h, -1, ultDamage, 150, p.pIndex, true);
+      // Spawn Twin Clones: Castor (Alpha) & Pollux (Beta)
+      p.clones = [
+        {
+          name: 'CASTOR',
+          x: p.x - 70,
+          y: p.y,
+          facing: -1,
+          offsetSide: -1,
+          life: 360,
+          maxLife: 360,
+          attackCooldown: 10,
+          animTimer: 0
+        },
+        {
+          name: 'POLLUX',
+          x: p.x + 70,
+          y: p.y,
+          facing: 1,
+          offsetSide: 1,
+          life: 360,
+          maxLife: 360,
+          attackCooldown: 20,
+          animTimer: Math.PI
+        }
+      ];
+
+      particles.createDamageNumber(p.x + p.w / 2, p.y - 25, '♊ TWIN CLONES SUMMONED!', '#38bdf8');
+      particles.createWindGale(p.x, p.y + p.h / 2, 1, 22);
+      particles.createWindGale(p.x, p.y + p.h / 2, -1, 22);
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.windBlowTimer = 75;
-        en.windBlowVx = (Math.random() > 0.5 ? 1 : -1) * 18;
-        en.vy = -14;
-        en.stunTimer = 130;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TEMPEST! -${ultDamage} 🌪️`, '#38bdf8');
-        particles.createWindGale(en.x + en.w / 2, en.y + en.h / 2, p.facing, 18);
+        en.windBlowTimer = 60;
+        en.windBlowVx = (Math.random() > 0.5 ? 1 : -1) * 16;
+        en.vy = -12;
+        en.stunTimer = 110;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `TWIN CLONES! -${ultDamage} ♊`, '#38bdf8');
+        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#38bdf8', 35);
         if (onSynergyHit) onSynergyHit(en, 'wind', p.pIndex, ultDamage);
       }
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#7dd3fc', 60);
@@ -857,31 +884,36 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      if (onShake) onShake(30);
+      sound.playSynergy();
+      sound.playWave();
+      if (onShake) onShake(32);
 
       if (onUltEffect) {
         onUltEffect({
-          name: 'LUND SUPERNOVA EQUILIBRIUM',
+          name: 'CHRONO STASIS: TIME STOP',
           color: '#818cf8',
-          timer: 85
+          timer: 105
         });
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(165 * dmgMult);
+      const ultDamage = Math.floor(185 * dmgMult);
 
-      // Twin singularities collapsing in a stellar supernova
-      elementalManager.spawnSingularity(p.x - 120, p.y, ultDamage, 80, p.pIndex);
-      elementalManager.spawnSingularity(p.x + 120, p.y, ultDamage, 80, p.pIndex);
+      // Activates Complete Battlefield Time Freeze!
+      buffManager.activateTimeFreeze(260); // Over 4 seconds of complete time stop
+      p.invulnTime = 260;
 
       for (const en of enemies) {
         en.hp -= ultDamage;
-        en.stunTimer = 140;
-        en.vy = -12;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `SUPERNOVA! -${ultDamage} 🌌 ⚖️`, '#818cf8');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#c7d2fe', 40);
+        en.stunTimer = 260;
+        en.vx = 0;
+        en.vy = 0;
+        particles.createDamageNumber(en.x + en.w / 2, en.y - 14, `⏱️ TIME FROZEN! -${ultDamage} ⚖️`, '#818cf8');
+        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#818cf8', 35);
         if (onSynergyHit) onSynergyHit(en, 'astral', p.pIndex, ultDamage);
       }
+
+      particles.createDamageNumber(p.x + p.w / 2, p.y - 25, '⏳ CHRONO STASIS ACTIVATED!', '#818cf8');
       particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#c7d2fe', 60);
     },
 
@@ -1003,28 +1035,29 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      sound.playPoison();
-      if (onShake) onShake(26);
+      sound.playRoar();
+      sound.playFireBurst();
+      sound.playEarthQuake();
+      if (onShake) onShake(32);
 
       if (onUltEffect) {
         onUltEffect({
-          name: 'GOTHIC PLAGUE MIASMA',
-          color: '#a855f7',
-          timer: 85
+          name: 'COSMIC METEOR SHOWER',
+          color: '#f97316',
+          timer: 95
         });
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(148 * dmgMult);
+      const ultDamage = Math.floor(195 * dmgMult);
 
-      for (const en of enemies) {
-        en.hp -= ultDamage;
-        en.stunTimer = 130;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `PLAGUE! -${ultDamage} ☠️`, '#a855f7');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#a855f7', 35);
-        if (onSynergyHit) onSynergyHit(en, 'poison', p.pIndex, ultDamage);
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#c084fc', 60);
+      // Rain down a cataclysmic barrage of flaming celestial meteors across the battlefield
+      elementalManager.spawnMeteorShower(p.x + p.facing * 90, p.y + p.h, 26, ultDamage, p.pIndex);
+
+      particles.createDamageNumber(p.x + p.w / 2, p.y - 25, '☄️ METEOR SHOWER INCOMING!', '#f97316');
+      particles.createFlame(p.x + p.w / 2, p.y + p.h / 2, 25);
+      particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#fbbf24', 35);
+      particles.createEarthDebris(p.x + p.w / 2, p.y + p.h, 20);
     },
 
     updatePassive(p, enemies, particles, sound, gameTime) {
@@ -1369,28 +1402,29 @@ export const HERO_COMBAT = {
 
     castUlt(p, enemies, onSynergyHit, onUltEffect, onShake) {
       sound.playUlt();
-      sound.playLaser();
-      if (onShake) onShake(28);
+      sound.playEarthQuake();
+      sound.playWave();
+      if (onShake) onShake(30);
 
       if (onUltEffect) {
         onUltEffect({
-          name: 'ERIKSBERG ORBITAL ION CANNON',
+          name: 'QUICKSAND MAELSTROM',
           color: '#00f0ff',
-          timer: 85
+          timer: 95
         });
       }
 
       const dmgMult = buffManager.getDamageMultiplier(p.pIndex) * shopManager.getDamageMultiplier();
-      const ultDamage = Math.floor(155 * dmgMult);
+      const ultDamage = Math.floor(185 * dmgMult);
 
-      for (const en of enemies) {
-        en.hp -= ultDamage;
-        en.stunTimer = 135;
-        particles.createDamageNumber(en.x + en.w / 2, en.y - 12, `ORBITAL CANNON! -${ultDamage} 🛰️`, '#00f0ff');
-        particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#00f0ff', 35);
-        if (onSynergyHit) onSynergyHit(en, 'tech', p.pIndex, ultDamage);
-      }
-      particles.createSparks(p.x + p.w / 2, p.y + p.h / 2, '#a5f3fc', 60);
+      // Erupts colossal Quicksand Maelstrom vortex abyss in front of Aquarius
+      const maelstromX = p.x + p.facing * 120;
+      const maelstromY = p.y + p.h;
+      elementalManager.spawnQuicksand(maelstromX, maelstromY, ultDamage, 240, p.pIndex);
+
+      particles.createDamageNumber(maelstromX, p.y - 20, '⏳ QUICKSAND SINKHOLE!', '#f59e0b');
+      particles.createSand(maelstromX, maelstromY, 35);
+      particles.createEarthDebris(maelstromX, maelstromY, 25);
     },
 
     updatePassive(p, enemies, particles, sound, gameTime) {

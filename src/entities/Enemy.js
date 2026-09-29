@@ -41,6 +41,8 @@ export class EnemyMob {
     this.bubbleTimer = 0;
     this.windBlowTimer = 0;
     this.windBlowVx = 0;
+    this.quicksandTimer = 0;
+    this.sinkDepth = 0;
 
     this.initTypeAttributes(type);
   }
@@ -200,6 +202,16 @@ export class EnemyMob {
       }
       this.applyPhysics(platforms, movingPlatforms, onShake);
       return;
+    }
+
+    // 7. QUICKSAND SUBMERSION (Aquarius Superpower)
+    if (this.quicksandTimer > 0) {
+      this.quicksandTimer--;
+      if (Math.random() < 0.35) {
+        particles.createSand(this.x + Math.random() * this.w, this.y + this.h, 2);
+      }
+    } else if (this.sinkDepth > 0) {
+      this.sinkDepth = Math.max(0, this.sinkDepth - 1.2);
     }
 
     if (this.stunTimer > 0) {
@@ -507,11 +519,21 @@ export class EnemyMob {
 
   draw(ctx) {
     ctx.save();
-    ctx.translate(this.x + this.w/2, this.y + this.h/2);
+    const sinkY = this.sinkDepth || 0;
+    // Submerge downward into the quicksand
+    ctx.translate(this.x + this.w/2, this.y + this.h/2 + sinkY);
     if (this.facing < 0) ctx.scale(-1, 1);
 
     if (this.stunTimer > 0 && Math.floor(this.stunTimer / 4) % 2 === 0) {
       ctx.globalAlpha = 0.5;
+    }
+
+    if (sinkY > 3) {
+      // Physically clip away the lower body submerged into the sand!
+      ctx.beginPath();
+      const cutoffY = (this.h / 2) - sinkY;
+      ctx.rect(-this.w * 2, -this.h * 2, this.w * 4, cutoffY + this.h * 2 + 1);
+      ctx.clip();
     }
 
     const isMoving = Math.abs(this.vx) > 0.2;
@@ -533,28 +555,31 @@ export class EnemyMob {
 
     ctx.restore();
 
-    // Health Bar
-    if (this.isMiniBoss) {
-      const hpPct = Math.max(0, this.hp / this.maxHp);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.fillRect(this.x - 12, this.y - 24, this.w + 24, 18);
-      ctx.fillStyle = '#facc15';
-      ctx.font = '900 8px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(this.name || 'MINI-BOSS', this.x + this.w/2, this.y - 13);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(this.x - 10, this.y - 11, this.w + 20, 5);
-      ctx.fillStyle = '#facc15';
-      ctx.fillRect(this.x - 10, this.y - 11, (this.w + 20) * hpPct, 5);
-      ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(this.x - 10, this.y - 11, this.w + 20, 5);
-    } else if (this.hp < this.maxHp) {
-      const hpPct = Math.max(0, this.hp / this.maxHp);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(this.x, this.y - 12, this.w, 4);
-      ctx.fillStyle = '#ef4444';
-      ctx.fillRect(this.x, this.y - 12, this.w * hpPct, 4);
+    // Health Bar (sinks downward with the enemy into the earth)
+    if (sinkY < this.h * 0.95) {
+      const barY = this.y + sinkY;
+      if (this.isMiniBoss) {
+        const hpPct = Math.max(0, this.hp / this.maxHp);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillRect(this.x - 12, barY - 24, this.w + 24, 18);
+        ctx.fillStyle = '#facc15';
+        ctx.font = '900 8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.name || 'MINI-BOSS', this.x + this.w/2, barY - 13);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(this.x - 10, barY - 11, this.w + 20, 5);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(this.x - 10, barY - 11, (this.w + 20) * hpPct, 5);
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x - 10, barY - 11, this.w + 20, 5);
+      } else if (this.hp < this.maxHp) {
+        const hpPct = Math.max(0, this.hp / this.maxHp);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(this.x, barY - 12, this.w, 4);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(this.x, barY - 12, this.w * hpPct, 4);
+      }
     }
 
     // Elemental Status Visual Overlays in World Space
@@ -576,9 +601,68 @@ export class EnemyMob {
     if (this.bubbleTimer > 0) {
       this.drawBubble(ctx);
     }
+    if (this.quicksandTimer > 0) {
+      this.drawQuicksandSink(ctx);
+    }
   }
 
   /* --- Elemental Visual Overlays --- */
+
+  drawQuicksandSink(ctx) {
+    ctx.save();
+    const cx = this.x + this.w / 2;
+    const sinkY = this.sinkDepth || 0;
+    const groundY = this.y + this.h;
+    const t = performance.now() * 0.005;
+
+    // Soft translucent earth depression ring (no opaque black blotch!)
+    const sandGrad = ctx.createRadialGradient(cx, groundY, 2, cx, groundY, this.w + 14);
+    sandGrad.addColorStop(0, 'rgba(120, 53, 15, 0.32)');
+    sandGrad.addColorStop(0.5, 'rgba(180, 83, 9, 0.2)');
+    sandGrad.addColorStop(1, 'rgba(217, 119, 6, 0)');
+
+    ctx.fillStyle = sandGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, groundY, this.w * 0.85 + 8, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sinking earth/sand swirl ripples around submerged body
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = t * 4 + i * (Math.PI / 1.5);
+      const rx = (this.w * 0.75) * (1 - i * 0.2);
+      const ry = 6 * (1 - i * 0.2);
+      ctx.ellipse(cx, groundY - i * 2, rx, ry, a * 0.15, 0, Math.PI * 2);
+    }
+    ctx.stroke();
+
+    // Earth debris clods and dust pebbles
+    if (sinkY > this.h * 0.25) {
+      ctx.fillStyle = 'rgba(217, 119, 6, 0.6)';
+      for (let b = 0; b < 3; b++) {
+        const bx = cx + Math.sin(t * 3 + b * 2) * (this.w * 0.4);
+        const by = groundY - 4 - ((t * 12 + b * 8) % 12);
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 4;
+      if (sinkY >= this.h * 0.9) {
+        ctx.fillText('🪨 SWALLOWED UNDERGROUND...', cx, groundY - 14);
+      } else {
+        ctx.fillText('🪨 SINKING IN EARTH...', cx, this.y + sinkY - 14);
+      }
+    }
+
+    ctx.restore();
+  }
 
   drawIceBlock(ctx) {
     ctx.save();

@@ -41,6 +41,7 @@ export class PlayerEntity {
     this.walkCycle = 0;
     this.attackSwing = 0;
     this.drone = { x: 70, y: 390, bob: 0 };
+    this.clones = [];
     this.lastSafeX = 100;
     this.lastSafeY = 420;
     this.isRiding = false;
@@ -53,6 +54,7 @@ export class PlayerEntity {
     this.hero = HERO_CONFIGS[heroId] || HERO_CONFIGS['aquarius'];
     this.heroModule = getHeroModule(heroId);
     this.heroCombat = getHeroCombat(heroId);
+    this.clones = [];
     this.maxHp = this.hero.maxHp + shopManager.getBonusHp();
     this.hp = this.maxHp;
     this.energy = 100;
@@ -228,6 +230,67 @@ export class PlayerEntity {
       const targetDroneY = this.y - 15 + Math.sin(this.drone.bob) * 7;
       this.drone.x += (targetDroneX - this.drone.x) * 0.16;
       this.drone.y += (targetDroneY - this.drone.y) * 0.16;
+    }
+
+    // Gemini Twin Mirror Clones (Castor & Pollux) Combat AI
+    if (this.clones && this.clones.length > 0) {
+      for (let i = this.clones.length - 1; i >= 0; i--) {
+        const c = this.clones[i];
+        c.life--;
+        c.attackCooldown = Math.max(0, c.attackCooldown - 1);
+        c.animTimer = (c.animTimer || 0) + 0.2;
+
+        // Autonomous combat targeting
+        let nearestEn = null;
+        let minDist = 550;
+        for (const en of enemies) {
+          if (!en || en.hp <= 0) continue;
+          const d = Math.hypot((en.x + en.w / 2) - c.x, (en.y + en.h / 2) - c.y);
+          if (d < minDist) {
+            minDist = d;
+            nearestEn = en;
+          }
+        }
+
+        if (nearestEn) {
+          // Pursue and flank target
+          const targetX = nearestEn.x + (c.offsetSide > 0 ? nearestEn.w + 25 : -50);
+          const targetY = nearestEn.y + nearestEn.h - 44;
+          c.facing = targetX > c.x ? 1 : -1;
+          c.x += (targetX - c.x) * 0.15;
+          c.y += (targetY - c.y) * 0.15;
+
+          // Aggressive chakram strike
+          if (minDist < 90 && c.attackCooldown <= 0) {
+            c.attackCooldown = 18;
+            sound.playLaser();
+            const dmg = 28;
+            nearestEn.hp -= dmg;
+            particles.createDamageNumber(nearestEn.x + nearestEn.w / 2, nearestEn.y - 12, `♊ ${c.name}! -${dmg}`, '#38bdf8');
+            particles.createSparks(nearestEn.x + nearestEn.w / 2, nearestEn.y + nearestEn.h / 2, '#38bdf8', 14);
+            particles.createWindGale(c.x, c.y + 15, c.facing, 8);
+          }
+        } else {
+          // Patrol beside player
+          const targetX = this.x + (c.offsetSide > 0 ? 65 : -65) + Math.sin(c.animTimer) * 18;
+          const targetY = this.y + Math.cos(c.animTimer) * 8;
+          c.x += (targetX - c.x) * 0.12;
+          c.y += (targetY - c.y) * 0.12;
+          c.facing = this.facing;
+        }
+
+        // Motion trail
+        if (Math.random() < 0.35) {
+          particles.createSparks(c.x, c.y + 20, '#38bdf8', 1);
+        }
+
+        if (c.life <= 0) {
+          sound.playWindGale();
+          particles.createWindGale(c.x, c.y + 15, c.facing, 14);
+          particles.createSparks(c.x, c.y + 20, '#7dd3fc', 18);
+          this.clones.splice(i, 1);
+        }
+      }
     }
 
     // Hero Unique Passive Mechanics
@@ -838,5 +901,49 @@ export class PlayerEntity {
     }
 
     ctx.restore();
+
+    // Draw Gemini Twin Astral Clones (Castor & Pollux)
+    if (this.clones && this.clones.length > 0) {
+      for (const c of this.clones) {
+        ctx.save();
+        ctx.translate(c.x + this.w / 2, c.y + this.h / 2);
+        ctx.globalAlpha = 0.85;
+        if (c.facing < 0) ctx.scale(-1, 1);
+
+        // Wind aura blur
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 15;
+
+        // Ethereal clone body
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 15, 24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Twin Silver Chakrams
+        const rot = performance.now() * 0.012;
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.lineWidth = 2.5;
+        // Left Chakram
+        ctx.beginPath();
+        ctx.arc(-18, 2, 9, rot, rot + Math.PI * 1.5);
+        ctx.stroke();
+        // Right Chakram
+        ctx.beginPath();
+        ctx.arc(18, 2, 9, -rot, -rot + Math.PI * 1.5);
+        ctx.stroke();
+
+        // Clone name overhead
+        ctx.fillStyle = '#bae6fd';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`♊ ${c.name}`, 0, -30);
+
+        ctx.restore();
+      }
+    }
   }
 }

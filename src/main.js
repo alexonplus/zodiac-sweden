@@ -109,13 +109,25 @@ export class GameManager {
 
       const charSelect = document.getElementById('screen-char-select');
       const isCharSelectOpen = charSelect && charSelect.style.display !== 'none';
+      const titleScreen = document.getElementById('screen-title');
+      const isTitleOpen = titleScreen && titleScreen.style.display !== 'none';
 
       if (e.code === 'Enter') {
         if (isCharSelectOpen) {
           e.preventDefault();
           this.confirmAndDeployHero();
           return;
+        } else if (isTitleOpen) {
+          e.preventDefault();
+          this.launchGameDirectly();
+          return;
         }
+      }
+
+      if (e.code === 'Space' && isTitleOpen) {
+        e.preventDefault();
+        this.launchGameDirectly();
+        return;
       }
 
       if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -202,7 +214,24 @@ export class GameManager {
     caster.castUlt(this.enemies, (en, el, p, d) => this.applyElementalHit(en, el, p, d), (u) => this.ultEffect = u, (s) => this.screenShake = s, this.levelWidth, H, this.projectiles);
   }
 
+  launchGameDirectly() {
+    sound.init();
+    sound.playSelect();
+    this.gameMode = 'campaign';
+    this.isCoopMode = false;
+    document.querySelectorAll('.screen-overlay').forEach(el => el.style.display = 'none');
+    this.startLevel(this.currentLevel || 'goteborg-1');
+  }
+
   initUI() {
+    // Quick Start Game button
+    const quickPlayBtn = document.getElementById('btn-quick-play');
+    if (quickPlayBtn) {
+      quickPlayBtn.addEventListener('click', () => {
+        this.launchGameDirectly();
+      });
+    }
+
     // Solo Campaign Mode
     document.getElementById('btn-mode-solo').addEventListener('click', () => {
       this.gameMode = 'campaign';
@@ -1580,9 +1609,12 @@ export class GameManager {
         if (m.life <= 0) this.meleeHits.splice(i, 1);
       }
 
-      // Enemy Projectiles & Ground Waves
+      const isFrozen = buffManager.timeFreezeTimer > 0;
+
+      // Enemy Projectiles & Ground Waves (frozen in stasis during Time Stop)
       for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
         const ep = this.enemyProjectiles[i];
+        if (isFrozen) continue; // Completely frozen in mid-air!
         ep.x += ep.vx;
         ep.y += ep.vy;
         ep.life--;
@@ -1598,25 +1630,45 @@ export class GameManager {
         if (ep.life <= 0) this.enemyProjectiles.splice(i, 1);
       }
 
+      // Time Resumption Shatter Notification
+      if (buffManager.timeFreezeTimer === 1) {
+        sound.playIceShatter();
+        sound.playWave();
+        this.screenShake = 16;
+        particles.createDamageNumber(this.player1.x + this.player1.w / 2, this.player1.y - 20, '💥 TIME RESUMES!', '#818cf8');
+        particles.createSparks(this.player1.x, this.player1.y, '#ffffff', 40);
+      }
+
       // Enemies Update
       let activeBoss = null;
       const isSubLevel = this.currentLevel.startsWith('goteborg-');
       let hasBossSpawned = isSubLevel ? !!this.spawnedZones[6] : (!!this.spawnedZones[8] || this.gameMode === 'bossrush');
-      const isFrozen = buffManager.timeFreezeTimer > 0;
 
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const en = this.enemies[i];
         if (en instanceof BaseBoss || en.isEnraged !== undefined) {
           activeBoss = en;
-          en.update(this.enemyProjectiles, (s) => this.screenShake = s);
+          if (!isFrozen) {
+            en.update(this.enemyProjectiles, (s) => this.screenShake = s);
+          }
         } else {
-          if (!isFrozen || this.gameTime % 3 === 0) {
+          if (!isFrozen) {
             en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s, movingPlatformManager.platforms);
+          } else {
+            en.vx = 0;
+            en.vy = 0;
           }
         }
 
         if (en.hp <= 0) {
-          particles.createSparks(en.x + en.w/2, en.y + en.h/2, '#00f0ff', 20);
+          if (en.sinkDepth > en.h * 0.4) {
+            // Swallowed whole into the earth without any explosion!
+            particles.createEarthDebris(en.x + en.w / 2, en.y + en.h, 8);
+            particles.createSand(en.x + en.w / 2, en.y + en.h, 10);
+            particles.createDamageNumber(en.x + en.w / 2, en.y - 10, '🪨 SWALLOWED UNDERGROUND', '#a16207');
+          } else {
+            particles.createSparks(en.x + en.w/2, en.y + en.h/2, '#00f0ff', 20);
+          }
           this.score += 100;
           this.player1.ultCharge = Math.min(100, this.player1.ultCharge + 10 * shopManager.getUltMultiplier());
           if (this.isCoopMode) this.player2.ultCharge = Math.min(100, this.player2.ultCharge + 10 * shopManager.getUltMultiplier());
@@ -2193,6 +2245,68 @@ export class GameManager {
 
     // Mini-game Overlay
     miniGameManager.draw(ctx, W, H);
+
+    // Chrono Stasis Time Stop Overlay (Libra Superpower)
+    if (buffManager.timeFreezeTimer > 0) {
+      ctx.save();
+      // Cosmic stasis tint
+      const stasisGrad = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, W * 0.7);
+      stasisGrad.addColorStop(0, 'rgba(79, 70, 229, 0.12)');
+      stasisGrad.addColorStop(0.7, 'rgba(15, 23, 42, 0.45)');
+      stasisGrad.addColorStop(1, 'rgba(2, 6, 23, 0.75)');
+      ctx.fillStyle = stasisGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Celestial Clock Dial
+      const tTimer = buffManager.timeFreezeTimer;
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.strokeStyle = 'rgba(129, 140, 248, 0.45)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#818cf8';
+      ctx.shadowBlur = 18;
+
+      // Outer Clock Ring
+      ctx.beginPath();
+      ctx.arc(0, 0, 110, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Roman Clock Numerals
+      ctx.fillStyle = '#c7d2fe';
+      ctx.font = 'bold 15px "Orbitron", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('XII', 0, -92);
+      ctx.fillText('III', 92, 0);
+      ctx.fillText('VI', 0, 92);
+      ctx.fillText('IX', -92, 0);
+
+      // Libra Zodiac Symbol in center
+      ctx.fillStyle = '#818cf8';
+      ctx.font = 'bold 36px monospace';
+      ctx.fillText('♎', 0, 0);
+
+      // Frozen Clock Hands
+      const handAngle = (tTimer * 0.05);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(handAngle) * 65, Math.sin(handAngle) * 65);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Time Stop Banner
+      ctx.fillStyle = '#c7d2fe';
+      ctx.font = '900 16px "Orbitron", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#818cf8';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`⏱️ CHRONO STASIS: ${(tTimer / 60).toFixed(1)}s ⏳`, W / 2, 42);
+
+      ctx.restore();
+    }
 
     ctx.restore();
   }

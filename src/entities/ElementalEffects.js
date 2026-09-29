@@ -20,6 +20,10 @@ export class ElementalEffectsManager {
     this.briars = [];
     this.solarBeams = [];
     this.singularities = [];
+    this.quicksands = [];
+    this.meteorShowers = [];
+    this.meteors = [];
+    this.craters = [];
   }
 
   clear() {
@@ -30,6 +34,10 @@ export class ElementalEffectsManager {
     this.briars.length = 0;
     this.solarBeams.length = 0;
     this.singularities.length = 0;
+    this.quicksands.length = 0;
+    this.meteorShowers.length = 0;
+    this.meteors.length = 0;
+    this.craters.length = 0;
   }
 
   // ========================================================
@@ -167,6 +175,49 @@ export class ElementalEffectsManager {
       life: duration,
       radius: 180,
       animTimer: 0
+    });
+  }
+
+  // ========================================================
+  // 8. QUICKSAND MAELSTROM (Aquarius Superpower)
+  // ========================================================
+  spawnQuicksand(x, groundY, damage = 180, duration = 240, owner = 1) {
+    sound.playEarthQuake();
+    sound.playWave();
+    particles.createSand(x, groundY, 25);
+    particles.createEarthDebris(x, groundY, 15);
+    this.quicksands.push({
+      x,
+      groundY,
+      radiusX: 300,
+      radiusY: 85,
+      damage,
+      duration,
+      owner,
+      life: duration,
+      maxLife: duration,
+      animTimer: 0,
+      tickTimer: 0
+    });
+  }
+
+  // ========================================================
+  // 9. METEOR SHOWER (Scorpio Superpower)
+  // ========================================================
+  spawnMeteorShower(centerX, groundY, count = 26, damage = 195, owner = 1) {
+    sound.playRoar();
+    sound.playFireBurst();
+    sound.playEarthQuake();
+    this.meteorShowers.push({
+      centerX,
+      groundY,
+      totalCount: count,
+      spawnedCount: 0,
+      damage,
+      owner,
+      interval: 4,
+      timer: 0,
+      duration: count * 5 + 60
     });
   }
 
@@ -440,6 +491,257 @@ export class ElementalEffectsManager {
         this.singularities.splice(i, 1);
       }
     }
+
+    // ------------------------------------------------------
+    // 8. Quicksand Maelstroms Update (Aquarius Superpower)
+    // Sucks in all enemies, submerges, traps, crushes and collapses!
+    // ------------------------------------------------------
+    for (let i = this.quicksands.length - 1; i >= 0; i--) {
+      const qs = this.quicksands[i];
+      qs.animTimer += 0.2;
+      qs.life--;
+      qs.tickTimer++;
+
+      // Ambient screen rumble
+      if (qs.life % 36 === 0 && onShake) {
+        onShake(4);
+      }
+
+      // Ambient sand swirl particles
+      if (Math.random() < 0.6) {
+        const randAngle = Math.random() * Math.PI * 2;
+        const randR = Math.random() * qs.radiusX;
+        particles.createSand(qs.x + Math.cos(randAngle) * randR, qs.groundY + Math.sin(randAngle) * qs.radiusY * 0.4, 2);
+      }
+
+      // Vacuum suction & quicksand entrapment on enemies
+      for (const en of enemies) {
+        if (!en || en.hp <= 0) continue;
+        const enCenterX = en.x + en.w / 2;
+        const enBaseY = en.y + en.h;
+        const dx = qs.x - enCenterX;
+        const distX = Math.abs(dx);
+        const distY = Math.abs(enBaseY - qs.groundY);
+
+        // Suction pull range (wider than quicksand core)
+        if (distX < qs.radiusX * 1.5 && distY < 200) {
+          const suctionStrength = Math.min(9, Math.max(3.5, (1 - distX / (qs.radiusX * 1.5)) * 8));
+          en.x += Math.sign(dx) * suctionStrength;
+          en.vx = Math.sign(dx) * suctionStrength * 0.4;
+        }
+
+        // Inside quicksand abyss: pulled completely DOWN into the earth
+        if (distX < qs.radiusX && distY < 120) {
+          en.quicksandTimer = 40;
+          en.stunTimer = Math.max(en.stunTimer || 0, 30);
+          // Drag and submerge straight down into the earth (can sink 100% under the ground!)
+          en.sinkDepth = Math.min((en.sinkDepth || 0) + 1.1, en.h + 8);
+          en.vy = 0;
+          en.vx = 0;
+          en.walkCycle = (en.walkCycle || 0) + 0.35; // struggling motion
+
+          // Sinking sand splashes and small bubbles
+          if (Math.random() < 0.25) {
+            particles.createSand(enCenterX + (Math.random() - 0.5) * 16, qs.groundY, 2);
+          }
+
+          // Earth suffocation damage tick
+          if (qs.tickTimer % 18 === 0) {
+            const tickDmg = Math.max(10, Math.floor(qs.damage * 0.15));
+            en.hp -= tickDmg;
+            sound.playHit();
+            particles.createDamageNumber(enCenterX, en.y - 10, `⏳ SINKING -${tickDmg}`, '#f59e0b');
+            particles.createSand(enCenterX, qs.groundY, 3);
+            particles.createEarthDebris(enCenterX, qs.groundY, 2);
+            if (onSynergyHit) onSynergyHit(en, 'earth', qs.owner, tickDmg);
+          }
+        }
+      }
+
+      // PvP mode support
+      if (isPvP) {
+        const targetP = qs.owner === 1 ? p2 : p1;
+        if (targetP && targetP.hp > 0 && targetP.invulnTime <= 0) {
+          const pCenterX = targetP.x + targetP.w / 2;
+          const pBaseY = targetP.y + targetP.h;
+          const dx = qs.x - pCenterX;
+          const distX = Math.abs(dx);
+          const distY = Math.abs(pBaseY - qs.groundY);
+          if (distX < qs.radiusX * 1.4 && distY < 180) {
+            const suctionStrength = Math.min(7, Math.max(2.5, (1 - distX / (qs.radiusX * 1.4)) * 6));
+            targetP.x += Math.sign(dx) * suctionStrength;
+            targetP.vx = Math.sign(dx) * suctionStrength * 0.3;
+          }
+          if (distX < qs.radiusX && distY < 100) {
+            if (qs.tickTimer % 24 === 0) {
+              const tickDmg = Math.max(6, Math.floor(qs.damage * 0.1));
+              targetP.hp -= tickDmg;
+              particles.createDamageNumber(pCenterX, targetP.y - 10, `QUICKSAND -${tickDmg}`, '#38bdf8');
+            }
+          }
+        }
+      }
+
+      // Final Ground Settlement when quicksand completes (NO EXPLOSION AT ALL)
+      if (qs.life <= 1) {
+        // Zero explosion! Earth just quietly settles with soft sand dust
+        particles.createEarthDebris(qs.x, qs.groundY, 10);
+        particles.createSand(qs.x, qs.groundY, 14);
+
+        for (const en of enemies) {
+          if (!en || en.hp <= 0) continue;
+          const enCenterX = en.x + en.w / 2;
+          const distX = Math.abs(qs.x - enCenterX);
+          if (distX < qs.radiusX * 1.2) {
+            const finishDmg = Math.floor(qs.damage * 0.55);
+            en.hp -= finishDmg;
+            en.vy = 0;
+            en.vx = 0;
+            en.stunTimer = 60;
+            particles.createDamageNumber(enCenterX, en.y - 15, `🪨 SWALLOWED -${finishDmg}`, '#b45309');
+            if (onSynergyHit) onSynergyHit(en, 'earth', qs.owner, finishDmg);
+          }
+        }
+        this.quicksands.splice(i, 1);
+      }
+    }
+
+    // ------------------------------------------------------
+    // 9. Meteor Showers & Meteors Update (Scorpio Superpower)
+    // ------------------------------------------------------
+    // 9a. Update Active Meteor Showers (spawning falling meteors)
+    for (let i = this.meteorShowers.length - 1; i >= 0; i--) {
+      const ms = this.meteorShowers[i];
+      ms.timer++;
+      ms.duration--;
+
+      if (ms.timer % ms.interval === 0 && ms.spawnedCount < ms.totalCount) {
+        ms.spawnedCount++;
+        // Target across a wide battlefield swath
+        const targetX = ms.centerX + (Math.random() - 0.5) * 820;
+        const targetY = ms.groundY;
+        const fallDist = targetY + 60;
+        const startY = -40 - Math.random() * 60;
+        const speed = 19 + Math.random() * 7;
+        const angle = Math.PI * 0.35 + (Math.random() - 0.5) * 0.35;
+        const startX = targetX - Math.tan(Math.PI / 2 - angle) * (targetY - startY);
+        const vy = Math.abs(Math.sin(angle) * speed);
+
+        this.meteors.push({
+          x: startX,
+          y: startY,
+          startX,
+          startY,
+          targetX,
+          targetY,
+          vx: (targetX - startX) / (fallDist / vy),
+          vy,
+          radius: 14 + Math.random() * 11,
+          damage: ms.damage,
+          owner: ms.owner,
+          color: Math.random() < 0.5 ? '#f97316' : (Math.random() < 0.5 ? '#ea580c' : '#c084fc'),
+          coreColor: '#fef08a',
+          tail: []
+        });
+
+        if (Math.random() < 0.4 && onShake) onShake(3);
+      }
+
+      if (ms.duration <= 0 && ms.spawnedCount >= ms.totalCount) {
+        this.meteorShowers.splice(i, 1);
+      }
+    }
+
+    // 9b. Update Falling Meteors & Impacts
+    for (let i = this.meteors.length - 1; i >= 0; i--) {
+      const m = this.meteors[i];
+      m.x += m.vx;
+      m.y += m.vy;
+
+      // Track tail history for beautiful fiery trail rendering
+      m.tail.push({ x: m.x, y: m.y });
+      if (m.tail.length > 8) m.tail.shift();
+
+      // Atmospheric sparks and flames in flight
+      particles.createFlame(m.x, m.y, 2);
+      particles.createSparks(m.x, m.y, m.color, 2);
+
+      // Impact with ground or target plane
+      if (m.y >= m.targetY) {
+        sound.playFireBurst();
+        if (Math.random() < 0.4) sound.playEarthQuake();
+        if (onShake) onShake(14);
+
+        // Blazing explosion detonation
+        particles.createFlame(m.x, m.targetY - 5, 20);
+        particles.createEarthDebris(m.x, m.targetY, 14);
+        particles.createSparks(m.x, m.targetY - 15, m.color, 28);
+        particles.createSparks(m.x, m.targetY - 15, '#ffffff', 14);
+
+        // Scorched ground crater
+        this.craters.push({
+          x: m.x,
+          groundY: m.targetY,
+          radiusX: m.radius * 2.2,
+          radiusY: 8 + m.radius * 0.4,
+          color: m.color,
+          life: 90,
+          maxLife: 90
+        });
+
+        // Cataclysmic splash blast damage
+        const blastRadius = 140;
+        for (const en of enemies) {
+          if (!en || en.hp <= 0) continue;
+          const enCenterX = en.x + en.w / 2;
+          const enBaseY = en.y + en.h;
+          const dist = Math.hypot(enCenterX - m.x, enBaseY - m.targetY);
+
+          if (dist < blastRadius) {
+            const damageFactor = 1 - (dist / blastRadius) * 0.55;
+            const impactDmg = Math.max(18, Math.floor(m.damage * 0.38 * damageFactor));
+            const hitResult = en.applyHit ? en.applyHit(impactDmg, 'fire', m.owner, false, true) : null;
+            if (!hitResult) en.hp -= impactDmg;
+
+            en.burnTimer = Math.max(en.burnTimer || 0, 160);
+            en.vy = -11; // Launched high into the air by shockwave
+            en.vx = Math.sign(enCenterX - m.x) * 7;
+            en.stunTimer = Math.max(en.stunTimer || 0, 30);
+
+            particles.createDamageNumber(enCenterX, en.y - 12, `☄️ METEOR! -${impactDmg}`, '#f97316');
+            particles.createFlame(enCenterX, en.y + en.h / 2, 8);
+            if (onSynergyHit) onSynergyHit(en, 'fire', m.owner, impactDmg);
+          }
+        }
+
+        // PvP mode damage
+        if (isPvP) {
+          const targetP = m.owner === 1 ? p2 : p1;
+          if (targetP && targetP.hp > 0 && targetP.invulnTime <= 0) {
+            const pCenterX = targetP.x + targetP.w / 2;
+            const pBaseY = targetP.y + targetP.h;
+            const dist = Math.hypot(pCenterX - m.x, pBaseY - m.targetY);
+            if (dist < blastRadius) {
+              const pDmg = Math.max(12, Math.floor(m.damage * 0.22));
+              targetP.hp -= pDmg;
+              targetP.vy = -9;
+              particles.createDamageNumber(pCenterX, targetP.y - 10, `METEOR -${pDmg}`, '#f97316');
+            }
+          }
+        }
+
+        this.meteors.splice(i, 1);
+      }
+    }
+
+    // 9c. Update Scorched Craters
+    for (let i = this.craters.length - 1; i >= 0; i--) {
+      const cr = this.craters[i];
+      cr.life--;
+      if (cr.life <= 0) {
+        this.craters.splice(i, 1);
+      }
+    }
   }
 
   // ========================================================
@@ -693,6 +995,182 @@ export class ElementalEffectsManager {
       ctx.beginPath();
       ctx.ellipse(0, 0, 48, 14, Math.PI / 4, 0, Math.PI * 2);
       ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 8. Draw Quicksand Maelstroms (Transparent Earth & Sand Depression)
+    for (const qs of this.quicksands) {
+      ctx.save();
+      const alpha = Math.min(1.0, qs.life / (qs.maxLife * 0.15));
+      ctx.globalAlpha = alpha;
+
+      // Transparent soft earth/sand depression - ground underneath is clearly visible!
+      const pitGrad = ctx.createRadialGradient(qs.x, qs.groundY, 8, qs.x, qs.groundY, qs.radiusX);
+      pitGrad.addColorStop(0, 'rgba(69, 26, 3, 0.32)'); // Soft translucent loam
+      pitGrad.addColorStop(0.35, 'rgba(120, 53, 15, 0.22)'); // Translucent amber sand
+      pitGrad.addColorStop(0.7, 'rgba(180, 83, 9, 0.12)'); // Soft sand dust
+      pitGrad.addColorStop(1, 'rgba(217, 119, 6, 0)'); // Fades seamlessly into background
+
+      ctx.fillStyle = pitGrad;
+      ctx.beginPath();
+      ctx.ellipse(qs.x, qs.groundY, qs.radiusX, qs.radiusY, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Soft natural sand boundary ripple
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(qs.x, qs.groundY, qs.radiusX * 0.95, qs.radiusY * 0.95, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Rotating Swirling Translucent Sand Dust Arms
+      const numArms = 5;
+      const swirlRot = t * 6;
+      for (let a = 0; a < numArms; a++) {
+        const armBaseAngle = (a / numArms) * Math.PI * 2 + swirlRot;
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.32)';
+        ctx.lineWidth = 2.0;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        const steps = 24;
+        for (let s = 0; s <= steps; s++) {
+          const frac = s / steps;
+          const theta = armBaseAngle + frac * Math.PI * 2.5;
+          const rX = (1 - frac) * qs.radiusX * 0.9;
+          const rY = (1 - frac) * qs.radiusY * 0.85;
+          const px = qs.x + Math.cos(theta) * rX;
+          const py = qs.groundY + Math.sin(theta) * rY;
+          if (s === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      // Swirling Fine Sand Grains around Depression
+      ctx.fillStyle = 'rgba(253, 230, 138, 0.55)';
+      const particleDots = 12;
+      for (let p = 0; p < particleDots; p++) {
+        const pAngle = (p / particleDots) * Math.PI * 2 - t * 8;
+        const pDist = 0.25 + (p / particleDots) * 0.7;
+        const dotX = qs.x + Math.cos(pAngle) * qs.radiusX * pDist;
+        const dotY = qs.groundY + Math.sin(pAngle) * qs.radiusY * pDist;
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Soft center depression
+      const eyeGrad = ctx.createRadialGradient(qs.x, qs.groundY, 0, qs.x, qs.groundY, 30);
+      eyeGrad.addColorStop(0, 'rgba(45, 18, 5, 0.38)');
+      eyeGrad.addColorStop(1, 'rgba(180, 83, 9, 0)');
+      ctx.fillStyle = eyeGrad;
+      ctx.beginPath();
+      ctx.ellipse(qs.x, qs.groundY, 32, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Translucent Aquarius Symbol watermark in center
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.font = 'bold 15px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♒', qs.x, qs.groundY - 1);
+
+      ctx.restore();
+    }
+
+    // 9a. Draw Scorched Craters on Ground
+    for (const cr of this.craters) {
+      ctx.save();
+      const alpha = Math.min(1.0, cr.life / (cr.maxLife * 0.25));
+      ctx.globalAlpha = alpha;
+
+      // Dark charred crater base
+      ctx.fillStyle = 'rgba(24, 10, 5, 0.7)';
+      ctx.beginPath();
+      ctx.ellipse(cr.x, cr.groundY, cr.radiusX, cr.radiusY, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing molten core
+      const coreGrad = ctx.createRadialGradient(cr.x, cr.groundY, 0, cr.x, cr.groundY, cr.radiusX * 0.7);
+      coreGrad.addColorStop(0, '#f97316');
+      coreGrad.addColorStop(0.5, '#7c2d12');
+      coreGrad.addColorStop(1, 'rgba(124, 45, 18, 0)');
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.ellipse(cr.x, cr.groundY, cr.radiusX * 0.7, cr.radiusY * 0.7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Scorched magma fissures
+      ctx.strokeStyle = '#fde047';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cr.x - cr.radiusX * 0.5, cr.groundY - 1);
+      ctx.lineTo(cr.x + cr.radiusX * 0.4, cr.groundY + 1);
+      ctx.moveTo(cr.x - 2, cr.groundY - cr.radiusY * 0.4);
+      ctx.lineTo(cr.x + 3, cr.groundY + cr.radiusY * 0.4);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 9b. Draw Flaming Meteors with Comet Tails
+    for (const m of this.meteors) {
+      ctx.save();
+
+      // Glowing comet tail ribbon
+      if (m.tail && m.tail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(m.tail[0].x, m.tail[0].y);
+        for (let s = 1; s < m.tail.length; s++) {
+          ctx.lineTo(m.tail[s].x, m.tail[s].y);
+        }
+        ctx.lineTo(m.x, m.y);
+        ctx.strokeStyle = m.color;
+        ctx.lineWidth = m.radius * 1.3;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = m.color;
+        ctx.shadowBlur = 16;
+        ctx.stroke();
+
+        // Inner white-hot trail core
+        ctx.lineWidth = m.radius * 0.6;
+        ctx.strokeStyle = '#fef08a';
+        ctx.stroke();
+      }
+
+      // Blazing Meteor Core
+      ctx.translate(m.x, m.y);
+      const mAngle = Math.atan2(m.vy, m.vx);
+      ctx.rotate(mAngle);
+
+      // Outer fire halo
+      const fireGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, m.radius * 1.4);
+      fireGrad.addColorStop(0, '#ffffff');
+      fireGrad.addColorStop(0.3, '#fef08a');
+      fireGrad.addColorStop(0.6, '#f97316');
+      fireGrad.addColorStop(0.9, '#ea580c');
+      fireGrad.addColorStop(1, 'rgba(124, 45, 18, 0)');
+
+      ctx.fillStyle = fireGrad;
+      ctx.shadowColor = '#ea580c';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(0, 0, m.radius * 1.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Jagged molten rock core
+      ctx.fillStyle = '#451a03';
+      ctx.beginPath();
+      ctx.arc(0, 0, m.radius * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Superheated white-hot center
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(m.radius * 0.2, 0, m.radius * 0.35, 0, Math.PI * 2);
+      ctx.fill();
 
       ctx.restore();
     }
