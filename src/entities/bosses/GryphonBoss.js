@@ -11,68 +11,112 @@ export class GryphonBoss extends BaseBoss {
   constructor(x, y, maxHp = 950) {
     super(x, y, 'KUNGLIGA ÅNG-GRYFON', maxHp, '👑', 150, 145);
     this.type = 'gryphon';
+    this.baseY = y - 40; // Flies in the air
+    this.attackPattern = 0;
+    this.isDiving = false;
   }
 
-  update(enemyProjectiles, onShake) {
-    if (!this.updateBase(enemyProjectiles, onShake)) return;
+  update(arg1, arg2, arg3, arg4, arg5, arg6) {
+    if (!this.updateBase(arg1, arg2, arg3, arg4, arg5, arg6)) return;
+
+    let enemyProjectiles, onShake;
+    if (Array.isArray(arg1)) {
+      enemyProjectiles = arg1;
+      onShake = arg2;
+    } else {
+      enemyProjectiles = arg4;
+      onShake = arg6;
+    }
+
+    // Aerial Flight Swoop
+    if (!this.isDiving) {
+      this.y = this.baseY + Math.sin(this.animTimer * 3.0) * 25;
+
+      if (this.targetPlayer) {
+        const dist = Math.abs(this.targetPlayer.x - (this.x + this.w / 2));
+        const spd = this.phase === 2 ? 3.5 : 2.2;
+        if (dist > 320) {
+          this.vx = this.facing * spd;
+        } else if (dist < 150) {
+          this.vx = -this.facing * spd;
+        } else {
+          this.vx *= 0.94;
+        }
+      }
+    }
+
+    this.x += this.vx;
+    if (this.x < this.arenaMinX) this.x = this.arenaMinX;
+    if (this.x + this.w > this.arenaMaxX) this.x = this.arenaMaxX - this.w;
 
     if (this.attackTimer <= 0) {
-      this.attackTimer = this.phase === 2 ? 55 : 85;
+      this.attackTimer = this.phase === 2 ? 50 : 75;
       this.executeAttack(enemyProjectiles, onShake);
     }
   }
 
   executeAttack(enemyProjectiles, onShake) {
-    sound.playLaser();
-    if (onShake) onShake(12);
-    this.telegraphTimer = 25;
+    this.attackPattern = (this.attackPattern + 1) % 3;
+    this.telegraphTimer = 22;
 
-    if (this.phase === 1) {
-      // 5-Way Razor Feather Spread
-      const count = 5;
+    if (this.attackPattern === 0) {
+      // Attack 1: Targeted 5-7 Razor Golden Feather Fan
+      sound.playLaser();
+      if (onShake) onShake(10);
+      particles.createSparks(this.x + (this.facing > 0 ? this.w : 0), this.y + 40, '#facc15', 30);
+
+      const count = this.phase === 2 ? 7 : 5;
       for (let i = 0; i < count; i++) {
-        const angle = -0.4 + (i / (count - 1)) * 0.8;
+        const angle = -0.45 + (i / (count - 1)) * 0.9;
         enemyProjectiles.push({
-          x: this.x - 30,
+          x: this.x + (this.facing > 0 ? this.w + 10 : -10),
           y: this.y + 40,
-          vx: Math.cos(Math.PI - angle) * 8.5,
-          vy: Math.sin(angle) * 8.5,
-          color: '#facc15',
-          damage: 20,
-          life: 75
-        });
-      }
-      particles.createSparks(this.x - 20, this.y + 40, '#facc15', 25);
-    } else {
-      // Phase 2: Royal Overdrive! 9-Way Feather Fan + Homing Golden Clockwork Gears
-      sound.playUlt();
-      const count = 9;
-      for (let i = 0; i < count; i++) {
-        const angle = -0.6 + (i / (count - 1)) * 1.2;
-        enemyProjectiles.push({
-          x: this.x - 30,
-          y: this.y + 35,
-          vx: Math.cos(Math.PI - angle) * 9.5,
-          vy: Math.sin(angle) * 9.5,
+          vx: this.facing * Math.cos(angle) * (this.phase === 2 ? 9.5 : 8.0),
+          vy: Math.sin(angle) * 8.0,
           color: '#fbbf24',
-          damage: 25,
+          damage: 22,
           life: 80
         });
       }
+    } else if (this.attackPattern === 1) {
+      // Attack 2: High-Pressure Steam Jet Ground Blast
+      sound.playWave();
+      if (onShake) onShake(16);
+      particles.createWindGale(this.x + this.w / 2, this.y + this.h, this.facing, 10);
 
-      // Fast Steam Jet Across the Ground
       enemyProjectiles.push({
-        x: this.x - 40,
+        x: this.x + (this.facing > 0 ? this.w : -20),
         y: 470,
-        vx: -8.5,
+        vx: this.facing * (this.phase === 2 ? 9.0 : 7.5),
         vy: 0,
         color: '#fde047',
-        damage: 28,
-        life: 75,
+        damage: 26,
+        life: 80,
         isGroundWave: true
       });
+    } else {
+      // Attack 3: Supersonic Aerial Dive Bomb Strike!
+      sound.playUlt();
+      const diveTargetX = this.targetPlayer ? this.targetPlayer.x : this.x + this.facing * 250;
+      this.addTelegraphZone(diveTargetX - 40, 200, 80, 280, 24, '#fbbf24', () => {
+        sound.playHammer();
+        if (onShake) onShake(20);
+        this.isDiving = true;
+        this.vx = this.facing * 9.0;
+        this.vy = 8.0;
 
-      particles.createSparks(this.x - 20, this.y + 40, '#fbbf24', 40);
+        setTimeout(() => {
+          this.vy = -6.0;
+          setTimeout(() => {
+            this.isDiving = false;
+            this.vx = 0;
+            this.vy = 0;
+          }, 350);
+        }, 300);
+
+        particles.createFlame(diveTargetX, 460, 25);
+        particles.createSparks(diveTargetX, 460, '#facc15', 30);
+      });
     }
   }
 

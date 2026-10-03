@@ -1,10 +1,12 @@
 import { N, CHORDS, ALL_MUSIC_TRACKS } from '../config/musicTracks.js';
+import { saveCustomAudio, loadCustomAudio, deleteCustomAudio } from './AudioStorage.js';
 
 /**
  * Advanced Multi-Track Procedural Synthesizer & Sound Engine
  * Plays full, multi-section video game songs with polyphonic chords,
  * dynamic driving basslines, singing synth leads with vibrato, counter-arps,
  * and a full percussion drum machine (kick, snare, hi-hats, crash, tom fills).
+ * Also supports real custom audio tracks (MP3/WAV/OGG) with IndexedDB persistence.
  */
 export class SoundEngine {
   constructor() {
@@ -26,6 +28,12 @@ export class SoundEngine {
     this.nextStepTime = 0;
     this.schedulerTimer = null;
 
+    // Custom Audio Player state (MP3 / WAV from user)
+    this.customAudioElement = null;
+    this.customAudioUrl = '/assets/goteborg_custom.mp3';
+    this.customAudioName = 'Gothenburg1.mp3';
+    this.hasCustomAudio = true;
+
     // Noise buffer for realistic snare, hats, and crashes
     this.noiseBuffer = null;
 
@@ -34,6 +42,16 @@ export class SoundEngine {
   }
 
   init() {
+    if (!this.customAudioElement && typeof window !== 'undefined' && window.Audio) {
+      const AudioClass = window.Audio;
+      this.customAudioElement = new AudioClass();
+      this.customAudioElement.loop = true;
+      this.customAudioElement.preload = 'auto';
+      this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom.mp3';
+      this.customAudioElement.volume = this.isMuted ? 0 : 0.8;
+      this.loadSavedCustomMusic();
+    }
+
     if (!this.ctx) {
       const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AudioCtxClass();
@@ -112,22 +130,166 @@ export class SoundEngine {
       this.bgmGain.gain.setValueAtTime(targetBgm, this.ctx.currentTime);
       this.sfxGain.gain.setValueAtTime(targetSfx, this.ctx.currentTime);
     }
+    if (this.customAudioElement) {
+      this.customAudioElement.muted = this.isMuted;
+      this.customAudioElement.volume = this.isMuted ? 0 : 0.75;
+    }
     return this.isMuted;
+  }
+
+  /* ================= CUSTOM AUDIO FILE INTEGRATION ================= */
+
+  async loadSavedCustomMusic() {
+    try {
+      const saved = await loadCustomAudio('goteborg-1');
+      if (saved && saved.blob) {
+        if (this.customAudioUrl && this.customAudioUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(this.customAudioUrl);
+        }
+        this.customAudioUrl = URL.createObjectURL(saved.blob);
+        this.customAudioName = saved.name || 'Gothenburg1.mp3';
+        this.hasCustomAudio = true;
+        if (this.customAudioElement) {
+          this.customAudioElement.src = this.customAudioUrl;
+        }
+        console.log('🎵 Loaded persistent custom music:', this.customAudioName);
+        this.notifyCustomAudioChanged();
+      } else {
+        // Default to user's provided Gothenburg1 song asset
+        this.customAudioUrl = '/assets/goteborg_custom.mp3';
+        this.customAudioName = 'Gothenburg1.mp3';
+        this.hasCustomAudio = true;
+        const curLoc = (typeof window !== 'undefined' && window.location) ? window.location.href : '';
+        if (this.customAudioElement && (!this.customAudioElement.src || (curLoc && this.customAudioElement.src === curLoc))) {
+          this.customAudioElement.src = this.customAudioUrl;
+        }
+        this.notifyCustomAudioChanged();
+      }
+    } catch (e) {
+      console.warn('Failed to load saved custom music:', e);
+    }
+  }
+
+  async setCustomAudio(fileOrBlob, fileName) {
+    this.init();
+    if (!fileOrBlob) return false;
+    try {
+      if (this.customAudioUrl && this.customAudioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.customAudioUrl);
+      }
+      this.customAudioUrl = URL.createObjectURL(fileOrBlob);
+      this.customAudioName = fileName || fileOrBlob.name || 'Gothenburg1.mp3';
+      this.hasCustomAudio = true;
+
+      if (this.customAudioElement) {
+        this.customAudioElement.src = this.customAudioUrl;
+        this.customAudioElement.currentTime = 0;
+      }
+
+      saveCustomAudio('goteborg-1', fileOrBlob, this.customAudioName).catch(e => {
+        console.warn('Background save to IndexedDB failed:', e);
+      });
+      console.log('🎵 Saved and active custom music for Göteborg:', this.customAudioName);
+      this.notifyCustomAudioChanged();
+
+      // If we are currently playing goteborg or in game, switch immediately to it!
+      if (this.currentTrack === 'goteborg-1' || this.currentTrack === 'goteborg' || (typeof this.currentTrack === 'string' && this.currentTrack.startsWith('goteborg'))) {
+        this.playMusic(this.currentTrack);
+      }
+      return true;
+    } catch (e) {
+      console.error('Error setting custom audio:', e);
+      return false;
+    }
+  }
+
+  async clearCustomAudio() {
+    try {
+      await deleteCustomAudio('goteborg-1');
+      if (this.customAudioUrl && this.customAudioUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(this.customAudioUrl);
+      }
+      this.customAudioUrl = '/assets/goteborg_custom.mp3';
+      this.customAudioName = 'Gothenburg1.mp3';
+      this.hasCustomAudio = true;
+      if (this.customAudioElement) {
+        this.customAudioElement.src = this.customAudioUrl;
+      }
+      this.notifyCustomAudioChanged();
+      if (this.currentTrack === 'goteborg-1' || this.currentTrack === 'goteborg' || (typeof this.currentTrack === 'string' && this.currentTrack.startsWith('goteborg'))) {
+        this.playMusic(this.currentTrack);
+      }
+    } catch (e) {}
+  }
+
+  notifyCustomAudioChanged() {
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('zodiac-custom-audio-changed', {
+        detail: { hasCustomAudio: this.hasCustomAudio, name: this.customAudioName }
+      }));
+    }
+  }
+
+  playCustomAudio() {
+    if (!this.customAudioElement) {
+      this.init();
+    }
+    if (!this.customAudioElement) return false;
+    try {
+      const curLoc = (typeof window !== 'undefined' && window.location) ? window.location.href : '';
+      if (!this.customAudioElement.src || (curLoc && this.customAudioElement.src === curLoc) || this.customAudioElement.src.endsWith('/')) {
+        this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom.mp3';
+      }
+      this.customAudioElement.muted = this.isMuted;
+      this.customAudioElement.volume = this.isMuted ? 0 : 0.8;
+      const promise = this.customAudioElement.play();
+      if (promise && promise.catch) {
+        promise.catch(err => console.log('Audio autoplay waiting for user interaction:', err));
+      }
+      return true;
+    } catch (e) {
+      console.error('Error playing custom audio:', e);
+      return false;
+    }
+  }
+
+  pauseCustomAudio() {
+    if (this.customAudioElement) {
+      try {
+        this.customAudioElement.pause();
+      } catch (e) {}
+    }
   }
 
   /* ================= BACKGROUND MUSIC SEQUENCER ================= */
 
   /**
    * Starts playing a full, multi-section musical composition.
-   * @param {string} trackId - 'title', 'goteborg', 'kiruna', 'stockholm', 'visby', 'boss', 'victory'
+   * @param {string} trackId - 'title', 'goteborg', 'goteborg-1', 'kiruna', 'stockholm', 'visby', 'boss', 'victory'
    */
   playMusic(trackId) {
     this.init();
+
+    // 1. If playing the custom uploaded audio for Göteborg level:
+    const isGoteborg = (trackId === 'goteborg-1' || trackId === 'goteborg' || (typeof trackId === 'string' && trackId.startsWith('goteborg')));
+    if (isGoteborg && this.customAudioUrl) {
+      if (this.currentTrack === trackId && this.customAudioElement && !this.customAudioElement.paused) {
+        return;
+      }
+      this.stopMusic(false); // Stop procedural synth
+      this.currentTrack = trackId;
+      this.playCustomAudio();
+      return;
+    }
+
+    // If switching away from custom audio, make sure it is paused
+    this.pauseCustomAudio();
+
     if (this.currentTrack === trackId && this.schedulerTimer) return;
 
-    this.stopMusic();
+    this.stopMusic(false);
 
-    const track = ALL_MUSIC_TRACKS[trackId] || ALL_MUSIC_TRACKS['goteborg'];
+    const track = ALL_MUSIC_TRACKS[trackId] || ALL_MUSIC_TRACKS['goteborg-1'] || ALL_MUSIC_TRACKS['goteborg'];
     this.currentTrack = trackId;
     this.trackData = track;
     this.tempo = track.tempo || 124;
@@ -140,6 +302,10 @@ export class SoundEngine {
 
     if (this.ctx) {
       this.nextStepTime = this.ctx.currentTime + 0.05;
+      // If switching directly to boss battle, trigger a dramatic crash cymbal impact!
+      if (trackId === 'boss') {
+        this.synthCrash(this.ctx.currentTime + 0.02);
+      }
     }
 
     // High-accuracy lookahead scheduling loop (every 25ms, schedules ahead by 120ms)
@@ -148,13 +314,20 @@ export class SoundEngine {
     }, 25);
   }
 
-  stopMusic() {
+  getCurrentTrack() {
+    return this.currentTrack;
+  }
+
+  stopMusic(clearTrack = true) {
+    this.pauseCustomAudio();
     if (this.schedulerTimer) {
       clearInterval(this.schedulerTimer);
       this.schedulerTimer = null;
     }
-    this.currentTrack = null;
-    this.trackData = null;
+    if (clearTrack) {
+      this.currentTrack = null;
+      this.trackData = null;
+    }
   }
 
   /**
@@ -285,7 +458,7 @@ export class SoundEngine {
         else if (stepInMeasure % 4 === 2) bassFreq = octaveFreq;
         else if (stepInMeasure % 4 === 3) bassFreq = (stepInMeasure === 15) ? fifthFreq : rootFreq;
         else bassFreq = rootFreq;
-      } else if (track.id === 'goteborg') {
+      } else if (track.id === 'goteborg' || track.id === 'goteborg-1') {
         // Cyberpunk rolling bass
         playBass = stepInMeasure % 2 === 0 || stepInMeasure % 4 === 3;
         bassFreq = (stepInMeasure % 4 === 2) ? octaveFreq : rootFreq;
@@ -348,18 +521,18 @@ export class SoundEngine {
       osc.frequency.setValueAtTime(freq, time);
 
       subOsc.type = 'sine';
-      subOsc.frequency.setValueAtTime(freq * 0.5, time); // Sub-bass 1 octave lower
+      subOsc.frequency.setValueAtTime(freq * 0.5, time); // Warm Sub-bass
 
-      // Resonant Lowpass Filter with fast decay for punch
+      // Warm analog lowpass filter
       filter.type = 'lowpass';
-      const startCutoff = isAccent ? 1400 : 850;
+      const startCutoff = isAccent ? 1200 : 700;
       filter.frequency.setValueAtTime(startCutoff, time);
-      filter.frequency.exponentialRampToValueAtTime(160, time + duration);
-      filter.Q.setValueAtTime(3.5, time);
+      filter.frequency.exponentialRampToValueAtTime(110, time + duration);
+      filter.Q.setValueAtTime(2.2, time);
 
-      const vol = isAccent ? 0.36 : 0.28;
+      const vol = isAccent ? 0.32 : 0.24;
       gain.gain.setValueAtTime(vol, time);
-      gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+      gain.gain.exponentialRampToValueAtTime(0.005, time + duration);
 
       osc.connect(filter);
       subOsc.connect(filter);
@@ -521,16 +694,22 @@ export class SoundEngine {
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, time);
 
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(freq * 1.5, time);
-      filter.Q.setValueAtTime(2.0, time);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1600, time);
+      filter.Q.setValueAtTime(1.2, time);
 
-      gain.gain.setValueAtTime(0.12, time);
+      // Subtle, gentle volume so it sparkles in the background without being an annoying beep
+      gain.gain.setValueAtTime(0.045, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.bgmGain);
+
+      // Send to stereo delay for lush ambient space
+      if (this.stereoDelayNode) {
+        gain.connect(this.stereoDelayNode);
+      }
 
       osc.start(time);
       osc.stop(time + duration);

@@ -46,6 +46,7 @@
           <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
             <div id="hud-city" class="location-city">🇸🇪 GÖTEBORG DOCKS</div>
             <button id="btn-hud-char-select" title="Change Hero" class="hud-btn-action" style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid #a855f7; color: #e9d5ff; border-radius: 6px; padding: 2px 9px; cursor: pointer; font-size: 11px; font-weight: 800; pointer-events: auto; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);">👤 SELECT HERO</button>
+            <button id="btn-hud-custom-music" title="Загрузить/сменить песню для Гётеборга" class="hud-btn-action" style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid #10b981; color: #6ee7b7; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: 800; pointer-events: auto; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">🎵 Gothenburg1.mp3</button>
             <button id="btn-hud-pause" title="Pause Game [ESC / P]" class="hud-btn-action" style="background: rgba(15, 23, 42, 0.9); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: 800; pointer-events: auto; display: inline-flex; align-items: center; gap: 4px;">⏸️ PAUSE</button>
             <button id="btn-sound-toggle" style="background: rgba(15, 23, 42, 0.8); border: 1px solid #00f0ff; color: #fff; border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 12px; pointer-events: auto;">🔊</button>
           </div>
@@ -135,8 +136,12 @@
 
       <button id="btn-goto-map" class="btn-secondary" style="margin-top: 10px;">SWEDEN REALM MAP</button>
 
-      <div style="margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <button id="btn-sound-toggle-menu" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff; padding: 6px 14px; font-size: 13px; cursor: pointer;">🔊 MUSIC & SFX: ON</button>
+      <div style="margin-top: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="btn-sound-toggle-menu" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff; padding: 6px 14px; font-size: 13px; cursor: pointer;">🔊 MUSIC & SFX: ON</button>
+          <button id="btn-custom-music-title" class="btn-secondary" style="border-color: #10b981; color: #6ee7b7; padding: 6px 16px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);">🎵 ТРЕК: Gothenburg1.mp3 (СМЕНИТЬ)</button>
+        </div>
+        <div id="custom-music-status-title" style="font-size: 11px; color: #6ee7b7; font-family: monospace; display: block;">✅ Активен трек для Гётеборга: Gothenburg1.mp3</div>
       </div>
     </div>
 
@@ -382,11 +387,27 @@
 
       <div style="display: flex; flex-direction: column; gap: 10px; width: 320px;">
         <button id="btn-pause-resume" class="btn-main" style="padding: 10px 20px;">▶️ RESUME BATTLE [ESC]</button>
+        <button id="btn-pause-custom-music" class="btn-secondary" style="border-color: #10b981; color: #6ee7b7; padding: 8px 20px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);">🎵 СВОЯ ПЕСНЯ ДЛЯ ГЁТЕБОРГА (MP3/WAV)</button>
         <button id="btn-pause-char-select" class="btn-secondary" style="border-color: #a855f7; color: #e9d5ff; padding: 9px 20px; font-weight: 800;">👤 SELECT HERO</button>
         <button id="btn-pause-restart" class="btn-secondary" style="padding: 8px 20px;">🔄 RESTART SECTOR</button>
         <button id="btn-pause-city-map" class="btn-secondary" style="border-color: #00f0ff; color: #00f0ff; padding: 8px 20px;">🇸🇪 GÖTEBORG CITY MAP</button>
         <button id="btn-pause-main-menu" class="btn-secondary" style="padding: 8px 20px;">🏠 MAIN MENU</button>
       </div>
+    </div>
+
+    <!-- HIDDEN AUDIO FILE INPUT FOR CUSTOM MUSIC -->
+    <input type="file" id="input-custom-music" accept="audio/*,.mp3,.wav,.ogg,.m4a" style="display: none;">
+
+    <!-- DRAG AND DROP OVERLAY FOR INSTANT MUSIC LOADING -->
+    <div id="drag-drop-audio-overlay" style="display: none; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.94); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; border: 4px dashed #10b981; backdrop-filter: blur(4px);">
+      <div style="font-size: 58px; margin-bottom: 8px;">🎧</div>
+      <div style="font-size: 20px; font-weight: 900; color: #6ee7b7; letter-spacing: 1px; text-shadow: 0 0 15px rgba(16,185,129,0.8);">ОТПУСТИТЕ ВАШУ ПЕСНЮ ЗДЕСЬ!</div>
+      <div style="font-size: 13px; color: #cbd5e1; margin-top: 8px;">Трек мгновенно заиграет в 1-м районе Гётеборга и сохранится в браузере!</div>
+    </div>
+
+    <!-- FLOATING MUSIC LOADED TOAST NOTIFICATION -->
+    <div id="music-notification-toast" style="display: none; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(5,150,105,0.95)); border: 2px solid #6ee7b7; color: #ffffff; padding: 9px 24px; border-radius: 30px; font-size: 13px; font-weight: 900; z-index: 10000; box-shadow: 0 0 25px rgba(16,185,129,0.7); pointer-events: none; text-align: center; font-family: monospace; letter-spacing: 0.5px;">
+      🎵 ВАША ПЕСНЯ УСПЕШНО ЗАГРУЖЕНА И ИГРАЕТ!
     </div>
   </div>
 

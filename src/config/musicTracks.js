@@ -67,101 +67,89 @@ export const CHORDS = {
 /**
  * TRACK 1: "Svea Rike - Zodiac Awakening" (Title & Menu Theme)
  * Style: Triumphant, inspiring 80s Synthwave / Arcade Anthem
- * Key: A Minor / C Major, Tempo: 122 BPM, Length: 32 Bars (512 16th-steps)
+ * Key: A Minor / C Major, Tempo: 124 BPM, Length: 32 Bars (512 16th-steps)
  */
 export const TITLE_TRACK = {
   id: 'title',
   name: 'ZODIAC AWAKENING (MAIN THEME)',
-  tempo: 122,
+  tempo: 124,
   measures: 32,
   totalSteps: 512,
 
-  // Chord progression for each bar (16 steps per bar)
-  // Bars 0-7: Intro (Am, F, C, G x 2)
-  // Bars 8-15: Verse 1 (Am, F, C, G, Am, F, Em, Am)
-  // Bars 16-23: Chorus (C, G, Am, F, C, G, F, G)
-  // Bars 24-31: Bridge & Solo (Dm, G, Em, Am, F, Dm, E7, Am)
   chordProgression: [
-    // Intro
-    'Am', 'F', 'C', 'G', 'Am', 'F', 'C', 'G',
-    // Verse 1
-    'Am', 'F', 'C', 'G', 'Am', 'F', 'Em', 'Am',
-    // Chorus (Anthemic Hook!)
+    // Intro Fanfare (Bars 0-7)
+    'Am', 'F', 'C', 'G', 'Am', 'F', 'Dm', 'E7',
+    // Verse 1: Hero's Call (Bars 8-15)
+    'Am', 'F', 'C', 'G', 'Am', 'Dm', 'Em', 'Am',
+    // Chorus: Northern Constellations (Bars 16-23)
     'C', 'G', 'Am', 'F', 'C', 'G', 'F', 'G',
-    // Bridge / Solo
+    // Bridge / Solo (Bars 24-31)
     'Dm', 'G', 'Em', 'Am', 'F', 'Dm', 'E7', 'Am'
   ],
 
-  // Lead melody: Array of note events with exact bar, beat-step (0-15), note, length
-  // Expressive, catchy full song melodies with question-and-answer phrasing
   melody: [
-    // --- INTRO FANFARE (Bars 4-7) ---
-    { m: 4, s: 0, n: 'A4', d: 3 }, { m: 4, s: 4, n: 'C5', d: 2 }, { m: 4, s: 8, n: 'E5', d: 4 },
-    { m: 5, s: 0, n: 'D5', d: 3 }, { m: 5, s: 4, n: 'C5', d: 2 }, { m: 5, s: 8, n: 'B4', d: 4 },
-    { m: 6, s: 0, n: 'C5', d: 3 }, { m: 6, s: 4, n: 'D5', d: 2 }, { m: 6, s: 8, n: 'E5', d: 4 }, { m: 6, s: 12, n: 'G5', d: 3 },
-    { m: 7, s: 0, n: 'E5', d: 6 }, { m: 7, s: 8, n: 'D5', d: 4 }, { m: 7, s: 12, n: 'C5', d: 2 }, { m: 7, s: 14, n: 'B4', d: 2 },
+    // --- INTRO FANFARE: Immediate Heroic Motif from Bar 0! ---
+    { m: 0, s: 0, n: 'A4', d: 3 }, { m: 0, s: 4, n: 'C5', d: 2 }, { m: 0, s: 8, n: 'E5', d: 4 }, { m: 0, s: 12, n: 'G5', d: 3 },
+    { m: 1, s: 0, n: 'F5', d: 3 }, { m: 1, s: 4, n: 'E5', d: 2 }, { m: 1, s: 8, n: 'D5', d: 4 }, { m: 1, s: 12, n: 'C5', d: 2 },
+    { m: 2, s: 0, n: 'E5', d: 4 }, { m: 2, s: 6, n: 'D5', d: 2 }, { m: 2, s: 8, n: 'C5', d: 4 }, { m: 2, s: 12, n: 'B4', d: 3 },
+    { m: 3, s: 0, n: 'C5', d: 4 }, { m: 3, s: 6, n: 'B4', d: 2 }, { m: 3, s: 8, n: 'G4', d: 6 },
 
-    // --- VERSE 1: HERO'S JOURNEY (Bars 8-15) ---
-    // Bar 8-9: Phrase 1
-    { m: 8, s: 0, n: 'A4', d: 2 }, { m: 8, s: 3, n: 'A4', d: 2 }, { m: 8, s: 6, n: 'B4', d: 2 }, { m: 8, s: 8, n: 'C5', d: 4 },
+    { m: 4, s: 0, n: 'A4', d: 3 }, { m: 4, s: 4, n: 'C5', d: 2 }, { m: 4, s: 8, n: 'E5', d: 4 }, { m: 4, s: 12, n: 'A5', d: 3 },
+    { m: 5, s: 0, n: 'G5', d: 3 }, { m: 5, s: 4, n: 'F5', d: 2 }, { m: 5, s: 8, n: 'E5', d: 4 }, { m: 5, s: 12, n: 'D5', d: 3 },
+    { m: 6, s: 0, n: 'F5', d: 3 }, { m: 6, s: 4, n: 'A5', d: 2 }, { m: 6, s: 8, n: 'D6', d: 4 }, { m: 6, s: 12, n: 'C6', d: 3 },
+    { m: 7, s: 0, n: 'B5', d: 4 }, { m: 7, s: 6, n: 'G#5', d: 2 }, { m: 7, s: 8, n: 'E5', d: 6 },
+
+    // --- VERSE 1: THE HEROIC ODYSSEY (Bars 8-15) ---
+    { m: 8, s: 0, n: 'A4', d: 2 }, { m: 8, s: 3, n: 'A4', d: 2 }, { m: 8, s: 6, n: 'B4', d: 2 }, { m: 8, s: 8, n: 'C5', d: 4 }, { m: 8, s: 12, n: 'D5', d: 3 },
     { m: 9, s: 0, n: 'B4', d: 3 }, { m: 9, s: 4, n: 'A4', d: 2 }, { m: 9, s: 8, n: 'F4', d: 6 },
-    // Bar 10-11: Phrase 2
     { m: 10, s: 0, n: 'G4', d: 2 }, { m: 10, s: 3, n: 'C5', d: 3 }, { m: 10, s: 6, n: 'D5', d: 2 }, { m: 10, s: 8, n: 'E5', d: 6 },
     { m: 11, s: 0, n: 'D5', d: 4 }, { m: 11, s: 6, n: 'C5', d: 2 }, { m: 11, s: 8, n: 'B4', d: 4 }, { m: 11, s: 12, n: 'G4', d: 3 },
-    // Bar 12-13: Phrase 3
+
     { m: 12, s: 0, n: 'A4', d: 2 }, { m: 12, s: 3, n: 'C5', d: 2 }, { m: 12, s: 6, n: 'E5', d: 2 }, { m: 12, s: 8, n: 'A5', d: 6 },
     { m: 13, s: 0, n: 'G5', d: 3 }, { m: 13, s: 4, n: 'F5', d: 3 }, { m: 13, s: 8, n: 'E5', d: 4 }, { m: 13, s: 12, n: 'D5', d: 3 },
-    // Bar 14-15: Cadence to Chorus
     { m: 14, s: 0, n: 'E5', d: 3 }, { m: 14, s: 4, n: 'B4', d: 3 }, { m: 14, s: 8, n: 'C5', d: 4 }, { m: 14, s: 12, n: 'D5', d: 3 },
     { m: 15, s: 0, n: 'E5', d: 4 }, { m: 15, s: 6, n: 'F5', d: 2 }, { m: 15, s: 8, n: 'G5', d: 4 }, { m: 15, s: 12, n: 'B4', d: 3 },
 
-    // --- CHORUS: THE CONSTELLATION CALL (Bars 16-23) - Big Anthemic Hook! ---
-    // "We are the guardians of the northern sky"
+    // --- CHORUS: CONSTELLATION CALL (Bars 16-23) ---
     { m: 16, s: 0, n: 'C5', d: 3 }, { m: 16, s: 4, n: 'E5', d: 3 }, { m: 16, s: 8, n: 'G5', d: 5 }, { m: 16, s: 14, n: 'A5', d: 2 },
     { m: 17, s: 0, n: 'G5', d: 4 }, { m: 17, s: 6, n: 'E5', d: 2 }, { m: 17, s: 8, n: 'D5', d: 6 },
     { m: 18, s: 0, n: 'E5', d: 3 }, { m: 18, s: 4, n: 'A4', d: 3 }, { m: 18, s: 8, n: 'C5', d: 4 }, { m: 18, s: 12, n: 'D5', d: 3 },
     { m: 19, s: 0, n: 'F5', d: 4 }, { m: 19, s: 6, n: 'E5', d: 2 }, { m: 19, s: 8, n: 'D5', d: 4 }, { m: 19, s: 12, n: 'C5', d: 3 },
 
-    // Chorus Part 2: Soaring Climax
     { m: 20, s: 0, n: 'C5', d: 3 }, { m: 20, s: 4, n: 'E5', d: 3 }, { m: 20, s: 8, n: 'G5', d: 4 }, { m: 20, s: 12, n: 'C6', d: 4 },
     { m: 21, s: 0, n: 'B5', d: 4 }, { m: 21, s: 6, n: 'G5', d: 2 }, { m: 21, s: 8, n: 'D5', d: 6 },
     { m: 22, s: 0, n: 'F5', d: 3 }, { m: 22, s: 4, n: 'E5', d: 3 }, { m: 22, s: 8, n: 'D5', d: 4 }, { m: 22, s: 12, n: 'C5', d: 3 },
     { m: 23, s: 0, n: 'D5', d: 4 }, { m: 23, s: 6, n: 'E5', d: 2 }, { m: 23, s: 8, n: 'D5', d: 4 }, { m: 23, s: 12, n: 'B4', d: 3 },
 
-    // --- BRIDGE & SYNTH SOLO (Bars 24-31) ---
-    // Bar 24-25: Fast solo run
+    // --- BRIDGE / SYNTH SOLO (Bars 24-31) ---
     { m: 24, s: 0, n: 'D5', d: 2 }, { m: 24, s: 2, n: 'F5', d: 2 }, { m: 24, s: 4, n: 'A5', d: 2 }, { m: 24, s: 6, n: 'D6', d: 4 }, { m: 24, s: 12, n: 'C6', d: 3 },
     { m: 25, s: 0, n: 'B5', d: 3 }, { m: 25, s: 4, n: 'G5', d: 3 }, { m: 25, s: 8, n: 'E5', d: 4 }, { m: 25, s: 12, n: 'D5', d: 3 },
-    // Bar 26-27: Expressive flourishes
     { m: 26, s: 0, n: 'G5', d: 2 }, { m: 26, s: 3, n: 'E5', d: 2 }, { m: 26, s: 6, n: 'B4', d: 2 }, { m: 26, s: 8, n: 'C5', d: 4 }, { m: 26, s: 12, n: 'D5', d: 3 },
     { m: 27, s: 0, n: 'E5', d: 4 }, { m: 27, s: 6, n: 'A4', d: 2 }, { m: 27, s: 8, n: 'A5', d: 6 },
-    // Bar 28-29: Building tension
     { m: 28, s: 0, n: 'F5', d: 3 }, { m: 28, s: 4, n: 'A5', d: 3 }, { m: 28, s: 8, n: 'C6', d: 4 }, { m: 28, s: 12, n: 'B5', d: 3 },
     { m: 29, s: 0, n: 'A5', d: 3 }, { m: 29, s: 4, n: 'F5', d: 3 }, { m: 29, s: 8, n: 'D5', d: 4 }, { m: 29, s: 12, n: 'F5', d: 3 },
-    // Bar 30-31: Climactic resolution into the loop!
     { m: 30, s: 0, n: 'E5', d: 4 }, { m: 30, s: 4, n: 'G#5', d: 3 }, { m: 30, s: 8, n: 'B5', d: 4 }, { m: 30, s: 12, n: 'D6', d: 3 },
     { m: 31, s: 0, n: 'C6', d: 3 }, { m: 31, s: 4, n: 'B5', d: 2 }, { m: 31, s: 8, n: 'A5', d: 6 }, { m: 31, s: 14, n: 'G5', d: 2 }
   ],
 
-  // Counter-melody / Arpeggio Chimes
-  arpNotes: ['A4', 'C5', 'E5', 'A5', 'G5', 'E5', 'C5', 'B4', 'C5', 'E5', 'G5', 'E5', 'D5', 'C5', 'B4', 'G4']
+  arpNotes: ['A4', 'C5', 'E5', 'A5', 'G5', 'E5', 'C5', 'B4']
 };
 
 /**
  * TRACK 2: "Neon Archipelago" (Göteborg Level)
- * Style: Cyberpunk Synthwave / French Touch Electro
- * Key: D Minor, Tempo: 125 BPM, Length: 32 Bars (512 Steps)
+ * Style: High-Octane Cyberpunk Synthwave / Driving Arcade Beat
+ * Key: D Minor, Tempo: 126 BPM, Length: 32 Bars (512 Steps)
  */
 export const GOTEBORG_TRACK = {
   id: 'goteborg',
   name: 'NEON ARCHIPELAGO (GÖTEBORG)',
-  tempo: 125,
+  tempo: 126,
   measures: 32,
   totalSteps: 512,
 
   chordProgression: [
     // Intro Groove (Bars 0-7)
-    'Dm', 'Dm', 'Bb', 'C', 'Dm', 'Dm', 'Bb', 'A7',
+    'Dm', 'Bb', 'C', 'Dm', 'Dm', 'Bb', 'Gm', 'A7',
     // Verse: Cyber Runner (Bars 8-15)
     'Dm', 'F', 'Gm', 'A7', 'Dm', 'Bb', 'C', 'Dm',
     // Chorus: High Voltage Docks (Bars 16-23)
@@ -171,7 +159,12 @@ export const GOTEBORG_TRACK = {
   ],
 
   melody: [
-    // --- INTRO HOOK (Bars 4-7) ---
+    // --- INTRO HOOK: Starts IMMEDIATELY at Bar 0 with a driving, infectious motif! ---
+    { m: 0, s: 0, n: 'D5', d: 3 }, { m: 0, s: 4, n: 'F5', d: 2 }, { m: 0, s: 8, n: 'A5', d: 4 }, { m: 0, s: 12, n: 'D5', d: 3 },
+    { m: 1, s: 0, n: 'Bb5', d: 3 }, { m: 1, s: 4, n: 'A5', d: 2 }, { m: 1, s: 8, n: 'G5', d: 4 }, { m: 1, s: 12, n: 'F5', d: 3 },
+    { m: 2, s: 0, n: 'E5', d: 3 }, { m: 2, s: 4, n: 'G5', d: 2 }, { m: 2, s: 8, n: 'C6', d: 4 }, { m: 2, s: 12, n: 'B5', d: 2 },
+    { m: 3, s: 0, n: 'A5', d: 6 }, { m: 3, s: 8, n: 'F5', d: 3 }, { m: 3, s: 12, n: 'E5', d: 3 },
+
     { m: 4, s: 0, n: 'D5', d: 2 }, { m: 4, s: 3, n: 'F5', d: 2 }, { m: 4, s: 6, n: 'A5', d: 3 }, { m: 4, s: 10, n: 'D5', d: 4 },
     { m: 5, s: 0, n: 'C5', d: 2 }, { m: 5, s: 3, n: 'E5', d: 2 }, { m: 5, s: 6, n: 'G5', d: 3 }, { m: 5, s: 10, n: 'C5', d: 4 },
     { m: 6, s: 0, n: 'Bb4', d: 2 }, { m: 6, s: 3, n: 'D5', d: 2 }, { m: 6, s: 6, n: 'F5', d: 3 }, { m: 6, s: 10, n: 'G5', d: 4 },
@@ -188,7 +181,7 @@ export const GOTEBORG_TRACK = {
     { m: 14, s: 0, n: 'E5', d: 3 }, { m: 14, s: 4, n: 'G5', d: 3 }, { m: 14, s: 8, n: 'E5', d: 4 }, { m: 14, s: 12, n: 'C5', d: 3 },
     { m: 15, s: 0, n: 'D5', d: 6 }, { m: 15, s: 8, n: 'F5', d: 2 }, { m: 15, s: 10, n: 'E5', d: 2 }, { m: 15, s: 12, n: 'C#5', d: 3 },
 
-    // --- CHORUS: HIGH VOLTAGE (Bars 16-23) - Soaring Euphoric Synth Hook ---
+    // --- CHORUS: HIGH VOLTAGE DOCKS (Bars 16-23) ---
     { m: 16, s: 0, n: 'D5', d: 3 }, { m: 16, s: 4, n: 'F5', d: 3 }, { m: 16, s: 8, n: 'Bb5', d: 4 }, { m: 16, s: 12, n: 'A5', d: 3 },
     { m: 17, s: 0, n: 'G5', d: 4 }, { m: 17, s: 6, n: 'E5', d: 2 }, { m: 17, s: 8, n: 'C5', d: 6 },
     { m: 18, s: 0, n: 'D5', d: 3 }, { m: 18, s: 4, n: 'A5', d: 3 }, { m: 18, s: 8, n: 'D6', d: 4 }, { m: 18, s: 12, n: 'C6', d: 3 },
@@ -211,7 +204,80 @@ export const GOTEBORG_TRACK = {
     { m: 31, s: 0, n: 'F6', d: 4 }, { m: 31, s: 6, n: 'E6', d: 2 }, { m: 31, s: 8, n: 'D6', d: 4 }, { m: 31, s: 12, n: 'A5', d: 3 }
   ],
 
-  arpNotes: ['D4', 'F4', 'A4', 'D5', 'A4', 'F4', 'C4', 'E4', 'G4', 'C5', 'G4', 'E4', 'Bb3', 'D4', 'F4', 'Bb4']
+  arpNotes: ['D4', 'F4', 'A4', 'D5', 'A4', 'F4', 'C4', 'E4']
+};
+
+/**
+ * TRACK 2B: "Eriksberg Docks - Neon Beat" (Göteborg 1-1 Dedicated Theme)
+ * Faithfully transcribes the uploaded track:
+ * Style: Driving Electro-House / Cyberpunk Club Synthwave
+ * Key: D Minor, Tempo: 126 BPM, Length: 32 Bars (512 16th-Steps)
+ */
+export const GOTEBORG_1_TRACK = {
+  id: 'goteborg-1',
+  name: 'ERIKSBERG DOCKS - NEON BEAT (GÖTEBORG 1-1)',
+  tempo: 126,
+  measures: 32,
+  totalSteps: 512,
+
+  chordProgression: [
+    // Intro & Drop (Bars 0-7)
+    'Dm', 'Bb', 'C', 'Dm', 'Dm', 'Gm', 'Bb', 'A7',
+    // Main Electro Verse (Bars 8-15)
+    'Dm', 'Bb', 'F', 'C', 'Dm', 'Gm', 'C', 'A7',
+    // High Voltage Club Chorus (Bars 16-23)
+    'Bb', 'C', 'Dm', 'F', 'Gm', 'Am', 'Bb', 'C',
+    // Solo Breakdown & Climax (Bars 24-31)
+    'Dm', 'F', 'Gm', 'A7', 'Bb', 'C', 'Dm', 'Dm'
+  ],
+
+  melody: [
+    // --- SECTION 1: INTRO ATMOSPHERE & RHYTHMIC LEAD (Bars 0-7) ---
+    { m: 0, s: 0, n: 'D5', d: 3 }, { m: 0, s: 4, n: 'F5', d: 2 }, { m: 0, s: 8, n: 'A5', d: 4 }, { m: 0, s: 12, n: 'D6', d: 3 },
+    { m: 1, s: 0, n: 'C6', d: 3 }, { m: 1, s: 4, n: 'A5', d: 2 }, { m: 1, s: 8, n: 'F5', d: 4 }, { m: 1, s: 12, n: 'G5', d: 3 },
+    { m: 2, s: 0, n: 'E5', d: 3 }, { m: 2, s: 4, n: 'G5', d: 2 }, { m: 2, s: 8, n: 'C6', d: 4 }, { m: 2, s: 12, n: 'B5', d: 2 },
+    { m: 3, s: 0, n: 'A5', d: 6 }, { m: 3, s: 8, n: 'F5', d: 3 }, { m: 3, s: 12, n: 'E5', d: 3 },
+
+    { m: 4, s: 0, n: 'D5', d: 2 }, { m: 4, s: 3, n: 'F5', d: 2 }, { m: 4, s: 6, n: 'A5', d: 3 }, { m: 4, s: 10, n: 'D6', d: 4 },
+    { m: 5, s: 0, n: 'C6', d: 2 }, { m: 5, s: 3, n: 'A5', d: 2 }, { m: 5, s: 6, n: 'F5', d: 3 }, { m: 5, s: 10, n: 'G5', d: 4 },
+    { m: 6, s: 0, n: 'Bb5', d: 2 }, { m: 6, s: 3, n: 'A5', d: 2 }, { m: 6, s: 6, n: 'G5', d: 3 }, { m: 6, s: 10, n: 'F5', d: 4 },
+    { m: 7, s: 0, n: 'E5', d: 4 }, { m: 7, s: 6, n: 'F5', d: 2 }, { m: 7, s: 8, n: 'G5', d: 4 }, { m: 7, s: 12, n: 'A5', d: 3 },
+
+    // --- SECTION 2: THE MAIN ELECTRO VERSE (Bars 8-15) ---
+    { m: 8, s: 0, n: 'D5', d: 2 }, { m: 8, s: 3, n: 'D5', d: 2 }, { m: 8, s: 6, n: 'F5', d: 2 }, { m: 8, s: 8, n: 'A5', d: 4 }, { m: 8, s: 12, n: 'D6', d: 3 },
+    { m: 9, s: 0, n: 'C6', d: 3 }, { m: 9, s: 4, n: 'A5', d: 2 }, { m: 9, s: 8, n: 'F5', d: 6 },
+    { m: 10, s: 0, n: 'G5', d: 2 }, { m: 10, s: 3, n: 'Bb5', d: 2 }, { m: 10, s: 6, n: 'D6', d: 3 }, { m: 10, s: 10, n: 'C6', d: 4 },
+    { m: 11, s: 0, n: 'A5', d: 4 }, { m: 11, s: 6, n: 'G5', d: 2 }, { m: 11, s: 8, n: 'F5', d: 6 },
+
+    { m: 12, s: 0, n: 'D5', d: 2 }, { m: 12, s: 3, n: 'F5', d: 2 }, { m: 12, s: 6, n: 'A5', d: 2 }, { m: 12, s: 8, n: 'D6', d: 6 },
+    { m: 13, s: 0, n: 'F6', d: 3 }, { m: 13, s: 4, n: 'E6', d: 2 }, { m: 13, s: 8, n: 'D6', d: 4 }, { m: 13, s: 12, n: 'C6', d: 3 },
+    { m: 14, s: 0, n: 'Bb5', d: 3 }, { m: 14, s: 4, n: 'C6', d: 2 }, { m: 14, s: 8, n: 'D6', d: 4 }, { m: 14, s: 12, n: 'E6', d: 3 },
+    { m: 15, s: 0, n: 'C#6', d: 6 }, { m: 15, s: 8, n: 'A5', d: 4 }, { m: 15, s: 12, n: 'G5', d: 3 },
+
+    // --- SECTION 3: HIGH-ENERGY CLUB ANTHEM CHORUS (Bars 16-23) ---
+    { m: 16, s: 0, n: 'F5', d: 3 }, { m: 16, s: 4, n: 'A5', d: 3 }, { m: 16, s: 8, n: 'D6', d: 4 }, { m: 16, s: 12, n: 'C6', d: 4 },
+    { m: 17, s: 0, n: 'Bb5', d: 4 }, { m: 17, s: 6, n: 'A5', d: 2 }, { m: 17, s: 8, n: 'G5', d: 6 },
+    { m: 18, s: 0, n: 'A5', d: 3 }, { m: 18, s: 4, n: 'D6', d: 3 }, { m: 18, s: 8, n: 'F6', d: 4 }, { m: 18, s: 12, n: 'E6', d: 4 },
+    { m: 19, s: 0, n: 'D6', d: 4 }, { m: 19, s: 6, n: 'C6', d: 2 }, { m: 19, s: 8, n: 'A5', d: 6 },
+
+    { m: 20, s: 0, n: 'Bb5', d: 3 }, { m: 20, s: 4, n: 'D6', d: 3 }, { m: 20, s: 8, n: 'G6', d: 4 }, { m: 20, s: 12, n: 'F6', d: 3 },
+    { m: 21, s: 0, n: 'E6', d: 4 }, { m: 21, s: 6, n: 'C6', d: 2 }, { m: 21, s: 8, n: 'G5', d: 4 }, { m: 21, s: 12, n: 'A5', d: 3 },
+    { m: 22, s: 0, n: 'Bb5', d: 3 }, { m: 22, s: 4, n: 'C6', d: 3 }, { m: 22, s: 8, n: 'D6', d: 4 }, { m: 22, s: 12, n: 'F6', d: 3 },
+    { m: 23, s: 0, n: 'E6', d: 6 }, { m: 23, s: 8, n: 'C#6', d: 4 }, { m: 23, s: 12, n: 'A5', d: 3 },
+
+    // --- SECTION 4: SOLO BREAKDOWN & CLIMAX (Bars 24-31) ---
+    { m: 24, s: 0, n: 'D6', d: 2 }, { m: 24, s: 2, n: 'F6', d: 2 }, { m: 24, s: 4, n: 'A6', d: 2 }, { m: 24, s: 6, n: 'D6', d: 4 }, { m: 24, s: 12, n: 'C6', d: 3 },
+    { m: 25, s: 0, n: 'Bb5', d: 3 }, { m: 25, s: 4, n: 'A5', d: 2 }, { m: 25, s: 8, n: 'G5', d: 4 }, { m: 25, s: 12, n: 'F5', d: 3 },
+    { m: 26, s: 0, n: 'G5', d: 2 }, { m: 26, s: 3, n: 'Bb5', d: 2 }, { m: 26, s: 6, n: 'D6', d: 3 }, { m: 26, s: 10, n: 'C6', d: 4 },
+    { m: 27, s: 0, n: 'A5', d: 4 }, { m: 27, s: 6, n: 'F5', d: 2 }, { m: 27, s: 8, n: 'D5', d: 6 },
+
+    { m: 28, s: 0, n: 'Bb5', d: 3 }, { m: 28, s: 4, n: 'D6', d: 2 }, { m: 28, s: 8, n: 'F6', d: 4 }, { m: 28, s: 12, n: 'G6', d: 3 },
+    { m: 29, s: 0, n: 'A6', d: 4 }, { m: 29, s: 6, n: 'E6', d: 2 }, { m: 29, s: 8, n: 'C6', d: 6 },
+    { m: 30, s: 0, n: 'D6', d: 2 }, { m: 30, s: 3, n: 'F6', d: 2 }, { m: 30, s: 6, n: 'A6', d: 2 }, { m: 30, s: 8, n: 'D7', d: 4 }, { m: 30, s: 12, n: 'C7', d: 3 },
+    { m: 31, s: 0, n: 'Bb6', d: 3 }, { m: 31, s: 4, n: 'A6', d: 2 }, { m: 31, s: 8, n: 'D6', d: 6 }, { m: 31, s: 14, n: 'F6', d: 2 }
+  ],
+
+  arpNotes: ['D4', 'F4', 'A4', 'D5', 'C5', 'A4', 'F4', 'E4']
 };
 
 /**
@@ -238,6 +304,12 @@ export const KIRUNA_TRACK = {
   ],
 
   melody: [
+    // --- INTRO CHIME: Crystal Chimes from Bar 0! ---
+    { m: 0, s: 0, n: 'C#6', d: 3 }, { m: 0, s: 4, n: 'A5', d: 2 }, { m: 0, s: 8, n: 'F#5', d: 4 }, { m: 0, s: 12, n: 'E5', d: 3 },
+    { m: 1, s: 0, n: 'D5', d: 3 }, { m: 1, s: 4, n: 'F#5', d: 2 }, { m: 1, s: 8, n: 'A5', d: 4 }, { m: 1, s: 12, n: 'C#6', d: 3 },
+    { m: 2, s: 0, n: 'B5', d: 4 }, { m: 2, s: 6, n: 'G#5', d: 2 }, { m: 2, s: 8, n: 'E5', d: 6 },
+    { m: 3, s: 0, n: 'F#5', d: 4 }, { m: 3, s: 6, n: 'G#5', d: 2 }, { m: 3, s: 8, n: 'A5', d: 4 }, { m: 3, s: 12, n: 'C#6', d: 3 },
+
     // --- INTRO CHIME (Bars 4-7) ---
     { m: 4, s: 0, n: 'F#5', d: 2 }, { m: 4, s: 4, n: 'A5', d: 2 }, { m: 4, s: 8, n: 'C#6', d: 4 }, { m: 4, s: 12, n: 'E6', d: 3 },
     { m: 5, s: 0, n: 'D6', d: 3 }, { m: 5, s: 4, n: 'B5', d: 2 }, { m: 5, s: 8, n: 'F#5', d: 6 },
@@ -305,6 +377,12 @@ export const STOCKHOLM_TRACK = {
   ],
 
   melody: [
+    // --- BAROQUE ROYAL MARCH: Fanfare from Bar 0! ---
+    { m: 0, s: 0, n: 'D5', d: 3 }, { m: 0, s: 4, n: 'G4', d: 2 }, { m: 0, s: 8, n: 'Bb4', d: 4 }, { m: 0, s: 12, n: 'D5', d: 3 },
+    { m: 1, s: 0, n: 'Eb5', d: 4 }, { m: 1, s: 6, n: 'D5', d: 2 }, { m: 1, s: 8, n: 'C5', d: 6 },
+    { m: 2, s: 0, n: 'F5', d: 3 }, { m: 2, s: 4, n: 'D5', d: 2 }, { m: 2, s: 8, n: 'Bb4', d: 4 }, { m: 2, s: 12, n: 'D5', d: 3 },
+    { m: 3, s: 0, n: 'C5', d: 4 }, { m: 3, s: 6, n: 'Bb4', d: 2 }, { m: 3, s: 8, n: 'A4', d: 6 },
+
     // --- BAROQUE INTRO FANFARE (Bars 4-7) ---
     { m: 4, s: 0, n: 'G4', d: 2 }, { m: 4, s: 3, n: 'Bb4', d: 2 }, { m: 4, s: 6, n: 'D5', d: 3 }, { m: 4, s: 10, n: 'G5', d: 4 },
     { m: 5, s: 0, n: 'F#5', d: 3 }, { m: 5, s: 4, n: 'A5', d: 2 }, { m: 5, s: 8, n: 'D5', d: 6 },
@@ -372,6 +450,12 @@ export const VISBY_TRACK = {
   ],
 
   melody: [
+    // --- INTRO BALTIC WHISTLE: Ghostly Motif from Bar 0! ---
+    { m: 0, s: 0, n: 'E5', d: 3 }, { m: 0, s: 4, n: 'G5', d: 2 }, { m: 0, s: 8, n: 'B5', d: 4 }, { m: 0, s: 12, n: 'A5', d: 3 },
+    { m: 1, s: 0, n: 'G5', d: 4 }, { m: 1, s: 6, n: 'E5', d: 2 }, { m: 1, s: 8, n: 'B4', d: 6 },
+    { m: 2, s: 0, n: 'C5', d: 3 }, { m: 2, s: 4, n: 'E5', d: 2 }, { m: 2, s: 8, n: 'A5', d: 4 }, { m: 2, s: 12, n: 'G5', d: 3 },
+    { m: 3, s: 0, n: 'F#5', d: 4 }, { m: 3, s: 6, n: 'D#5', d: 2 }, { m: 3, s: 8, n: 'B4', d: 6 },
+
     // --- INTRO PIRATE WHISTLE (Bars 4-7) ---
     { m: 4, s: 0, n: 'E5', d: 3 }, { m: 4, s: 4, n: 'G5', d: 2 }, { m: 4, s: 8, n: 'B5', d: 4 }, { m: 4, s: 12, n: 'A5', d: 3 },
     { m: 5, s: 0, n: 'G5', d: 4 }, { m: 5, s: 6, n: 'E5', d: 2 }, { m: 5, s: 8, n: 'B4', d: 6 },
@@ -418,12 +502,12 @@ export const VISBY_TRACK = {
 /**
  * TRACK 6: "Titan Climax" (Boss Battle)
  * Style: Heavy Metal Synthwave / High-Octane Double-Kick Battle Theme
- * Key: D Phrygian / D Minor, Tempo: 142 BPM, Length: 32 Bars (512 Steps)
+ * Key: D Phrygian / D Minor, Tempo: 150 BPM, Length: 32 Bars (512 Steps)
  */
 export const BOSS_TRACK = {
   id: 'boss',
   name: 'TITAN CLIMAX (RAGNARÖK)',
-  tempo: 142,
+  tempo: 150,
   measures: 32,
   totalSteps: 512,
 
@@ -439,6 +523,12 @@ export const BOSS_TRACK = {
   ],
 
   melody: [
+    // --- SIREN ALARM & TITAN AWAKENING: EXPLODES AT BAR 0! ---
+    { m: 0, s: 0, n: 'D6', d: 3 }, { m: 0, s: 4, n: 'A5', d: 2 }, { m: 0, s: 8, n: 'F5', d: 3 }, { m: 0, s: 12, n: 'D5', d: 3 },
+    { m: 1, s: 0, n: 'Eb5', d: 3 }, { m: 1, s: 4, n: 'G5', d: 2 }, { m: 1, s: 8, n: 'Bb5', d: 4 }, { m: 1, s: 12, n: 'A5', d: 3 },
+    { m: 2, s: 0, n: 'D6', d: 2 }, { m: 2, s: 3, n: 'C#6', d: 2 }, { m: 2, s: 6, n: 'D6', d: 3 }, { m: 2, s: 10, n: 'F6', d: 4 },
+    { m: 3, s: 0, n: 'E6', d: 4 }, { m: 3, s: 6, n: 'D6', d: 2 }, { m: 3, s: 8, n: 'C#6', d: 6 },
+
     // --- SIREN CALL & INTRO SHRED (Bars 4-7) ---
     { m: 4, s: 0, n: 'D5', d: 2 }, { m: 4, s: 2, n: 'Eb5', d: 2 }, { m: 4, s: 4, n: 'D5', d: 2 }, { m: 4, s: 6, n: 'A5', d: 4 }, { m: 4, s: 12, n: 'G5', d: 3 },
     { m: 5, s: 0, n: 'F5', d: 2 }, { m: 5, s: 2, n: 'Eb5', d: 2 }, { m: 5, s: 4, n: 'D5', d: 4 }, { m: 5, s: 10, n: 'C#5', d: 4 },
@@ -526,7 +616,8 @@ export const VICTORY_TRACK = {
 
 export const ALL_MUSIC_TRACKS = {
   title: TITLE_TRACK,
-  goteborg: GOTEBORG_TRACK,
+  goteborg: GOTEBORG_1_TRACK,
+  'goteborg-1': GOTEBORG_1_TRACK,
   kiruna: KIRUNA_TRACK,
   stockholm: STOCKHOLM_TRACK,
   visby: VISBY_TRACK,

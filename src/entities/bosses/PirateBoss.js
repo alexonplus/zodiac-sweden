@@ -12,68 +12,120 @@ export class PirateBoss extends BaseBoss {
     super(x, y, 'VALDEMAR SPÖKSJÖRÖVARE', maxHp, '⚔️', 135, 165);
     this.type = 'pirate_boss';
     this.teleportCooldown = 0;
+    this.attackPattern = 0;
   }
 
-  update(enemyProjectiles, onShake) {
-    if (!this.updateBase(enemyProjectiles, onShake)) return;
+  update(arg1, arg2, arg3, arg4, arg5, arg6) {
+    if (!this.updateBase(arg1, arg2, arg3, arg4, arg5, arg6)) return;
+
+    let enemyProjectiles, platforms, onShake;
+    if (Array.isArray(arg1)) {
+      enemyProjectiles = arg1;
+      onShake = arg2;
+      platforms = [];
+    } else {
+      enemyProjectiles = arg4;
+      platforms = arg5 || [];
+      onShake = arg6;
+    }
 
     if (this.teleportCooldown > 0) this.teleportCooldown--;
 
+    // Spectral Teleportation when player gets too far or during Phase 2
+    if (this.teleportCooldown <= 0 && this.targetPlayer) {
+      const dist = Math.abs(this.targetPlayer.x - (this.x + this.w / 2));
+      if (dist > 450 || (this.phase === 2 && Math.random() < 0.02)) {
+        this.teleportCooldown = this.phase === 2 ? 90 : 160;
+        sound.playLaser();
+        particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, '#a855f7', 25);
+
+        // Blinks behind the player
+        this.x = this.targetPlayer.x + (this.targetPlayer.facing > 0 ? -120 : 120);
+        this.y = 490 - this.h;
+        this.facing = this.targetPlayer.x < this.x ? -1 : 1;
+        particles.createSparks(this.x + this.w / 2, this.y + this.h / 2, '#c084fc', 30);
+      }
+    }
+
+    // Walking approach
+    if (this.isGrounded && this.targetPlayer) {
+      const dist = Math.abs(this.targetPlayer.x - (this.x + this.w / 2));
+      if (dist > 140) {
+        this.vx = this.facing * (this.phase === 2 ? 3.2 : 2.2);
+      } else {
+        this.vx *= 0.82;
+      }
+    }
+
+    this.applyGravityAndPlatforms(platforms);
+
     if (this.attackTimer <= 0) {
-      this.attackTimer = this.phase === 2 ? 55 : 85;
+      this.attackTimer = this.phase === 2 ? 50 : 75;
       this.executeAttack(enemyProjectiles, onShake);
     }
   }
 
   executeAttack(enemyProjectiles, onShake) {
-    sound.playPoison();
-    if (onShake) onShake(14);
-    this.telegraphTimer = 25;
+    this.attackPattern = (this.attackPattern + 1) % 3;
+    this.telegraphTimer = 22;
 
-    if (this.phase === 1) {
-      // 3 Cursed Ghost Cannonballs
-      for (let i = 0; i < 3; i++) {
+    if (this.attackPattern === 0) {
+      // Attack 1: Cursed Phantom Cannonball Volley
+      sound.playPoison();
+      if (onShake) onShake(12);
+      particles.createSparks(this.x + (this.facing > 0 ? this.w : 0), this.y + 50, '#a855f7', 25);
+
+      const count = this.phase === 2 ? 5 : 3;
+      for (let i = 0; i < count; i++) {
         enemyProjectiles.push({
-          x: this.x - 30,
-          y: this.y + 30 + i * 40,
-          vx: -7.5 - i * 1.2,
-          vy: (Math.random() - 0.5) * 2.5,
+          x: this.x + (this.facing > 0 ? this.w + 10 : -20),
+          y: this.y + 30 + i * 25,
+          vx: this.facing * (7.5 + i * 0.8),
+          vy: (i - (count - 1) / 2) * 1.5,
           color: '#a855f7',
           damage: 24,
           life: 85
         });
       }
-      particles.createSparks(this.x - 20, this.y + 50, '#a855f7', 25);
-    } else {
-      // Phase 2: Ghost Fleet Broadside + Spectral Phantom Blades!
-      sound.playUlt();
-      if (onShake) onShake(20);
-
-      for (let i = 0; i < 6; i++) {
-        enemyProjectiles.push({
-          x: this.x - 30,
-          y: this.y + 20 + i * 25,
-          vx: -8.5 - Math.random() * 2,
-          vy: (i - 2.5) * 2.0,
-          color: '#c084fc',
-          damage: 28,
-          life: 90
-        });
-      }
+    } else if (this.attackPattern === 1) {
+      // Attack 2: Swift Cutlass Ghost Dash & Wave
+      sound.playHammer();
+      if (onShake) onShake(16);
+      this.vx = this.facing * 8.5; // Quick dash!
+      particles.createTrail(this.x, this.y, this.w, this.h, '#a855f7');
 
       // Spectral Ghost Wave on Ground
       enemyProjectiles.push({
-        x: this.x - 40,
+        x: this.x + (this.facing > 0 ? this.w : -30),
         y: 470,
-        vx: -8.0,
+        vx: this.facing * 8.5,
         vy: 0,
-        color: '#38bdf8',
-        damage: 30,
+        color: '#c084fc',
+        damage: 28,
         life: 80,
         isGroundWave: true
       });
+    } else {
+      // Attack 3: Telegraphed Ghost Anchor Smash
+      sound.playWave();
+      const anchorX = this.targetPlayer ? this.targetPlayer.x - 30 : this.x + this.facing * 180;
+      this.addTelegraphZone(anchorX, 420, 70, 70, 26, '#a855f7', () => {
+        sound.playHammer();
+        if (onShake) onShake(22);
+        particles.createSparks(anchorX + 35, 470, '#c084fc', 35);
+        particles.createEarthDebris(anchorX + 35, 470, 20);
 
-      particles.createSparks(this.x - 20, this.y + 60, '#c084fc', 40);
+        // Crushing impact damage
+        enemyProjectiles.push({
+          x: anchorX + 35,
+          y: 450,
+          vx: 0,
+          vy: 6,
+          color: '#a855f7',
+          damage: 36,
+          life: 40
+        });
+      });
     }
   }
 

@@ -55,6 +55,7 @@ export class GameManager {
     this.waveNumber = 1;
     this.spawnedZones = {};
     this.bossRushIndex = 0;
+    this.wasBossActive = false;
 
     this.camera = new Camera(W, H, 8000, H);
     this.player1 = new PlayerEntity(1);
@@ -531,6 +532,148 @@ export class GameManager {
     if (sndBtn) sndBtn.addEventListener('click', handleSoundToggle);
     const menuSndBtn = document.getElementById('btn-sound-toggle-menu');
     if (menuSndBtn) menuSndBtn.addEventListener('click', handleSoundToggle);
+
+    this.initCustomMusicUI();
+  }
+
+  initCustomMusicUI() {
+    const inputEl = document.getElementById('input-custom-music');
+    const btnTitle = document.getElementById('btn-custom-music-title');
+    const btnHud = document.getElementById('btn-hud-custom-music');
+    const btnPause = document.getElementById('btn-pause-custom-music');
+    const statusTitle = document.getElementById('custom-music-status-title');
+    const overlay = document.getElementById('drag-drop-audio-overlay');
+    const toast = document.getElementById('music-notification-toast');
+    const container = document.getElementById('game-container');
+
+    const showToast = (text) => {
+      if (!toast) return;
+      toast.innerText = text;
+      toast.style.display = 'block';
+      toast.style.opacity = '1';
+      clearTimeout(this._toastTimeout);
+      this._toastTimeout = setTimeout(() => {
+        toast.style.transition = 'opacity 0.6s ease';
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.style.display = 'none'; }, 600);
+      }, 4000);
+    };
+    this.showToast = showToast;
+
+    const triggerFilePicker = () => {
+      sound.init();
+      if (inputEl) {
+        inputEl.value = '';
+        inputEl.click();
+      }
+    };
+
+    if (btnTitle) btnTitle.addEventListener('click', triggerFilePicker);
+    if (btnHud) btnHud.addEventListener('click', triggerFilePicker);
+    if (btnPause) btnPause.addEventListener('click', triggerFilePicker);
+
+    if (inputEl) {
+      inputEl.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          sound.init();
+          const ok = await sound.setCustomAudio(file, file.name);
+          if (ok) {
+            showToast(`🎵 ВАША ПЕСНЯ "${file.name.substring(0, 25)}" УСТАНОВЛЕНА ДЛЯ ГЁТЕБОРГА!`);
+          }
+        }
+      });
+    }
+
+    // Drag & Drop anywhere on game container
+    if (container) {
+      let dragCounter = 0;
+      container.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragCounter++;
+        if (overlay) overlay.style.display = 'flex';
+      });
+
+      container.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (overlay) overlay.style.display = 'flex';
+      });
+
+      container.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragCounter--;
+        if (dragCounter <= 0 && overlay) {
+          overlay.style.display = 'none';
+          dragCounter = 0;
+        }
+      });
+
+      container.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dragCounter = 0;
+        if (overlay) overlay.style.display = 'none';
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          sound.init();
+          const ok = await sound.setCustomAudio(file, file.name);
+          if (ok) {
+            showToast(`🎵 ПЕСНЯ "${file.name.substring(0, 25)}" ЗАГРУЖЕНА И ИГРАЕТ!`);
+          }
+        }
+      });
+    }
+
+    // Update UI labels when custom audio changes or loads from storage
+    const updateLabels = (detail) => {
+      const has = detail ? detail.hasCustomAudio : sound.hasCustomAudio;
+      const name = detail ? detail.name : sound.customAudioName;
+
+      if (btnTitle) {
+        if (has && name) {
+          btnTitle.innerHTML = `🎵 СВОЯ ПЕСНЯ: ${name.substring(0, 18)}... (СМЕНИТЬ)`;
+          btnTitle.style.borderColor = '#10b981';
+          btnTitle.style.color = '#a7f3d0';
+        } else {
+          btnTitle.innerHTML = '🎵 СВОЯ ПЕСНЯ (MP3/WAV)';
+        }
+      }
+
+      if (statusTitle) {
+        if (has && name) {
+          statusTitle.style.display = 'block';
+          statusTitle.innerText = `✅ Активен трек: ${name}`;
+        } else {
+          statusTitle.style.display = 'none';
+        }
+      }
+
+      if (btnHud) {
+        if (has && name) {
+          btnHud.innerHTML = `🎵 ${name.substring(0, 10)}...`;
+          btnHud.style.borderColor = '#10b981';
+          btnHud.style.color = '#a7f3d0';
+        } else {
+          btnHud.innerHTML = '🎵 СВОЯ ПЕСНЯ';
+        }
+      }
+
+      if (btnPause) {
+        if (has && name) {
+          btnPause.innerHTML = `🎵 СМЕНИТЬ ПЕСНЮ (${name.substring(0, 14)}...)`;
+        } else {
+          btnPause.innerHTML = '🎵 СВОЯ ПЕСНЯ ДЛЯ ГЁТЕБОРГА (MP3/WAV)';
+        }
+      }
+    };
+
+    window.addEventListener('zodiac-custom-audio-changed', (e) => {
+      updateLabels(e.detail);
+    });
+
+    // Check on startup
+    setTimeout(() => {
+      updateLabels({ hasCustomAudio: sound.hasCustomAudio, name: sound.customAudioName });
+    }, 300);
   }
 
   togglePause() {
@@ -542,11 +685,17 @@ export class GameManager {
       if (pauseScreen) pauseScreen.style.display = 'none';
       document.getElementById('ui-hud').style.display = 'flex';
       sound.playSelect();
+      if (this.currentLevel && this.currentLevel.startsWith('goteborg') && sound.customAudioElement && sound.customAudioElement.paused) {
+        sound.playCustomAudio();
+      }
     } else if (this.isPlaying) {
       // Pause
       this.isPaused = true;
       this.isPlaying = false;
       sound.playSelect();
+      if (this.currentLevel && this.currentLevel.startsWith('goteborg')) {
+        sound.pauseCustomAudio();
+      }
       const h = HERO_CONFIGS[this.p1HeroId];
       if (h) {
         const pName = document.getElementById('pause-hero-name');
@@ -826,9 +975,16 @@ export class GameManager {
     document.querySelectorAll('.screen-overlay').forEach(el => el.style.display = 'none');
     document.getElementById('ui-hud').style.display = 'flex';
 
-    // Start Procedural Retro BGM
-    const bgmTrack = this.gameMode === 'bossrush' ? 'boss' : (this.currentLevel.startsWith('goteborg') ? 'goteborg' : this.currentLevel);
+    // Start Procedural Retro BGM or Custom Song
+    this.wasBossActive = (this.gameMode === 'bossrush');
+    const bgmTrack = this.gameMode === 'bossrush'
+      ? 'boss'
+      : (this.currentLevel === 'goteborg-1' ? 'goteborg-1' : (this.currentLevel.startsWith('goteborg') ? 'goteborg-1' : this.currentLevel));
     sound.playMusic(bgmTrack);
+
+    if (this.currentLevel.startsWith('goteborg') && sound.hasCustomAudio && this.showToast) {
+      this.showToast(`🎵 ИГРАЕТ ТРЕК: ${sound.customAudioName || 'Gothenburg1.mp3'}`);
+    }
 
     if (this.gameMode === 'bossrush') {
       this.spawnBossRushStage();
@@ -1649,7 +1805,7 @@ export class GameManager {
         if (en instanceof BaseBoss || en.isEnraged !== undefined) {
           activeBoss = en;
           if (!isFrozen) {
-            en.update(this.enemyProjectiles, (s) => this.screenShake = s);
+            en.update(this.player1, this.player2, this.isCoopMode, this.enemyProjectiles, platforms, (s) => this.screenShake = s);
           }
         } else {
           if (!isFrozen) {
@@ -1661,23 +1817,58 @@ export class GameManager {
         }
 
         if (en.hp <= 0) {
-          if (en.sinkDepth > en.h * 0.4) {
+          const isBoss = (en instanceof BaseBoss || en.isEnraged !== undefined);
+          if (isBoss) {
+            sound.playUlt();
+            this.screenShake = 30;
+            particles.createSparks(en.x + en.w / 2, en.y + en.h / 2, '#facc15', 55);
+            particles.createFlame(en.x + en.w / 2, en.y + en.h / 2, 40);
+            particles.createDamageNumber(en.x + en.w / 2, en.y - 30, `👑 ${en.name || 'BOSS'} DEFEATED! +1000`, '#facc15');
+            this.score += 1000;
+            this.player1.ultCharge = 100;
+            if (this.isCoopMode) this.player2.ultCharge = 100;
+            for (let r = 0; r < 4; r++) {
+              relicManager.spawn(en.x + (r - 1.5) * 45, en.y + en.h / 2);
+            }
+          } else if (en.sinkDepth > en.h * 0.4) {
             // Swallowed whole into the earth without any explosion!
             particles.createEarthDebris(en.x + en.w / 2, en.y + en.h, 8);
             particles.createSand(en.x + en.w / 2, en.y + en.h, 10);
             particles.createDamageNumber(en.x + en.w / 2, en.y - 10, '🪨 SWALLOWED UNDERGROUND', '#a16207');
+            this.score += 100;
+            this.player1.ultCharge = Math.min(100, this.player1.ultCharge + 10 * shopManager.getUltMultiplier());
+            if (this.isCoopMode) this.player2.ultCharge = Math.min(100, this.player2.ultCharge + 10 * shopManager.getUltMultiplier());
+            if (Math.random() < 0.75) relicManager.spawn(en.x, en.y);
           } else {
             particles.createSparks(en.x + en.w/2, en.y + en.h/2, '#00f0ff', 20);
-          }
-          this.score += 100;
-          this.player1.ultCharge = Math.min(100, this.player1.ultCharge + 10 * shopManager.getUltMultiplier());
-          if (this.isCoopMode) this.player2.ultCharge = Math.min(100, this.player2.ultCharge + 10 * shopManager.getUltMultiplier());
-
-          // 75% Drop chance for Loot or Powerups
-          if (Math.random() < 0.75) {
-            relicManager.spawn(en.x, en.y);
+            this.score += 100;
+            this.player1.ultCharge = Math.min(100, this.player1.ultCharge + 10 * shopManager.getUltMultiplier());
+            if (this.isCoopMode) this.player2.ultCharge = Math.min(100, this.player2.ultCharge + 10 * shopManager.getUltMultiplier());
+            if (Math.random() < 0.75) relicManager.spawn(en.x, en.y);
           }
           this.enemies.splice(i, 1);
+        }
+      }
+
+      // Dynamic Boss Music & Atmosphere Switch
+      if (activeBoss) {
+        if (!this.wasBossActive) {
+          this.wasBossActive = true;
+          // Instantly switch music to the intense Boss Battle theme!
+          sound.playMusic('boss');
+          sound.playRoar();
+          hudManager.showBossWarning(activeBoss.name);
+          this.screenShake = 22;
+        }
+      } else if (this.wasBossActive) {
+        this.wasBossActive = false;
+        // Boss was just slain!
+        sound.playUlt();
+        this.screenShake = 25;
+        // If regular campaign level is still continuing, return to stage BGM
+        if (this.gameMode === 'campaign' && !hasBossSpawned) {
+          const bgmTrack = this.currentLevel === 'goteborg-1' ? 'goteborg-1' : (this.currentLevel.startsWith('goteborg') ? 'goteborg-1' : this.currentLevel);
+          sound.playMusic(bgmTrack);
         }
       }
 
@@ -2325,11 +2516,13 @@ function initGame() {
   const game = new GameManager();
   game.loop();
 
-  // Unlock AudioContext on first user interaction anywhere
+  // Unlock AudioContext and custom audio on first user interaction anywhere
   const unlockAudio = () => {
     sound.init();
     if (!sound.currentTrack) {
       sound.playMusic(game.isPlaying ? (game.gameMode === 'bossrush' ? 'boss' : game.currentLevel) : 'title');
+    } else if (game.isPlaying && game.currentLevel && game.currentLevel.startsWith('goteborg') && sound.customAudioElement && sound.customAudioElement.paused) {
+      sound.playCustomAudio();
     }
   };
   window.addEventListener('click', unlockAudio);
