@@ -274,14 +274,14 @@ export const LEVELS = {
     hazardName: 'Electric Harbor Water',
     checkpointX: 6000,
     sectors: [
-      { id: 1, name: 'Lilla Bommen Sunset Marina', startX: 0, endX: 1500, sky: '#033c5e', tint: '#0284c7' },
-      { id: 2, name: 'Eriksberg Heavy Crane Terminals', startX: 1500, endX: 3000, sky: '#0c2a4d', tint: '#00f0ff' },
-      { id: 3, name: 'Gothenburg Blue Tramway Junction', startX: 3000, endX: 4500, sky: '#082544', tint: '#38bdf8' },
-      { id: 4, name: 'Lindholmen High-Tech Neon Port (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#051d38', tint: '#818cf8' },
-      { id: 5, name: 'Skansen Kronan Fortified Ascent', startX: 6000, endX: 7500, sky: '#081726', tint: '#6366f1' },
-      { id: 6, name: 'Volvo Industrial Factory Ruins', startX: 7500, endX: 9000, sky: '#0a1a2f', tint: '#06b6d4' },
-      { id: 7, name: 'Älvsborgsbron High Suspension Towers', startX: 9000, endX: 10500, sky: '#061324', tint: '#3b82f6' },
-      { id: 8, name: 'Mekanisk Deep Sea Abyssal Arena', startX: 10500, endX: 12000, sky: '#020b18', tint: '#ef4444' }
+      { id: 1, bgImage: 'assets/goteborg_s1.jpg', name: 'Lilla Bommen Sunset Marina', startX: 0, endX: 1500, sky: '#033c5e', tint: '#0284c7' },
+      { id: 2, bgImage: 'assets/goteborg_s2.jpg', name: 'Eriksberg Heavy Crane Terminals', startX: 1500, endX: 3000, sky: '#0c2a4d', tint: '#00f0ff' },
+      { id: 3, bgImage: 'assets/goteborg_s3.jpg', name: 'Gothenburg Blue Tramway Junction', startX: 3000, endX: 4500, sky: '#082544', tint: '#38bdf8' },
+      { id: 4, bgImage: 'assets/goteborg_s4.jpg', name: 'Lindholmen High-Tech Neon Port (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#051d38', tint: '#818cf8' },
+      { id: 5, bgImage: 'assets/goteborg_s5.jpg', name: 'Skansen Kronan Fortified Ascent', startX: 6000, endX: 7500, sky: '#081726', tint: '#6366f1' },
+      { id: 6, bgImage: 'assets/goteborg_s6.jpg', name: 'Volvo Industrial Factory Ruins', startX: 7500, endX: 9000, sky: '#0a1a2f', tint: '#06b6d4' },
+      { id: 7, bgImage: 'assets/goteborg_s7.jpg', name: 'Älvsborgsbron High Suspension Towers', startX: 9000, endX: 10500, sky: '#061324', tint: '#3b82f6' },
+      { id: 8, bgImage: 'assets/goteborg_s8.jpg', name: 'Mekanisk Deep Sea Abyssal Arena', startX: 10500, endX: 12000, sky: '#020b18', tint: '#ef4444' }
     ],
     movingPlatforms: [
       // Ferry barge across Sector 2 Harbor Canal Pit (2050 - 2350)
@@ -379,14 +379,14 @@ export const LEVELS = {
     hazardName: 'Sub-Zero LKAB Mine Chasm',
     checkpointX: 6000,
     sectors: [
-      { id: 1, name: 'Arctic Blizzard Highway', startX: 0, endX: 1500, sky: '#1e293b', tint: '#94a3b8' },
-      { id: 2, name: 'Snowmobile Elk Trail', startX: 1500, endX: 3000, sky: '#172554', tint: '#60a5fa' },
-      { id: 3, name: 'LKAB Mine Shaft Sub-level (-300m)', startX: 3000, endX: 4500, sky: '#331805', tint: '#d97706' },
-      { id: 4, name: 'Molten Iron Blast Foundry (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#451005', tint: '#ea580c' },
-      { id: 5, name: 'Ice Hotel Crystal Ruins', startX: 6000, endX: 7500, sky: '#06283d', tint: '#67e8f9' },
-      { id: 6, name: 'Kebnekaise Permafrost Ridge', startX: 7500, endX: 9000, sky: '#041d2f', tint: '#38bdf8' },
-      { id: 7, name: 'Aurora Borealis Sanctuary Peaks', startX: 9000, endX: 10500, sky: '#1a0d33', tint: '#a855f7' },
-      { id: 8, name: 'Malm-Jätte Crystal Core Arena', startX: 10500, endX: 12000, sky: '#02182b', tint: '#f97316' }
+      { id: 1, bgImage: 'assets/kiruna_s1.jpg', name: 'Arctic Blizzard Highway', startX: 0, endX: 1500, sky: '#1e293b', tint: '#94a3b8' },
+      { id: 2, bgImage: 'assets/kiruna_s2.jpg', name: 'Snowmobile Elk Trail', startX: 1500, endX: 3000, sky: '#172554', tint: '#60a5fa' },
+      { id: 3, bgImage: 'assets/kiruna_s3.jpg', name: 'LKAB Mine Shaft Sub-level (-300m)', startX: 3000, endX: 4500, sky: '#331805', tint: '#d97706' },
+      { id: 4, bgImage: 'assets/kiruna_s4.jpg', name: 'Molten Iron Blast Foundry (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#451005', tint: '#ea580c' },
+      { id: 5, bgImage: 'assets/kiruna_s5.jpg', name: 'Ice Hotel Crystal Ruins', startX: 6000, endX: 7500, sky: '#06283d', tint: '#67e8f9' },
+      { id: 6, bgImage: 'assets/kiruna_s6.jpg', name: 'Kebnekaise Permafrost Ridge', startX: 7500, endX: 9000, sky: '#041d2f', tint: '#38bdf8' },
+      { id: 7, bgImage: 'assets/kiruna_s7.jpg', name: 'Aurora Borealis Sanctuary Peaks', startX: 9000, endX: 10500, sky: '#1a0d33', tint: '#a855f7' },
+      { id: 8, bgImage: 'assets/kiruna_s8.jpg', name: 'Malm-Jätte Crystal Core Arena', startX: 10500, endX: 12000, sky: '#02182b', tint: '#f97316' }
     ],
     movingPlatforms: [
       // Mining Ore Elevator across Sector 2 Chasm (2100 - 2400)
@@ -484,14 +484,14 @@ export const LEVELS = {
     hazardName: 'Royal Palace Moat & Cogs',
     checkpointX: 6000,
     sectors: [
-      { id: 1, name: 'Skeppsbron Waterfront Bridges', startX: 0, endX: 1500, sky: '#032b43', tint: '#38bdf8' },
-      { id: 2, name: 'Royal Steampunk Chariot Run', startX: 1500, endX: 3000, sky: '#2d1804', tint: '#fb923c' },
-      { id: 3, name: 'Medieval Gamla Stan Alleys', startX: 3000, endX: 4500, sky: '#291804', tint: '#f59e0b' },
-      { id: 4, name: 'Riddarholmen Clockwork Towers (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#3d2506', tint: '#facc15' },
-      { id: 5, name: 'Kungsträdgården Royal Gardens', startX: 6000, endX: 7500, sky: '#361502', tint: '#fb923c' },
-      { id: 6, name: 'Stockholm Metro Cyber Underground', startX: 7500, endX: 9000, sky: '#18181b', tint: '#a1a1aa' },
-      { id: 7, name: 'Imperial Grand Arsenal Bridge', startX: 9000, endX: 10500, sky: '#3b1c04', tint: '#f59e0b' },
-      { id: 8, name: 'Tre Kronor Imperial Throne Room', startX: 10500, endX: 12000, sky: '#421f05', tint: '#fbbf24' }
+      { id: 1, bgImage: 'assets/stockholm_s1.jpg', name: 'Skeppsbron Waterfront Bridges', startX: 0, endX: 1500, sky: '#032b43', tint: '#38bdf8' },
+      { id: 2, bgImage: 'assets/stockholm_s2.jpg', name: 'Royal Steampunk Chariot Run', startX: 1500, endX: 3000, sky: '#2d1804', tint: '#fb923c' },
+      { id: 3, bgImage: 'assets/stockholm_s3.jpg', name: 'Medieval Gamla Stan Alleys', startX: 3000, endX: 4500, sky: '#291804', tint: '#f59e0b' },
+      { id: 4, bgImage: 'assets/stockholm_s4.jpg', name: 'Riddarholmen Clockwork Towers (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#3d2506', tint: '#facc15' },
+      { id: 5, bgImage: 'assets/stockholm_s5.jpg', name: 'Kungsträdgården Royal Gardens', startX: 6000, endX: 7500, sky: '#361502', tint: '#fb923c' },
+      { id: 6, bgImage: 'assets/stockholm_s6.jpg', name: 'Stockholm Metro Cyber Underground', startX: 7500, endX: 9000, sky: '#18181b', tint: '#a1a1aa' },
+      { id: 7, bgImage: 'assets/stockholm_s7.jpg', name: 'Imperial Grand Arsenal Bridge', startX: 9000, endX: 10500, sky: '#3b1c04', tint: '#f59e0b' },
+      { id: 8, bgImage: 'assets/stockholm_s8.jpg', name: 'Tre Kronor Imperial Throne Room', startX: 10500, endX: 12000, sky: '#421f05', tint: '#fbbf24' }
     ],
     movingPlatforms: [
       // Brass Clockwork Lift in Sector 2 (2050 - 2380)
@@ -589,14 +589,14 @@ export const LEVELS = {
     hazardName: 'Baltic Sea Spiked Trench',
     checkpointX: 6000,
     sectors: [
-      { id: 1, name: 'Baltic Coast Dune Beach & Rauks', startX: 0, endX: 1500, sky: '#18072b', tint: '#a855f7' },
-      { id: 2, name: 'Viking Drakkar Coastal Assault', startX: 1500, endX: 3000, sky: '#1e0c38', tint: '#7c3aed' },
-      { id: 3, name: 'Powder Tower Ringmur Fortifications', startX: 3000, endX: 4500, sky: '#24083d', tint: '#c084fc' },
-      { id: 4, name: 'S:t Nicolai Cathedral Ruins (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#150624', tint: '#e879f9' },
-      { id: 5, name: 'Cursed Smuggler Catacombs', startX: 6000, endX: 7500, sky: '#0a0214', tint: '#818cf8' },
-      { id: 6, name: 'Cliffside Coastal Battery & Rauks', startX: 7500, endX: 9000, sky: '#120521', tint: '#9333ea' },
-      { id: 7, name: 'Ghost Galleon Mooring Docks', startX: 9000, endX: 10500, sky: '#0b0216', tint: '#6366f1' },
-      { id: 8, name: 'Valdemar Ghost Ship Dread Galleon', startX: 10500, endX: 12000, sky: '#0d0217', tint: '#38bdf8' }
+      { id: 1, bgImage: 'assets/visby_s1.jpg', name: 'Baltic Coast Dune Beach & Rauks', startX: 0, endX: 1500, sky: '#18072b', tint: '#a855f7' },
+      { id: 2, bgImage: 'assets/visby_s2.jpg', name: 'Viking Drakkar Coastal Assault', startX: 1500, endX: 3000, sky: '#1e0c38', tint: '#7c3aed' },
+      { id: 3, bgImage: 'assets/visby_s3.jpg', name: 'Powder Tower Ringmur Fortifications', startX: 3000, endX: 4500, sky: '#24083d', tint: '#c084fc' },
+      { id: 4, bgImage: 'assets/visby_s4.jpg', name: 'S:t Nicolai Cathedral Ruins (Checkpoint 🚩)', startX: 4500, endX: 6000, sky: '#150624', tint: '#e879f9' },
+      { id: 5, bgImage: 'assets/visby_s5.jpg', name: 'Cursed Smuggler Catacombs', startX: 6000, endX: 7500, sky: '#0a0214', tint: '#818cf8' },
+      { id: 6, bgImage: 'assets/visby_s6.jpg', name: 'Cliffside Coastal Battery & Rauks', startX: 7500, endX: 9000, sky: '#120521', tint: '#9333ea' },
+      { id: 7, bgImage: 'assets/visby_s7.jpg', name: 'Ghost Galleon Mooring Docks', startX: 9000, endX: 10500, sky: '#0b0216', tint: '#6366f1' },
+      { id: 8, bgImage: 'assets/visby_s8.jpg', name: 'Valdemar Ghost Ship Dread Galleon', startX: 10500, endX: 12000, sky: '#0d0217', tint: '#38bdf8' }
     ],
     movingPlatforms: [
       // Viking Drakkar Raft in Sector 2 (2050 - 2380)

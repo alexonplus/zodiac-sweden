@@ -913,6 +913,17 @@ export class GameManager {
     const lvlData = LEVELS[levelId] || LEVELS['goteborg'];
     this.levelWidth = this.gameMode === 'pvp' ? 1080 : (lvlData.width || 12000);
 
+    // Load sector specific background images
+    if (lvlData && lvlData.sectors) {
+      lvlData.sectors.forEach(s => {
+        if (s.bgImage && !s.img) {
+          const img = new Image();
+          img.src = s.bgImage;
+          s.img = img;
+        }
+      });
+    }
+
     this.isPlaying = true;
     this.score = 0;
     this.combo = 0;
@@ -1909,149 +1920,56 @@ export class GameManager {
 
   drawParallaxBackground() {
     const lvlData = LEVELS[this.currentLevel];
-    const bgImg = this.bgImages[this.currentLevel];
     const parallaxOffset = -(this.camera.x * 0.35) % W;
 
-    // 1. Far Base Image / Sky
-    if (bgImg && bgImg.complete && bgImg.naturalWidth !== 0) {
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(bgImg, parallaxOffset, 0, W, H);
-      ctx.drawImage(bgImg, parallaxOffset + W, 0, W, H);
-      if (parallaxOffset > 0) ctx.drawImage(bgImg, parallaxOffset - W, 0, W, H);
-    } else {
-      const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, '#020617');
-      grad.addColorStop(1, '#0c1a2e');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, H);
+    const rawSector = this.camera.x / 1500;
+    const sectorIndex = Math.min(7, Math.max(0, Math.floor(rawSector)));
+    const sectorBlend = rawSector - Math.floor(rawSector);
+    const nextSectorIndex = Math.min(7, sectorIndex + 1);
+    const sectors = lvlData && lvlData.sectors ? lvlData.sectors : null;
+    const curSec = sectors ? sectors[sectorIndex] : null;
+    const nxtSec = sectors ? sectors[nextSectorIndex] : curSec;
+
+    const blendAlpha = sectorBlend > 0.75 ? (sectorBlend - 0.75) * 4 : 0;
+
+    // Fallback gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#020617');
+    grad.addColorStop(1, '#0c1a2e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.imageSmoothingEnabled = true;
+
+    // Draw current sector image
+    if (curSec && curSec.img && curSec.img.complete && curSec.img.naturalWidth !== 0) {
+      ctx.globalAlpha = 1;
+      ctx.drawImage(curSec.img, parallaxOffset, 0, W, H);
+      ctx.drawImage(curSec.img, parallaxOffset + W, 0, W, H);
+      if (parallaxOffset > 0) ctx.drawImage(curSec.img, parallaxOffset - W, 0, W, H);
     }
 
-    // 2. Animated Aurora Borealis Effect for Kiruna
-    if (this.currentLevel === 'kiruna') {
-      ctx.save();
-      const wave = Math.sin(this.gameTime * 0.02) * 40;
-      const grad = ctx.createLinearGradient(0, 0, W, 250);
-      grad.addColorStop(0, 'rgba(6, 182, 212, 0.0)');
-      grad.addColorStop(0.4, 'rgba(34, 197, 94, 0.22)');
-      grad.addColorStop(0.7, 'rgba(168, 85, 247, 0.18)');
-      grad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.moveTo(0, 80 + wave);
-      ctx.bezierCurveTo(W * 0.3, 30 - wave, W * 0.7, 140 + wave, W, 70 - wave);
-      ctx.lineTo(W, 0);
-      ctx.lineTo(0, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+    // Blend next sector image
+    if (blendAlpha > 0 && nxtSec && nxtSec.img && nxtSec.img.complete && nxtSec.img.naturalWidth !== 0 && curSec !== nxtSec) {
+      ctx.globalAlpha = blendAlpha;
+      ctx.drawImage(nxtSec.img, parallaxOffset, 0, W, H);
+      ctx.drawImage(nxtSec.img, parallaxOffset + W, 0, W, H);
+      if (parallaxOffset > 0) ctx.drawImage(nxtSec.img, parallaxOffset - W, 0, W, H);
     }
 
-    // 2b. Animated Sublevel 1-1: Sunset River Water Shimmer & Crane Beacon
-    if (this.currentLevel === 'goteborg-1') {
+    ctx.globalAlpha = 1;
+    
+    // Minimal atmosphere tint
+    if (curSec) {
       ctx.save();
-      const shimmerWave = Math.sin(this.gameTime * 0.06);
-      const grad = ctx.createLinearGradient(0, 480, 0, H);
-      grad.addColorStop(0, 'rgba(251, 146, 60, 0.12)');
-      grad.addColorStop(0.4, 'rgba(234, 88, 12, 0.06)');
-      grad.addColorStop(1, 'rgba(3, 7, 18, 0.2)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 480, W, H - 480);
-      // Crane beacon flash
-      const beaconAlpha = (Math.sin(this.gameTime * 0.1) + 1) * 0.5;
-      ctx.fillStyle = `rgba(239, 68, 68, ${beaconAlpha * 0.5})`;
-      ctx.beginPath();
-      ctx.arc((parallaxOffset + 1120) % W, 80, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 2c. Animated Sublevel 1-2: Cyber Blue Catenary Power Waves & Neon Glow
-    if (this.currentLevel === 'goteborg-2') {
-      ctx.save();
-      // Overhead catenary electric pulse
-      const pulseX = (this.gameTime * 6) % W;
-      ctx.strokeStyle = '#00f0ff';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = '#00f0ff';
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.moveTo(pulseX, 268);
-      ctx.lineTo(pulseX + 40, 268);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      // High-tech canal glow
-      const grad = ctx.createLinearGradient(0, 490, 0, H);
-      grad.addColorStop(0, 'rgba(2, 132, 199, 0.16)');
-      grad.addColorStop(1, 'rgba(2, 6, 23, 0.3)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 490, W, H - 490);
-      ctx.restore();
-    }
-
-    // 2d. Animated Sublevel 1-3: Skansen Kronan Golden Crown Radiance & Thunder
-    if (this.currentLevel === 'goteborg-3') {
-      ctx.save();
-      // Crown divine shimmer
-      const crownPulse = (Math.sin(this.gameTime * 0.08) + 1) * 0.5;
-      const crownGrad = ctx.createRadialGradient(
-        (parallaxOffset + 415) % W, 25, 5,
-        (parallaxOffset + 415) % W, 25, 45
-      );
-      crownGrad.addColorStop(0, `rgba(254, 240, 138, ${0.4 + crownPulse * 0.3})`);
-      crownGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
-      ctx.fillStyle = crownGrad;
-      ctx.beginPath();
-      ctx.arc((parallaxOffset + 415) % W, 25, 45, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Occasional storm lightning flash
-      if (Math.random() < 0.008) {
-        ctx.fillStyle = 'rgba(233, 213, 255, 0.22)';
-        ctx.fillRect(0, 0, W, H);
-      }
-      ctx.restore();
-    }
-
-    // 2e. Animated Sublevel 1-4: Älvsborg Tempest Storm, Ocean Surge & Kraken Eye Pulse
-    if (this.currentLevel === 'goteborg-4') {
-      ctx.save();
-      // Ominous Kraken Cyclops Eye Pulsing in the dark mist
-      const krakenEyePulse = (Math.sin(this.gameTime * 0.07) + 1) * 0.5;
-      const eyeX = (parallaxOffset + 670) % W;
-      const eyeY = 430;
-      const eyeGrad = ctx.createRadialGradient(eyeX, eyeY, 4, eyeX, eyeY, 50);
-      eyeGrad.addColorStop(0, `rgba(239, 68, 68, ${0.6 + krakenEyePulse * 0.4})`);
-      eyeGrad.addColorStop(0.5, `rgba(185, 28, 28, ${0.3 + krakenEyePulse * 0.2})`);
-      eyeGrad.addColorStop(1, 'rgba(127, 29, 29, 0)');
-      ctx.fillStyle = eyeGrad;
-      ctx.beginPath();
-      ctx.arc(eyeX, eyeY, 50, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Tempest Lightning strikes
-      if (Math.random() < 0.015) {
-        ctx.fillStyle = 'rgba(165, 243, 252, 0.25)';
-        ctx.fillRect(0, 0, W, H);
-      }
-      // Dark churning ocean mist
-      const waveOffset = Math.sin(this.gameTime * 0.05) * 6;
-      ctx.fillStyle = 'rgba(8, 51, 68, 0.18)';
-      ctx.fillRect(0, 485 + waveOffset, W, H - 485);
-      ctx.restore();
-    }
-
-    // 3. Dynamic Sector Mood Tinting & Atmosphere
-    const sectorIndex = Math.min(5, Math.floor(this.camera.x / 1350));
-    const currentSector = lvlData && lvlData.sectors ? lvlData.sectors[sectorIndex] : null;
-
-    if (currentSector) {
-      ctx.save();
-      ctx.fillStyle = currentSector.tint;
-      ctx.globalAlpha = 0.09;
+      ctx.fillStyle = curSec.tint;
+      ctx.globalAlpha = 0.05;
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
     }
   }
+
+  // Old primitives removed
 
   render() {
     ctx.save();
