@@ -30,7 +30,7 @@ export class SoundEngine {
 
     // Custom Audio Player state (MP3 / WAV from user)
     this.customAudioElement = null;
-    this.customAudioUrl = '/assets/goteborg_custom.mp3';
+    this.customAudioUrl = '/assets/goteborg_custom_2.mp3';
     this.customAudioName = 'Gothenburg1.mp3';
     this.hasCustomAudio = true;
 
@@ -47,7 +47,7 @@ export class SoundEngine {
       this.customAudioElement = new AudioClass();
       this.customAudioElement.loop = true;
       this.customAudioElement.preload = 'auto';
-      this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom.mp3';
+      this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom_2.mp3';
       this.customAudioElement.volume = this.isMuted ? 0 : 0.8;
       this.loadSavedCustomMusic();
     }
@@ -156,7 +156,7 @@ export class SoundEngine {
         this.notifyCustomAudioChanged();
       } else {
         // Default to user's provided Gothenburg1 song asset
-        this.customAudioUrl = '/assets/goteborg_custom.mp3';
+        this.customAudioUrl = '/assets/goteborg_custom_2.mp3';
         this.customAudioName = 'Gothenburg1.mp3';
         this.hasCustomAudio = true;
         const curLoc = (typeof window !== 'undefined' && window.location) ? window.location.href : '';
@@ -209,7 +209,7 @@ export class SoundEngine {
       if (this.customAudioUrl && this.customAudioUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.customAudioUrl);
       }
-      this.customAudioUrl = '/assets/goteborg_custom.mp3';
+      this.customAudioUrl = '/assets/goteborg_custom_2.mp3';
       this.customAudioName = 'Gothenburg1.mp3';
       this.hasCustomAudio = true;
       if (this.customAudioElement) {
@@ -238,7 +238,7 @@ export class SoundEngine {
     try {
       const curLoc = (typeof window !== 'undefined' && window.location) ? window.location.href : '';
       if (!this.customAudioElement.src || (curLoc && this.customAudioElement.src === curLoc) || this.customAudioElement.src.endsWith('/')) {
-        this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom.mp3';
+        this.customAudioElement.src = this.customAudioUrl || '/assets/goteborg_custom_2.mp3';
       }
       this.customAudioElement.muted = this.isMuted;
       this.customAudioElement.volume = this.isMuted ? 0 : 0.8;
